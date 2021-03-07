@@ -1,4 +1,4 @@
-use regex::Regex;
+use onig::Regex;
 
 use crate::string_manip::{strip_succ_all,split_arithmetic,split_logical,get_vars,get_bound_vars,get_free_vars,strip_quant};
 

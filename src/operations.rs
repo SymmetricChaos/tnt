@@ -55,3 +55,16 @@ pub fn forall(v: &Variable, x: &Formula) -> Formula {
     let new_s = format!("∀{}:{}",v,x);
     Formula::new(&new_s)
 }
+
+/*
+pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
+    if x.s.contains(format!("∀{}:",v)) {
+        let mut new_s = x.s;
+        new_s.replace(format!("∀{}:",v),"");
+
+    } else {
+        panic!("{} is not univerally quantified in {}",v,x)
+    }
+    Formula::new(&new_s)
+}
+*/

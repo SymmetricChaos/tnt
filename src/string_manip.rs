@@ -1,4 +1,4 @@
-use regex::Regex;
+use onig::Regex;
 
 pub fn strip_succ(s: &str) -> &str {
     let mut s = s;
@@ -99,8 +99,8 @@ pub fn split_logical(s: &str) -> Option<(&str,&str)> {
 pub fn get_vars(s: &str) ->  Vec<String> {
     let re = Regex::new(r"[a-z]'*").unwrap();
     let mut out: Vec<String> = Vec::new();
-    for s in re.find_iter(s) {
-        out.push(s.as_str().to_owned());
+    for st in re.find_iter(s) {
+        out.push(s[st.0..st.1].to_owned());
     }
     out
 }
@@ -110,8 +110,8 @@ pub fn get_vars(s: &str) ->  Vec<String> {
 pub fn get_quants(s: &str) -> Vec<String> {
     let re = Regex::new("[∀∃][a-z]\'*:").unwrap();
     let mut out: Vec<String> = Vec::new();
-    for s in re.find_iter(s) {
-        out.push(s.as_str().to_owned());
+    for st in re.find_iter(s) {
+        out.push(s[st.0..st.1].to_owned());
     }
     out
 }
@@ -157,7 +157,7 @@ pub fn strip_quant(s: &str) -> &str {
     let re = Regex::new("^[∀∃][a-z]\'*:").unwrap();
     let mut m = re.find(s);
     while m.is_some() {
-        let e = m.unwrap().end();
+        let e = m.unwrap().1;
         s = &s[e..];
         s = strip_neg(s);
         m = re.find(s);
@@ -195,6 +195,15 @@ pub fn var_in_string(s: &str, v: &str) -> bool {
     unreachable!()
 }
 
+pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {
+    // (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
+    let p = format!("(?m){}(?!')",pattern);
+    let re = Regex::new(&p).unwrap();
+    let out = re.replace_all(s,replacement);
+    out.to_string()
+}
+
+
 
 
 #[test]
@@ -219,6 +228,12 @@ fn test_var_in_string() {
     assert_eq!(var_in_string("∃a':∀b:(a'+a')=b","a"),false);
     assert_eq!(var_in_string("∃a:∃b:(a'+a')=b","a''"),false);
     assert_eq!(var_in_string("∃a:∃b:(a'+a')=b","c"),false);
+}
+
+
+#[test]
+fn test_replace_var_in_string() {
+    assert_eq!(replace_var_in_string("∃a':∀b:(a'+a)=b","a","x"),"∃a':∀b:(a'+x)=b");
 }
 
 #[test]
