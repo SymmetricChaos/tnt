@@ -32,7 +32,7 @@ pub fn and(x: &Formula, y: &Formula) -> Formula {
 }
 
 pub fn implies(x: &Formula, y: &Formula) -> Formula {
-    let new_s = format!("<{}🡢{}>",x,y);
+    let new_s = format!("<{}⊃{}>",x,y);
     Formula::new(&new_s)
 }
 

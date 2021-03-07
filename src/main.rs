@@ -3,7 +3,7 @@ mod Properties;
 mod Operations;
 mod StringManipulation;
 
-// Nonstandard symbols used: ∀∃∧∨🡢·
+// Nonstandard symbols used: ∀∃∧∨⊃·
 
 fn main() {
     let variable = Types::Variable::new("a");
