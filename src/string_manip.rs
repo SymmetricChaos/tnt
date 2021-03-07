@@ -84,7 +84,7 @@ pub fn split_arithmetic(s: &str) -> Option<(&str,&str)> {
 
 
 pub fn split_logical(s: &str) -> Option<(&str,&str)> {
-    let leftmost = match left_string(s, vec!['<'],vec!['∧','∨','🡢']) {
+    let leftmost = match left_string(s, vec!['<'],vec!['∧','∨','⊃']) {
         Some(v) => v,
         None => return None
     };
@@ -211,7 +211,7 @@ fn test_strip_quants() {
 
 #[test]
 fn test_get_vars() {
-    let v1 = vec!["a'","a","b"];
+    let v1 = vec!["a'","b","a","a'","b"];
     assert_eq!(get_vars("∃a':∀b:(a+a')=b"),v1);
 }
 

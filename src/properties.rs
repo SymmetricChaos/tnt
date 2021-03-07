@@ -122,10 +122,10 @@ pub fn is_well_formed_formula(s: &str) -> bool {
 // Generally need more adversarial inputs for this, especially invalid strings
 
 // Test the following valid strings:
-// a, z', 0, S0), Sa+Sb)) a=x, S0) = Sv), <~∃b:~a=b∧∀c:~a=c>, <~(a+b)=0➔<a=b∨0=S0>>
+// a, z', 0, S0, Sa+Sb a=x, S0 = Sv, <~∃b:~a=b∧∀c:~a=c>, <~(a+b)=0➔<a=b∨0=S0>>
 
 // Test the following invalid strings:
-// 'k, SS)), <~∃b:a=a∧c=c>, 
+// 'k, SS(), <~∃b:a=a∧c=c>, ∃a':∀a:a=a
 
 #[test]
 fn test_is_var() {
@@ -138,6 +138,7 @@ fn test_is_var() {
     assert_eq!(is_var("S0=Sv"),false,"S0=Sv is not a variable");
     assert_eq!(is_var("<~∃b:~a=b∧∀c:~a=c>"),false,"<~∃b:~a=b∧∀c:~a=c> is not a variable");
     assert_eq!(is_var("<~(a+b)=0⊃<a=b∨0=S0>>"),false,"<~(a+b)=0⊃<a=b∨0=S0>> is not a variable");
+    assert_eq!(is_var("∃a':∀a:a=a"),false,"∃a':∀a:a=a should be rejected, it is malformed");
     assert_eq!(is_var("'k"),false,"'k should be rejected, it is malformed");
     assert_eq!(is_var("SS()"),false,"SS() should be rejected, it is malformed");
     assert_eq!(is_var("<~∃b:a=a∧c=c>"),false,"<~∃b:a=a∧c=c> should be rejected, it is malformed");
@@ -154,6 +155,7 @@ fn test_is_num() {
     assert_eq!(is_num("S0=Sv"),false,"S0=Sv is not a number");
     assert_eq!(is_num("<~∃b:~a=b∧∀c:~a=c>"),false,"<~∃b:~a=b∧∀c:~a=c> is not a number");
     assert_eq!(is_num("<~(a+b)=0⊃<a=b∨0=S0>>"),false,"<~(a+b)=0⊃<a=b∨0=S0>> is not a number");
+    assert_eq!(is_num("∃a':∀a:a=a"),false,"∃a':∀a:a=a should be rejected, it is malformed");
     assert_eq!(is_num("'k"),false,"'k should be rejected, it is malformed");
     assert_eq!(is_num("SS()"),false,"SS() should be rejected, it is malformed");
     assert_eq!(is_num("<~∃b:a=a∧c=c>"),false,"<~∃b:a=a∧c=c> should be rejected, it is malformed");
@@ -171,6 +173,7 @@ fn test_is_term() {
     assert_eq!(is_term("S0=Sv"),false,"S0=Sv is not a term");
     assert_eq!(is_term("<~∃b:~a=b∧∀c:~a=c>"),false,"<~∃b:~a=b∧∀c:~a=c> is not a term");
     assert_eq!(is_term("<~(a+b)=0⊃<a=b∨0=S0>>"),false,"<~(a+b)=0⊃<a=b∨0=S0>> is not a term");
+    assert_eq!(is_term("∃a':∀a:a=a"),false,"∃a':∀a:a=a should be rejected, it is malformed");
     assert_eq!(is_term("'k"),false,"'k should be rejected, it is malformed");
     assert_eq!(is_term("SS()"),false,"SS() should be rejected, it is malformed");
     assert_eq!(is_term("<~∃b:a=a∧c=c>"),false,"<~∃b:a=a∧c=c> should be rejected, it is malformed");
@@ -187,6 +190,7 @@ fn test_is_atom() {
     assert_eq!(is_atom("S0=Sv"),true,"S0=Sv is an atom");
     assert_eq!(is_atom("<~∃b:~a=b∧∀c:~a=c>"),false,"<~∃b:~a=b∧∀c:~a=c> is not an atom");
     assert_eq!(is_atom("<~(a+b)=0⊃<a=b∨0=S0>>"),false,"<~(a+b)=0⊃<a=b∨0=S0>> is not an atom");
+    assert_eq!(is_atom("∃a':∀a:a=a"),false,"∃a':∀a:a=a should be rejected, it is malformed");
     assert_eq!(is_atom("'k"),false,"'k should be rejected, it is malformed");
     assert_eq!(is_atom("SS()"),false,"SS() should be rejected, it is malformed");
     assert_eq!(is_atom("<~∃b:a=a∧c=c>"),false,"<~∃b:a=a∧c=c> should be rejected, it is malformed");
@@ -203,6 +207,7 @@ fn test_is_compound() {
     assert_eq!(is_compound("S0=Sv"),false,"S0=Sv is not a compound");
     assert_eq!(is_compound("<~∃b:~a=b∧∀c:~a=c>"),true,"<~∃b:~a=b∧∀c:~a=c> is a compound");
     assert_eq!(is_compound("<~(a+b)=0⊃<a=b∨0=S0>>"),true,"<~(a+b)=0⊃<a=b∨0=S0>> is a compound");
+    assert_eq!(is_compound("∃a':∀a:a=a"),false,"∃a':∀a:a=a should be rejected, it is malformed");
     assert_eq!(is_compound("'k"),false,"'k should be rejected, it is malformed");
     assert_eq!(is_compound("SS()"),false,"SS() should be rejected, it is malformed");
     assert_eq!(is_compound("<~∃b:a=a∧c=c>"),false,"<~∃b:a=a∧c=c> should be rejected, it is malformed");
@@ -219,6 +224,7 @@ fn test_is_well_formed_formula() {
     assert_eq!(is_well_formed_formula("S0=Sv"),true,"S0=Sv is a well-formed formula");
     assert_eq!(is_well_formed_formula("<~∃b:~a=b∧∀c:~a=c>"),true,"<~∃b:~a=b∧∀c:~a=c> is a well-formed formula");
     assert_eq!(is_well_formed_formula("<~(a+b)=0⊃<a=b∨0=S0>>"),true,"<~(a+b)=0⊃<a=b∨0=S0>> is a well-formed formula");
+    assert_eq!(is_well_formed_formula("∃a':∀a:a=a"),false,"∃a':∀a:a=a should be rejected, it is malformed");
     assert_eq!(is_well_formed_formula("'k"),false,"'k should be rejected, it is malformed");
     assert_eq!(is_well_formed_formula("SS()"),false,"SS() should be rejected, it is malformed");
     assert_eq!(is_well_formed_formula("<~∃b:a=a∧c=c>"),false,"<~∃b:a=a∧c=c> should be rejected, it is malformed");

@@ -71,3 +71,20 @@ pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
         panic!("{} is not univerally quantified in {}",v,x)
     }
 }
+
+#[test]
+fn test_specify() {
+    let a = Variable::new("a");
+    let one = Term::new("S0");
+    let formula1 = Formula::new("∀a:a=a");
+    let formula2 = Formula::new("∃a':∀a:<a=a∧a'=a'>");
+    assert_eq!(specify(&formula2,&a,&one).s,"∃a':<S0=S0∧a'=a'>");
+}
+
+#[test]
+fn test_add() {
+    let a = Term::new("a");
+    let b = Term::new("b");
+    assert_eq!(add(&a,&b).s,"(a+b)");
+    assert_eq!(add(&a,&add(&b,&b)).s,"(a+(b+b))");
+}
