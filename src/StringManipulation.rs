@@ -10,6 +10,7 @@ pub fn strip_succ(s: &str) -> &str {
     s
 }
 
+
 pub fn strip_succ_all(s: &str) -> &str {
     let mut s = s;
     loop {
@@ -21,6 +22,7 @@ pub fn strip_succ_all(s: &str) -> &str {
     }
     s
 }
+
 
 // Returns the contents and positions of the outermost pairs of brackets
 pub fn bracket_match(s: &str, leftb: Vec<char>, rightb: Vec<char>) -> Option<Vec<(&str,usize,usize,usize)>> {
@@ -84,7 +86,7 @@ pub fn split_arithmetic(s: &str) -> Option<(&str,&str)> {
 
 
 pub fn split_logical(s: &str) -> Option<(&str,&str)> {
-    let leftmost = match left_string(s, vec!['<'],vec!['∧','∨','➔']) {
+    let leftmost = match left_string(s, vec!['<'],vec!['∧','∨','🡢']) {
         Some(v) => v,
         None => return None
     };
@@ -93,59 +95,62 @@ pub fn split_logical(s: &str) -> Option<(&str,&str)> {
     Some((l,r))
 }
 
+
 // Set of all variables
-pub fn get_vars(s: &str) -> HashSet<&str> {
+pub fn get_vars(s: &str) ->  Vec<String> {
     let re = Regex::new(r"[a-z]'*").unwrap();
-    let mut out: HashSet<&str> = HashSet::new();
+    let mut out: Vec<String> = Vec::new();
     for s in re.find_iter(s) {
-        out.insert(s.as_str());
+        out.push(s.as_str().to_owned());
     }
     out
 }
+
 
 // Set of string representing quantifications of variables
-pub fn get_quants(s: &str) -> HashSet<&str> {
+pub fn get_quants(s: &str) -> Vec<String> {
     let re = Regex::new("[∀∃][a-z]\'*:").unwrap();
-    let mut out: HashSet<&str> = HashSet::new();
+    let mut out: Vec<String> = Vec::new();
     for s in re.find_iter(s) {
-        out.insert(s.as_str());
+        out.push(s.as_str().to_owned());
     }
     out
 }
 
+
 // Set of quantified variables
-pub fn get_bound_vars(s: &str) -> HashSet<&str> {
+pub fn get_bound_vars(s: &str) -> Vec<String> {
     let quants = get_quants(s);
-    let mut bound: HashSet<&str> = HashSet::new();
+    let mut bound: Vec<String> = Vec::new();
     for q in quants.iter() {
-        bound.insert(&q[3..q.len()-1]);
+        bound.push(q[3..q.len()-1].to_owned());
     }
     bound
 }
 
-// Set of variables that are not quantified
-pub fn get_free_vars(s: &str) -> HashSet<&str> {
-    let vars = get_vars(s);
-    let quants = get_quants(s);
-    let mut bound: HashSet<&str> = HashSet::new();
-    for q in quants.iter() {
-        bound.insert(&q[3..q.len()-1]);
-    }
-    let mut free = vars.clone();
-    for b in bound {
-        free.remove(&b);
+
+pub fn get_free_vars(s: &str) -> Vec<String> {
+    let var = get_vars(s);
+    let bound = get_bound_vars(s);
+    let mut free = Vec::new();
+    for v in var {
+        if !bound.contains(&v) {
+            free.push(v)
+        }
     }
     free
 }
+
 
 // Remove leading negations
 pub fn strip_neg(s: &str) -> &str {
     let mut s = s;
     while s.starts_with("~") {
-        s = &s[1..];
+        s = s.strip_prefix("S").unwrap();
     }
     s
 }
+
 
 // Remove the leading quantifiers and negations
 pub fn strip_quant(s: &str) -> &str {
@@ -160,6 +165,7 @@ pub fn strip_quant(s: &str) -> &str {
     }
     s
 }
+
 
 // Just in case we need to check directly if a variable exists in a string
 pub fn var_in_string(s: &str, v: &str) -> bool {
@@ -193,20 +199,19 @@ pub fn var_in_string(s: &str, v: &str) -> bool {
 
 
 #[test]
+fn test_strip_quants() {
+    assert_eq!(strip_quant("∀b:∃a:a=a"),"a=a");
+}
+
+#[test]
 fn test_get_vars() {
-    let v1: HashSet<&str> = ["a'","a","b"].iter().cloned().collect();
+    let v1 = vec!["a'","a","b"];
     assert_eq!(get_vars("∃a':∀b:(a+a')=b"),v1);
 }
 
 #[test]
-fn test_get_free_vars() {
-    let v1: HashSet<&str> = ["a"].iter().cloned().collect();
-    assert_eq!(get_free_vars("∃a':∀b:(a+a')=b"),v1);
-}
-
-#[test]
 fn test_get_bound_vars() {
-    let v1: HashSet<&str> = ["a'","b"].iter().cloned().collect();
+    let v1 = vec!["a'","b"];
     assert_eq!(get_bound_vars("∃a':∀b:(a+a')=b"),v1);
 }
 
