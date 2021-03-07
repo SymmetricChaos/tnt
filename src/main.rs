@@ -9,7 +9,7 @@ fn main() {
     let variable = types::Variable::new("a");
     let term = types::Term::new("S0");
     let complex_term = types::Term::new("S(a+Sb)");
-    let atom = types::Formula::new("a=a");
+    let atom = operations::eq(&term,&term);
     let long_formula = types::Formula::new("<~∃b:~a=b∧∀c:~a=c>");
     let sum_of_terms = operations::add(&term,&term);
     //let term_plus_atom = operations::add(&term,&atom); <- should refuse to compile
