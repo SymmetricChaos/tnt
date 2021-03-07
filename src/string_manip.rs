@@ -2,7 +2,6 @@ use onig::Regex;
 
 pub fn strip_succ(s: &str) -> &str {
     let mut s = s;
-    
     if s.starts_with("S") {
         s = s.strip_prefix("S").unwrap();
     }
@@ -192,7 +191,6 @@ pub fn var_in_string(s: &str, v: &str) -> bool {
             }
         }
     }
-    unreachable!()
 }
 
 pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {

@@ -4,6 +4,12 @@ use crate::properties::{is_term,is_well_formed_formula,is_var};
 use crate::string_manip::{get_bound_vars};
 
 #[derive(Debug)]
+pub struct Variable {
+    pub s: String,
+}
+
+
+#[derive(Debug)]
 pub struct Term {
     pub s: String,
 }
@@ -14,12 +20,14 @@ pub struct Formula {
     pub bound_vars: Vec<String>
 }
 
-#[derive(Debug)]
-pub struct Variable {
-    pub s: String,
-}
+// Any Variables are also terms
+pub trait Termlike {}
+impl Termlike for Term {}
+impl Termlike for Variable {}
 
-
+// We may need this for things that accept atoms but not other well-formed formulas
+pub trait Wellformed {}
+impl Wellformed for Formula {}
 
 impl fmt::Display for Term {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -32,7 +40,7 @@ impl Term {
         if is_term(input) {
             return Term{ s: input.to_owned() }
         } else {
-            panic!("{} is not a well formed term",input)
+            panic!("{} is not a term",input)
         }
     }
 }
