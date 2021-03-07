@@ -1,5 +1,4 @@
 use regex::Regex;
-use std::collections::HashSet;
 
 pub fn strip_succ(s: &str) -> &str {
     let mut s = s;

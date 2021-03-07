@@ -1,7 +1,7 @@
 use std::fmt;
 
-use crate::Properties::{is_term,is_well_formed_formula,is_var};
-use crate::StringManipulation::{get_bound_vars};
+use crate::properties::{is_term,is_well_formed_formula,is_var};
+use crate::string_manip::{get_bound_vars};
 
 #[derive(Debug)]
 pub struct Term {

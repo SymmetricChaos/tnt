@@ -1,19 +1,19 @@
-mod Types;
-mod Properties;
-mod Operations;
-mod StringManipulation;
+mod types;
+mod properties;
+mod operations;
+mod string_manip;
 
 // Nonstandard symbols used: ∀∃∧∨⊃·
 
 fn main() {
-    let variable = Types::Variable::new("a");
-    let term = Types::Term::new("S0");
-    let complex_term = Types::Term::new("S(a+Sb)");
-    let atom = Types::Formula::new("a=a");
-    let long_formula = Types::Formula::new("<~∃b:~a=b∧∀c:~a=c>");
-    let sum_of_terms = Operations::add(&term,&term);
-    //let term_plus_atom = Operations::add(&term,&atom); <- should refuse to compile
-    let all_a_is_a = Operations::forall(&variable,&atom);
+    let variable = types::Variable::new("a");
+    let term = types::Term::new("S0");
+    let complex_term = types::Term::new("S(a+Sb)");
+    let atom = types::Formula::new("a=a");
+    let long_formula = types::Formula::new("<~∃b:~a=b∧∀c:~a=c>");
+    let sum_of_terms = operations::add(&term,&term);
+    //let term_plus_atom = operations::add(&term,&atom); <- should refuse to compile
+    let all_a_is_a = operations::forall(&variable,&atom);
 
     println!("{}",variable);
     println!("{}",term);

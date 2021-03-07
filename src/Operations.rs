@@ -1,5 +1,4 @@
-use crate::Types::{Term,Formula,Variable};
-use crate::StringManipulation::{get_bound_vars};
+use crate::types::{Term,Formula,Variable};
 
 pub fn add(x: &Term, y: &Term) -> Term {
     let new_s = format!("({}+{})",x,y);
