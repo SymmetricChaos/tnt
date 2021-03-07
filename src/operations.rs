@@ -1,6 +1,11 @@
-use crate::types::{Term,Formula,Variable,Termlike};
+use crate::types::{Term,Formula,Atom,Variable,Termlike,Wellformed};
 use crate::string_manip::replace_var_in_string;
 
+// Arithmetic operations
+pub fn succ(x: &Term) -> Term {
+    let new_s = format!("S{}",x);
+    Term::new(&new_s)
+}
 
 pub fn add(x: &Term, y: &Term) -> Term {
     let new_s = format!("({}+{})",x,y);
@@ -12,35 +17,32 @@ pub fn mul(x: &Term, y: &Term) -> Term {
     Term::new(&new_s)
 }
 
-pub fn succ(x: &Term) -> Term {
-    let new_s = format!("S{}",x);
-    Term::new(&new_s)
-}
 
-pub fn eq(x: &Term, y: &Term) -> Formula {
-    let new_s = format!("{}={}",x,y);
-    Formula::new(&new_s)
-}
-
-pub fn or(x: &Formula, y: &Formula) -> Formula {
-    let new_s = format!("<{}∨{}>",x,y);
-    Formula::new(&new_s)
-}
-
-pub fn and(x: &Formula, y: &Formula) -> Formula {
-    let new_s = format!("<{}∧{}>",x,y);
-    Formula::new(&new_s)
-}
-
-pub fn implies(x: &Formula, y: &Formula) -> Formula {
-    let new_s = format!("<{}⊃{}>",x,y);
-    Formula::new(&new_s)
-}
-
+// Logical operations
 pub fn not(x: &Formula) -> Formula {
     let new_s = format!("~{}",x);
     Formula::new(&new_s)
 }
+pub fn eq<A: Termlike, B: Termlike>(x: &A, y: &B) -> Atom {
+    let new_s = format!("{}={}",x.get_string(),y.get_string());
+    Atom::new(&new_s)
+}
+
+pub fn or<T: Wellformed>(x: &T, y: &T) -> Formula {
+    let new_s = format!("<{}∨{}>",x.get_string(),y.get_string());
+    Formula::new(&new_s)
+}
+
+pub fn and<T: Wellformed>(x: &T, y: &T) -> Formula {
+    let new_s = format!("<{}∧{}>",x.get_string(),y.get_string());
+    Formula::new(&new_s)
+}
+
+pub fn implies<T: Wellformed>(x: &T, y: &T) -> Formula {
+    let new_s = format!("<{}⊃{}>",x.get_string(),y.get_string());
+    Formula::new(&new_s)
+}
+
 
 pub fn exists(v: &Variable, x: &Formula) -> Formula {
     if x.bound_vars.contains(&v.s) {
@@ -59,6 +61,8 @@ pub fn forall(v: &Variable, x: &Formula) -> Formula {
 }
 
 
+// Rules of production
+
 pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
     if x.s.contains(&format!("∀{}:",v)) {
         let mut new_s = x.s.clone().replace(&format!("∀{}:",v.s),"");
@@ -71,6 +75,45 @@ pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
         panic!("{} is not univerally quantified in {}",v,x)
     }
 }
+
+/*
+pub fn generalize(x: &Formula, v: &Variable) -> Formula {
+
+}
+
+pub fn interchange_EA(x: &Formula, v: &Variable) -> Formula {
+
+}
+
+pub fn interchange_AE(x: &Formula, v: &Variable) -> Formula {
+
+}
+
+pub fn successor(a: &atom) -> Atom {
+
+}
+
+pub fn predecessor(a: &atom) -> Atom {
+
+}
+
+pub fn existence(x: &Formula, v: &Variable, t: &Term) {
+
+}
+
+pub fn symmetry(a: &Atom) {
+
+}
+
+pub fn transitivity(a1: &Atom, a2: &Atom) {
+
+}
+
+pub fn induction() {
+
+}
+*/
+
 
 #[test]
 fn test_specify() {
