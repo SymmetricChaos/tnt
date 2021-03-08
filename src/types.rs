@@ -1,4 +1,5 @@
 use std::fmt;
+use onig::Regex;
 
 use crate::properties::{is_term,is_well_formed_formula,is_var,is_atom};
 use crate::string_manip::{get_bound_vars};
@@ -6,6 +7,7 @@ use crate::string_manip::{get_bound_vars};
 #[derive(Debug)]
 pub struct Variable {
     pub s: String,
+    pub regex: Regex,
 }
 
 
@@ -31,15 +33,26 @@ pub struct Formula {
 // Every Variable is a Term but not every Term is an Variable
 pub trait Termlike {
     fn get_string(&self) -> &str;
+    fn to_var(self) -> Option<Variable>;
 }
 impl Termlike for Term {
     fn get_string(&self) -> &str {
         &self.s
     }
+    fn to_var(self) -> Option<Variable> {
+        if is_var(&self.s) {
+            return Some(Variable::new(&self.s))
+        } else {
+            return None
+        }
+    }
 }
 impl Termlike for Variable {
     fn get_string(&self) -> &str {
         &self.s
+    }
+    fn to_var(self) -> Option<Variable> {
+        Some(self)
     }
 }
 
@@ -47,7 +60,6 @@ impl Termlike for Variable {
 pub trait Wellformed {
     fn get_string(&self) -> &str;
     fn well_formed(&self) -> bool;
-    fn to_atom(self) -> Option<Atom>;
 }
 
 impl Wellformed for Formula {
@@ -58,14 +70,6 @@ impl Wellformed for Formula {
     fn well_formed(&self) -> bool {
         is_well_formed_formula(&self.s)
     }
-
-    fn to_atom(self) -> Option<Atom> {
-        if is_atom(&self.s) {
-            return Some(Atom::new(&self.s))
-        } else {
-            return None
-        }
-    }
 }
 impl Wellformed for Atom {
     fn get_string(&self) -> &str {
@@ -74,10 +78,6 @@ impl Wellformed for Atom {
 
     fn well_formed(&self) -> bool {
         is_well_formed_formula(&self.s)
-    }
-
-    fn to_atom(self) -> Option<Atom> {
-        return Some(self)
     }
 }
 
@@ -92,7 +92,9 @@ impl fmt::Display for Variable {
 impl Variable {
     pub fn new(input: &str) -> Variable {
         if is_var(input) {
-            return Variable{ s: input.to_owned() }
+            let s = input.to_owned();
+            let regex = Regex::new(&format!("{}(?!')",input)).unwrap();
+            return Variable{ s, regex }
         } else {
             panic!("{} is not a variable",input)
         }
@@ -142,6 +144,14 @@ impl Formula {
     pub fn new(input: &str) -> Formula {
         return Formula{ s: input.to_owned(), bound_vars: get_bound_vars(input) }
     }
+
+    pub fn to_atom(self) -> Option<Atom> {
+        if is_atom(&self.s) {
+            return Some(Atom::new(&self.s))
+        } else {
+            return None
+        }
+    }
 }
 
 
@@ -162,4 +172,12 @@ pub fn number(n: usize) -> Term {
     let start = "S".repeat(n);
     let new_s = format!("{}0",start);
     Term::new(&new_s)
+}
+
+pub fn var_in_string(v: &Variable, s: &str) -> bool {
+    if v.regex.find(s).is_some() {
+        return true
+    } else {
+        return false
+    }
 }

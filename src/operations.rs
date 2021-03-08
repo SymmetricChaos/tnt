@@ -62,7 +62,7 @@ pub fn forall<F: Wellformed>(v: &Variable, x: &F) -> Formula {
 // Rules of production
 // These may check for additional internal contraints and will panic on failure
 
-pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
+pub fn specification(x: &Formula, v: &Variable, t: &Term) -> Formula {
     if x.s.contains(&format!("∀{}:",v)) {
         let mut new_s = x.s.clone().replace(&format!("∀{}:",v.s),"");
         if !x.bound_vars.contains(&v.s) {
@@ -76,7 +76,7 @@ pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
 }
 
 
-pub fn generalize(x: &Formula, v: &Variable) -> Formula {
+pub fn generalization(x: &Formula, v: &Variable) -> Formula {
     if x.bound_vars.contains(&v.s) {
         return forall(v,x)
     } else {
@@ -84,7 +84,7 @@ pub fn generalize(x: &Formula, v: &Variable) -> Formula {
     }
 }
 
-// TODO: This name should follow the naming pattern
+
 pub fn existence<T: Termlike>(x: &Formula, t: &T, v: &Variable) -> Formula {
     if x.bound_vars.contains(&v.s) {
         panic!("Existence Error: {} is bound in {}",v,x)
@@ -162,12 +162,13 @@ pub fn transitivity(a1: &Atom, a2: &Atom) -> Atom {
 
 
 #[test]
-fn test_specify() {
+fn test_specification() {
     let a = Variable::new("a");
     let one = Term::new("S0");
     let formula1 = Formula::new("∀a:a=a");
     let formula2 = Formula::new("∃a':∀a:<a=a∧a'=a'>");
-    assert_eq!(specify(&formula2,&a,&one).s,"∃a':<S0=S0∧a'=a'>");
+    assert_eq!(specification(&formula1,&a,&one).s,"S0=S0");
+    assert_eq!(specification(&formula2,&a,&one).s,"∃a':<S0=S0∧a'=a'>");
 }
 
 #[test]
@@ -177,3 +178,31 @@ fn test_add() {
     assert_eq!(add(&a,&b).s,"(a+b)");
     assert_eq!(add(&a,&add(&b,&b)).s,"(a+(b+b))");
 }
+
+#[test]
+fn test_symmetry() {
+    let atom1 = Atom::new("a=b");
+    let atom2 = Atom::new("b=S(a+S0)");
+    assert_eq!(symmetry(&atom1).s,"b=a");
+    assert_eq!(symmetry(&atom2).s,"S(a+S0)=b");
+}
+
+#[test]
+fn test_transitivity() {
+    let atom1 = Atom::new("a=b");
+    let atom2 = Atom::new("b=S(a+S0)");
+    assert_eq!(transitivity(&atom1,&atom2).s,"a=S(a+S0)");
+}
+
+#[test]
+fn test_predecessor() {
+    let atom = Atom::new("Sm''=SSu");
+    assert_eq!(predecessor(&atom).s,"m''=Su");
+}
+
+#[test]
+fn test_successor() {
+    let atom = Atom::new("Sm''=SSu");
+    assert_eq!(successor(&atom).s,"SSm''=SSSu");
+}
+

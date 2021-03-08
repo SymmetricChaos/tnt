@@ -97,7 +97,7 @@ pub fn split_eq(s: &str) -> Option<(&str,&str)> {
     if !s.contains(s) {
         return None
     }
-    let sp: Vec<&str> = s.splitn(1,"=").collect();
+    let sp: Vec<&str> = s.splitn(2,"=").collect();
     Some((sp[0],sp[1]))
 }
 
@@ -172,38 +172,22 @@ pub fn strip_quant(s: &str) -> &str {
     s
 }
 
-
+// TODO: Optimization tie this directly to the variable itself so that the regex doesn't need to be built every time to variable is searched for
 // Just in case we need to check directly if a variable exists in a string
 pub fn var_in_string(s: &str, v: &str) -> bool {
-    if s.len() < v.len() {
+    // (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
+    let p = format!("{}(?!')",v);
+    let re = Regex::new(&p).unwrap();
+    if re.find(s).is_some() {
+        return true
+    } else {
         return false
-    }
-    let w = v.len();
-    let mut sym = s.char_indices().peekable();
-    loop {
-        let (pos,_) = sym.next().unwrap();
-        if pos + w == s.len() {
-            if &s[pos..] == v {
-                return true
-            }
-            return false
-        }
-        // If the next value is an apostrope we know we don't have a match
-        if sym.peek().unwrap().1 == '\'' {
-            continue
-        } else {
-            if s.is_char_boundary(pos+w) {
-                if &s[pos..pos+w] == v {
-                    return true
-                }
-            }
-        }
     }
 }
 
+
 pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {
-    // (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
-    let p = format!("(?m){}(?!')",pattern);
+    let p = format!("{}(?!')",pattern);
     let re = Regex::new(&p).unwrap();
     let out = re.replace_all(s,replacement);
     out.to_string()
