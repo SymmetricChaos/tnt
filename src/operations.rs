@@ -1,26 +1,28 @@
 use crate::types::{Term,Formula,Atom,Variable,Termlike,Wellformed};
 use crate::string_manip::replace_var_in_string;
 
-// Arithmetic operations
-pub fn succ(x: &Term) -> Term {
-    let new_s = format!("S{}",x);
+// Rules of construction
+
+// Arithmetic
+pub fn succ<T: Termlike>(x: &T) -> Term {
+    let new_s = format!("S{}",x.get_string());
     Term::new(&new_s)
 }
 
-pub fn add(x: &Term, y: &Term) -> Term {
-    let new_s = format!("({}+{})",x,y);
+pub fn add<A: Termlike, B: Termlike>(x: &A, y: &B) -> Term {
+    let new_s = format!("({}+{})",x.get_string(),y.get_string());
     Term::new(&new_s)
 }
 
-pub fn mul(x: &Term, y: &Term) -> Term {
-    let new_s = format!("({}·{})",x,y);
+pub fn mul<A: Termlike, B: Termlike>(x: &A, y: &B) -> Term {
+    let new_s = format!("({}·{})",x.get_string(),y.get_string());
     Term::new(&new_s)
 }
 
 
-// Logical operations
-pub fn not(x: &Formula) -> Formula {
-    let new_s = format!("~{}",x);
+// Logical
+pub fn not<T: Wellformed>(x: &T) -> Formula {
+    let new_s = format!("~{}",x.get_string());
     Formula::new(&new_s)
 }
 pub fn eq<A: Termlike, B: Termlike>(x: &A, y: &B) -> Atom {
@@ -28,35 +30,30 @@ pub fn eq<A: Termlike, B: Termlike>(x: &A, y: &B) -> Atom {
     Atom::new(&new_s)
 }
 
-pub fn or<T: Wellformed>(x: &T, y: &T) -> Formula {
+pub fn or<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
     let new_s = format!("<{}∨{}>",x.get_string(),y.get_string());
     Formula::new(&new_s)
 }
 
-pub fn and<T: Wellformed>(x: &T, y: &T) -> Formula {
+pub fn and<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
     let new_s = format!("<{}∧{}>",x.get_string(),y.get_string());
     Formula::new(&new_s)
 }
 
-pub fn implies<T: Wellformed>(x: &T, y: &T) -> Formula {
+pub fn implies<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
     let new_s = format!("<{}⊃{}>",x.get_string(),y.get_string());
     Formula::new(&new_s)
 }
 
 
-pub fn exists(v: &Variable, x: &Formula) -> Formula {
-    if x.bound_vars.contains(&v.s) {
-        panic!("{} is bound in {}",v,x)
-    }
-    let new_s = format!("∃{}:{}",v,x);
+// Quantification
+pub fn exists<F: Wellformed>(v: &Variable, x: &F) -> Formula {
+    let new_s = format!("∃{}:{}",v.get_string(),x.get_string());
     Formula::new(&new_s)
 }
 
-pub fn forall(v: &Variable, x: &Formula) -> Formula {
-    if x.bound_vars.contains(&v.s) {
-        panic!("{} is bound in {}",v,x)
-    }
-    let new_s = format!("∀{}:{}",v,x);
+pub fn forall<F: Wellformed>(v: &Variable, x: &F) -> Formula {
+    let new_s = format!("∀{}:{}",v.get_string(),x.get_string());
     Formula::new(&new_s)
 }
 
@@ -67,7 +64,7 @@ pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
     if x.s.contains(&format!("∀{}:",v)) {
         let mut new_s = x.s.clone().replace(&format!("∀{}:",v.s),"");
         if !x.bound_vars.contains(&v.s) {
-            panic!("{} bound in {}",v,x)
+            panic!("{} is bound in {}",v,x)
         }
         new_s = replace_var_in_string(&new_s,&v.s,&t.s);
         return Formula::new(&new_s)
@@ -76,11 +73,16 @@ pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
     }
 }
 
-/*
-pub fn generalize(x: &Formula, v: &Variable) -> Formula {
 
+pub fn generalize(x: &Formula, v: &Variable) -> Formula {
+    if x.s.contains(&format!("∀{}:",v)) {
+        return forall(v,x)
+    } else {
+        panic!("{} is bound in {}",v,x)
+    }
 }
 
+/*
 pub fn interchange_EA(x: &Formula, v: &Variable) -> Formula {
 
 }

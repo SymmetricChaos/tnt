@@ -131,3 +131,21 @@ impl Formula {
 }
 
 
+
+
+// Utility Functions for working with types
+
+// Quickly generate a bunch of variables
+pub fn variables(names: Vec<&str>) -> Vec<Variable> {
+    let mut out = Vec::new();
+    for n in names {
+        out.push(Variable::new(n));
+    }
+    out
+}
+
+pub fn number(n: usize) -> Term {
+    let start = "S".repeat(n);
+    let new_s = format!("{}0",start);
+    Term::new(&new_s)
+}
