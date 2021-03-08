@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::properties::{is_term,is_well_formed_formula,is_var};
+use crate::properties::{is_term,is_well_formed_formula,is_var,is_atom};
 use crate::string_manip::{get_bound_vars};
 
 #[derive(Debug)]
@@ -47,22 +47,37 @@ impl Termlike for Variable {
 pub trait Wellformed {
     fn get_string(&self) -> &str;
     fn well_formed(&self) -> bool;
+    fn to_atom(self) -> Option<Atom>;
 }
 
 impl Wellformed for Formula {
     fn get_string(&self) -> &str {
         &self.s
     }
+    
     fn well_formed(&self) -> bool {
         is_well_formed_formula(&self.s)
+    }
+
+    fn to_atom(self) -> Option<Atom> {
+        if is_atom(&self.s) {
+            return Some(Atom::new(&self.s))
+        } else {
+            return None
+        }
     }
 }
 impl Wellformed for Atom {
     fn get_string(&self) -> &str {
         &self.s
     }
+
     fn well_formed(&self) -> bool {
         is_well_formed_formula(&self.s)
+    }
+
+    fn to_atom(self) -> Option<Atom> {
+        return Some(self)
     }
 }
 

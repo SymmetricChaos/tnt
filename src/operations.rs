@@ -66,21 +66,30 @@ pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
     if x.s.contains(&format!("∀{}:",v)) {
         let mut new_s = x.s.clone().replace(&format!("∀{}:",v.s),"");
         if !x.bound_vars.contains(&v.s) {
-            panic!("{} is bound in {}",v,x)
+            panic!("Specification Error: {} is bound in {}",v,x)
         }
         new_s = replace_var_in_string(&new_s,&v.s,&t.s);
         return Formula::new(&new_s)
     } else {
-        panic!("{} is not univerally quantified in {}",v,x)
+        panic!("Specification Error: {} is not univerally quantified in {}",v,x)
     }
 }
 
 
 pub fn generalize(x: &Formula, v: &Variable) -> Formula {
-    if x.s.contains(&format!("∀{}:",v)) {
+    if x.bound_vars.contains(&v.s) {
         return forall(v,x)
     } else {
-        panic!("{} is bound in {}",v,x)
+        panic!("Generalization Error: {} is bound in {}",v,x)
+    }
+}
+
+// TODO: This name should follow the naming pattern
+pub fn existence<T: Termlike>(x: &Formula, t: &T, v: &Variable) -> Formula {
+    if x.bound_vars.contains(&v.s) {
+        panic!("Existence Error: {} is bound in {}",v,x)
+    } else {
+        Formula::new(&replace_var_in_string(&x.s, &t.get_string(), &v.s))
     }
 }
 
@@ -92,6 +101,11 @@ pub fn interchange_EA(x: &Formula, v: &Variable) -> Formula {
 pub fn interchange_AE(x: &Formula, v: &Variable) -> Formula {
 
 }
+
+
+pub fn induction() {
+
+}
 */
 
 
@@ -101,7 +115,7 @@ pub fn successor(a: &Atom) -> Atom {
         let rt = Term::new(&format!("S{}",r));
         return eq(&lt,&rt)
     } else {
-        panic!("unable to split {} to apply the successor rule",a)
+        unreachable!("Successor Error: unable to split {}",a)
     }
 }
 
@@ -111,29 +125,40 @@ pub fn predecessor(a: &Atom) -> Atom {
             let lt = Term::new(&l.strip_prefix("S").unwrap());
             let rt = Term::new(&r.strip_prefix("S").unwrap());
             return eq(&lt,&rt)
-        };
+        } else {
+            panic!("Predecessor Error: both terms of {} must begin with S",a)
+        }
     }
-    panic!("unable to split {} to apply the predecessor rule",a)
+    unreachable!("Predecessor Error: unable to split {}",a)
 
 }
 
-/*
-pub fn existence(x: &Formula, v: &Variable, t: &Term) {
 
+pub fn symmetry(a: &Atom) -> Atom {
+    if let Some((l,r)) = split_eq(&a.s) {
+        let lt = Term::new(&l);
+        let rt = Term::new(&r);
+        return eq(&rt,&lt)
+    } else {
+        unreachable!("Symmetry Error: unable to split {}",a)
+    }
 }
 
-pub fn symmetry(a: &Atom) {
 
+pub fn transitivity(a1: &Atom, a2: &Atom) -> Atom {
+    if let Some((l,_)) = split_eq(&a1.s) {
+        if let Some((_,r)) = split_eq(&a2.s) {
+            let lt = Term::new(&l);
+            let rt = Term::new(&r);
+            return eq(&lt,&rt)
+        } else {
+            unreachable!("Symmetry Error: unable to split {}",a2)
+        }
+    } else {
+        unreachable!("Symmetry Error: unable to split {}",a1)
+    }
 }
 
-pub fn transitivity(a1: &Atom, a2: &Atom) {
-
-}
-
-pub fn induction() {
-
-}
-*/
 
 
 #[test]
