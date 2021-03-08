@@ -1,7 +1,8 @@
 use crate::types::{Term,Formula,Atom,Variable,Termlike,Wellformed};
-use crate::string_manip::replace_var_in_string;
+use crate::string_manip::{replace_var_in_string,split_eq};
 
-// Rules of construction
+// Rules of construction. 
+// These rules do not check any internal constraits.
 
 // Arithmetic
 pub fn succ<T: Termlike>(x: &T) -> Term {
@@ -59,6 +60,7 @@ pub fn forall<F: Wellformed>(v: &Variable, x: &F) -> Formula {
 
 
 // Rules of production
+// These may check for additional internal contraints and will panic on failure
 
 pub fn specify(x: &Formula, v: &Variable, t: &Term) -> Formula {
     if x.s.contains(&format!("∀{}:",v)) {
@@ -90,15 +92,32 @@ pub fn interchange_EA(x: &Formula, v: &Variable) -> Formula {
 pub fn interchange_AE(x: &Formula, v: &Variable) -> Formula {
 
 }
+*/
 
-pub fn successor(a: &atom) -> Atom {
+
+pub fn successor(a: &Atom) -> Atom {
+    if let Some((l,r)) = split_eq(&a.s) {
+        let lt = Term::new(&format!("S{}",l));
+        let rt = Term::new(&format!("S{}",r));
+        return eq(&lt,&rt)
+    } else {
+        panic!("unable to split {} to apply the successor rule",a)
+    }
+}
+
+pub fn predecessor(a: &Atom) -> Atom {
+    if let Some((l,r)) = split_eq(&a.s) {
+        if l.starts_with("S") && r.starts_with("S") {
+            let lt = Term::new(&l.strip_prefix("S").unwrap());
+            let rt = Term::new(&r.strip_prefix("S").unwrap());
+            return eq(&lt,&rt)
+        };
+    }
+    panic!("unable to split {} to apply the predecessor rule",a)
 
 }
 
-pub fn predecessor(a: &atom) -> Atom {
-
-}
-
+/*
 pub fn existence(x: &Formula, v: &Variable, t: &Term) {
 
 }

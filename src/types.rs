@@ -19,7 +19,6 @@ pub struct Atom {
     pub s: String,
 }
 
-
 #[derive(Debug)]
 pub struct Formula {
     pub s: String,

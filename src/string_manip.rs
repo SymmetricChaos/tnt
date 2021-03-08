@@ -93,6 +93,14 @@ pub fn split_logical(s: &str) -> Option<(&str,&str)> {
     Some((l,r))
 }
 
+pub fn split_eq(s: &str) -> Option<(&str,&str)> {
+    if !s.contains(s) {
+        return None
+    }
+    let sp: Vec<&str> = s.splitn(1,"=").collect();
+    Some((sp[0],sp[1]))
+}
+
 
 // Set of all variables
 pub fn get_vars(s: &str) ->  Vec<String> {
@@ -144,7 +152,7 @@ pub fn get_free_vars(s: &str) -> Vec<String> {
 pub fn strip_neg(s: &str) -> &str {
     let mut s = s;
     while s.starts_with("~") {
-        s = s.strip_prefix("S").unwrap();
+        s = s.strip_prefix("~").unwrap();
     }
     s
 }
