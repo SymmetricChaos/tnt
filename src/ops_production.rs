@@ -99,7 +99,7 @@ pub fn induction(theorem: &Formula, v: &Term, base: &Formula, general: &Formula)
             if x0 != base.to_string() {
                 panic!("Induction Error: base case must be {}",x0)
             }
-            if xs != general.to_string() {
+            if general.to_string() != format!("A{}:[{}>{}]",v,theorem,xs) {
                 panic!("Induction Error: general case must be {}",xs)
             }
             forall(v,theorem)

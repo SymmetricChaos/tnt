@@ -8,7 +8,8 @@ mod string_manip;
 mod deduction;
 mod alt_type_system;
 
-use crate::ops_production::{successor, specification, transitivity};
+use crate::ops_production::{successor, specification, transitivity, generalization, induction};
+use crate::ops_construction::{succ,implies};
 use crate::types::{Term, Formula};
 use crate::deduction::{AXIOMS};
 
@@ -34,4 +35,32 @@ fn main() {
     println!("{}",s5);
     let s6 = &transitivity(s2,s5);
     println!("{}",s6);
+
+
+    println!("\n\n");
+
+
+    //prove 1 is the (left) multiplicative identity
+    let t = &Formula::new("(S0*a)=a");
+    let s0 = &Formula::new(AXIOMS[3]);
+    let s1 = &specification(s0,a,one);
+    let d0 = &Formula::new("Aa:(S0*a)=a");
+    let d1 = &specification(d0, a, &succ(a));
+    let s2 = &implies(d0,d1);
+    let s3 = &specification(s2, a, a);
+    let s4 = &generalization(s3, a);
+    let s5 = &induction(t, a, s1, s4);
+
+    println!("{}",s0);
+    println!("{}",s1);
+    println!("begin supposition");
+    println!("{}",d0);
+    println!("{}",d1);
+    println!("end supposition");
+    println!("{}",s2);
+    println!("{}",s3);
+    println!("{}",s4);
+    println!("{}",s5);
+
+
 }

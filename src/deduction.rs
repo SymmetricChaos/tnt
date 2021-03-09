@@ -5,8 +5,8 @@ use crate::types::{TNT};
 pub const AXIOMS: [&str;5] = ["Aa:~Sa=0",
                             "Aa:(a+0)=a",
                             "Aa:Ab:(a+Sb)=S(a+b)",
-                            "Aa:(a⋅0)=0",
-                            "Aa:Ab:(a⋅Sb)=((a⋅b)+a))"];
+                            "Aa:(a*0)=0",
+                            "Aa:Ab:(a⋅Sb)=((a*b)+a))"];
 
 pub struct Deduction {
     depth: usize,
