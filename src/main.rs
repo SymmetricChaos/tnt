@@ -3,21 +3,18 @@
 mod types;
 mod properties;
 mod operations;
+mod ops_production;
+mod ops_construction;
 mod string_manip;
+mod deduction;
 
-use crate::operations::{successor, specification, transitivity};
+use crate::ops_production::{successor, specification, transitivity};
 use crate::types::{number, variables, Formula};
+use crate::deduction::{AXIOMS};
 
 // Nonstandard symbols used: ∀∃∧∨⊃·
 
-
-
 fn main() {
-    let axioms = [Formula::new("∀a:~Sa=0"),
-                                Formula::new("∀a:(a+0)=a"),
-                                Formula::new("∀a:∀b:(a+Sb)=S(a+b)"),
-                                Formula::new("∀a:(a⋅0)=0"),
-                                Formula::new("∀a:∀b:(a⋅Sb)=((a⋅b)+a))")];
 
     //prove 1+1=2
     let vars = variables(vec!["a","b"]);
@@ -25,13 +22,13 @@ fn main() {
     let zero = &number(0);
     let one = &number(1);
 
-    let s0 = &axioms[2];
+    let s0 = &Formula::new(AXIOMS[2]);
     println!("{}",s0);
     let s1 = &specification(s0, a, one);
     println!("{}",s1);
     let s2 = &specification(s1, b, zero).to_atom().unwrap();
     println!("{}",s2);
-    let s3 = &axioms[1];
+    let s3 = &Formula::new(AXIOMS[1]);
     println!("{}",s3);
     let s4 = &specification(s3, a, one).to_atom().unwrap();
     println!("{}",s4);

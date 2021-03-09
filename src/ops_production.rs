@@ -1,64 +1,6 @@
 use crate::types::{Term,Formula,Atom,Variable,Termlike,Wellformed};
+use crate::ops_construction::*;
 use crate::string_manip::{replace_var_in_string,split_eq};
-
-// Rules of construction. 
-// These rules do not check any internal constraits.
-
-// Arithmetic
-pub fn succ<T: Termlike>(x: &T) -> Term {
-    let new_s = format!("S{}",x.get_string());
-    Term::new(&new_s)
-}
-
-pub fn add<A: Termlike, B: Termlike>(x: &A, y: &B) -> Term {
-    let new_s = format!("({}+{})",x.get_string(),y.get_string());
-    Term::new(&new_s)
-}
-
-pub fn mul<A: Termlike, B: Termlike>(x: &A, y: &B) -> Term {
-    let new_s = format!("({}·{})",x.get_string(),y.get_string());
-    Term::new(&new_s)
-}
-
-
-// Logical
-pub fn not<T: Wellformed>(x: &T) -> Formula {
-    let new_s = format!("~{}",x.get_string());
-    Formula::new(&new_s)
-}
-
-pub fn eq<A: Termlike, B: Termlike>(x: &A, y: &B) -> Atom {
-    let new_s = format!("{}={}",x.get_string(),y.get_string());
-    Atom::new(&new_s)
-}
-
-pub fn or<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
-    let new_s = format!("<{}∨{}>",x.get_string(),y.get_string());
-    Formula::new(&new_s)
-}
-
-pub fn and<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
-    let new_s = format!("<{}∧{}>",x.get_string(),y.get_string());
-    Formula::new(&new_s)
-}
-
-pub fn implies<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
-    let new_s = format!("<{}⊃{}>",x.get_string(),y.get_string());
-    Formula::new(&new_s)
-}
-
-
-// Quantification
-pub fn exists<F: Wellformed>(v: &Variable, x: &F) -> Formula {
-    let new_s = format!("∃{}:{}",v.get_string(),x.get_string());
-    Formula::new(&new_s)
-}
-
-pub fn forall<F: Wellformed>(v: &Variable, x: &F) -> Formula {
-    let new_s = format!("∀{}:{}",v.get_string(),x.get_string());
-    Formula::new(&new_s)
-}
-
 
 // Rules of production
 // These may check for additional internal contraints and will panic on failure
@@ -189,3 +131,68 @@ pub fn transitivity(a1: &Atom, a2: &Atom) -> Atom {
 
 
 
+// TODO: test pathalogical inputs
+#[test]
+fn test_specification() {
+    let a = Variable::new("a");
+    let one = Term::new("S0");
+    let formula1 = Formula::new("∀a:a=a");
+    let formula2 = Formula::new("∃a':∀a:<a=a∧a'=a'>");
+    assert_eq!(specification(&formula1,&a,&one).s,"S0=S0");
+    assert_eq!(specification(&formula2,&a,&one).s,"∃a':<S0=S0∧a'=a'>");
+}
+
+#[test]
+fn test_symmetry() {
+    let atom1 = Atom::new("a=b");
+    let atom2 = Atom::new("b=S(a+S0)");
+    assert_eq!(symmetry(&atom1).s,"b=a");
+    assert_eq!(symmetry(&atom2).s,"S(a+S0)=b");
+}
+
+#[test]
+fn test_transitivity() {
+    let atom1 = Atom::new("a=b");
+    let atom2 = Atom::new("b=S(a+S0)");
+    assert_eq!(transitivity(&atom1,&atom2).s,"a=S(a+S0)");
+}
+
+#[test]
+fn test_predecessor() {
+    let atom = Atom::new("Sm''=SSu");
+    assert_eq!(predecessor(&atom).s,"m''=Su");
+}
+
+#[test]
+fn test_successor() {
+    let atom = Atom::new("Sm''=SSu");
+    assert_eq!(successor(&atom).s,"SSm''=SSSu");
+}
+
+
+#[test]
+fn test_interchange_ea() {
+    let formula1 = Formula::new("∀a:~∃u':(a+u')=Sa");
+    let formula2 = Formula::new("<∀a:~∃u':(a+u')=Sa∧~∃u':u'=SS0");
+    let variable = Variable::new("u'");
+    assert_eq!(interchange_ea(&formula1,&variable,0).s,"∀a:∀u':~(a+u')=Sa");
+    assert_eq!(interchange_ea(&formula2,&variable,1).s,"<∀a:~∃u':(a+u')=Sa∧∀u':~u'=SS0");
+}
+
+#[test]
+fn test_interchange_ae() {
+    let formula1 = Formula::new("∀a:∀u':~(a+u')=Sa");
+    let formula2 = Formula::new("<∀a:~∃u':(a+u')=Sa∧∀u':~u'=SS0");
+    let variable = Variable::new("u'");
+    assert_eq!(interchange_ae(&formula1,&variable,0).s,"∀a:~∃u':(a+u')=Sa");
+    assert_eq!(interchange_ae(&formula2,&variable,0).s,"<∀a:~∃u':(a+u')=Sa∧~∃u':u'=SS0");
+}
+
+#[test]
+fn test_induction() {
+    let theorem = Formula::new("v=v");
+    let v = Variable::new("v");
+    let base = Formula::new("0=0");
+    let gen = Formula::new("Sv=Sv");
+    assert_eq!(induction(&theorem,&v,&base,&gen).s,"∀v:v=v");
+}
