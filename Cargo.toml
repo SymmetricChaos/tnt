@@ -8,3 +8,6 @@ edition = "2018"
 
 [dependencies]
 onig = "6.1.1"
+pandoc = "0.8"
+tempfile = "3"
+notify = "4"

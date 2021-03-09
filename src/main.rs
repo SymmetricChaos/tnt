@@ -6,7 +6,7 @@ mod ops_production;
 mod ops_construction;
 mod string_manip;
 mod deduction;
-mod alt_type_system;
+mod latex;
 
 use crate::ops_production::{successor, specification, transitivity, generalization, induction};
 use crate::ops_construction::{succ,implies};
@@ -14,7 +14,6 @@ use crate::types::{Term, Formula};
 use crate::deduction::{AXIOMS};
 
 fn main() {
-
     //prove 1+1=2
     let a = &Term::new("a");
     let b = &Term::new("b");
@@ -62,5 +61,5 @@ fn main() {
     println!("{}",s4);
     println!("{}",s5);
 
-
+    println!("{}",s5.latex())
 }

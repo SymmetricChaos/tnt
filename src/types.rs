@@ -2,6 +2,7 @@
 use std::fmt;
 
 use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
+use crate::latex::to_latex;
 
 pub enum Formula {
     Simple(String),
@@ -26,6 +27,10 @@ impl Formula {
 
     pub fn new_complex(input: &str) -> Formula {
         return Formula::Complex(input.to_owned())
+    }
+
+    pub fn latex(&self) -> String {
+        to_latex(self.to_string())
     }
 }
 
@@ -71,6 +76,10 @@ impl Term {
 
     pub fn new_equation(input: &str) -> Term {
         return Term::Equation(input.to_owned())
+    }
+
+    pub fn latex(&self) -> String {
+        to_latex(self.to_string())
     }
 }
 
