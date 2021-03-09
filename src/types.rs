@@ -60,6 +60,7 @@ impl Termlike for Variable {
 pub trait Wellformed {
     fn get_string(&self) -> &str;
     fn well_formed(&self) -> bool;
+    fn bound_vars(&self) -> Vec<String>;
 }
 
 impl Wellformed for Formula {
@@ -70,6 +71,10 @@ impl Wellformed for Formula {
     fn well_formed(&self) -> bool {
         is_well_formed_formula(&self.s)
     }
+
+    fn bound_vars(&self) -> Vec<String> {
+        self.bound_vars.clone()
+    }
 }
 impl Wellformed for Atom {
     fn get_string(&self) -> &str {
@@ -78,6 +83,10 @@ impl Wellformed for Atom {
 
     fn well_formed(&self) -> bool {
         is_well_formed_formula(&self.s)
+    }
+
+    fn bound_vars(&self) -> Vec<String> {
+        Vec::<String>::new()
     }
 }
 
