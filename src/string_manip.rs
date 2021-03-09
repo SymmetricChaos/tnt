@@ -73,7 +73,7 @@ pub fn left_string(s: &str, leftb: Vec<char>, rightb: Vec<char>) -> Option<(&str
 
 
 pub fn split_arithmetic(s: &str) -> Option<(&str,&str)> {
-    let leftmost = match left_string(s, vec!['('],vec!['·','+']) {
+    let leftmost = match left_string(s, vec!['('],vec!['*','+']) {
         Some(v) => v,
         None => return None
     };
@@ -84,7 +84,7 @@ pub fn split_arithmetic(s: &str) -> Option<(&str,&str)> {
 
 
 pub fn split_logical(s: &str) -> Option<(&str,&str)> {
-    let leftmost = match left_string(s, vec!['<'],vec!['∧','∨','⊃']) {
+    let leftmost = match left_string(s, vec!['['],vec!['&','|','>']) {
         Some(v) => v,
         None => return None
     };
@@ -115,7 +115,7 @@ pub fn get_vars(s: &str) ->  Vec<String> {
 
 // Set of string representing quantifications of variables
 pub fn get_quants(s: &str) -> Vec<String> {
-    let re = Regex::new("[∀∃][a-z]\'*:").unwrap();
+    let re = Regex::new("[AE][a-z]\'*:").unwrap();
     let mut out: Vec<String> = Vec::new();
     for st in re.find_iter(s) {
         out.push(s[st.0..st.1].to_owned());
@@ -129,7 +129,7 @@ pub fn get_bound_vars(s: &str) -> Vec<String> {
     let quants = get_quants(s);
     let mut bound: Vec<String> = Vec::new();
     for q in quants.iter() {
-        bound.push(q[3..q.len()-1].to_owned());
+        bound.push(q[1..q.len()-1].to_owned());
     }
     bound
 }
@@ -161,7 +161,7 @@ pub fn strip_neg(s: &str) -> &str {
 // Remove the leading quantifiers and negations
 pub fn strip_quant(s: &str) -> &str {
     let mut s = strip_neg(s);
-    let re = Regex::new("^[∀∃][a-z]\'*:").unwrap();
+    let re = Regex::new("^[AE][a-z]\'*:").unwrap();
     let mut m = re.find(s);
     while m.is_some() {
         let e = m.unwrap().1;
@@ -198,32 +198,32 @@ pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> Strin
 
 #[test]
 fn test_strip_quants() {
-    assert_eq!(strip_quant("∀b:∃a:a=a"),"a=a");
+    assert_eq!(strip_quant("Ab:Ea:a=a"),"a=a");
 }
 
 #[test]
 fn test_get_vars() {
     let v1 = vec!["a'","b","a","a'","b"];
-    assert_eq!(get_vars("∃a':∀b:(a+a')=b"),v1);
+    assert_eq!(get_vars("Ea':Ab:(a+a')=b"),v1);
 }
 
 #[test]
 fn test_get_bound_vars() {
     let v1 = vec!["a'","b"];
-    assert_eq!(get_bound_vars("∃a':∀b:(a+a')=b"),v1);
+    assert_eq!(get_bound_vars("Ea':Ab:(a+a')=b"),v1);
 }
 
 #[test]
 fn test_var_in_string() {
-    assert_eq!(var_in_string("∃a':∀b:(a'+a')=b","a"),false);
-    assert_eq!(var_in_string("∃a:∃b:(a'+a')=b","a''"),false);
-    assert_eq!(var_in_string("∃a:∃b:(a'+a')=b","c"),false);
+    assert_eq!(var_in_string("Ea':∀b:(a'+a')=b","a"),false);
+    assert_eq!(var_in_string("Ea:Eb:(a'+a')=b","a''"),false);
+    assert_eq!(var_in_string("Ea:Eb:(a'+a')=b","c"),false);
 }
 
 
 #[test]
 fn test_replace_var_in_string() {
-    assert_eq!(replace_var_in_string("∃a':∀b:(a'+a)=b","a","x"),"∃a':∀b:(a'+x)=b");
+    assert_eq!(replace_var_in_string("Ea':Ab:(a'+a)=b","a","x"),"Ea':Ab:(a'+x)=b");
 }
 
 #[test]

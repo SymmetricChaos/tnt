@@ -2,11 +2,11 @@
 use crate::types::{TNT};
 
 // The Peano Axioms
-pub const AXIOMS: [&str;5] = ["∀a:~Sa=0",
-                            "∀a:(a+0)=a",
-                            "∀a:∀b:(a+Sb)=S(a+b)",
-                            "∀a:(a⋅0)=0",
-                            "∀a:∀b:(a⋅Sb)=((a⋅b)+a))"];
+pub const AXIOMS: [&str;5] = ["Aa:~Sa=0",
+                            "Aa:(a+0)=a",
+                            "Aa:Ab:(a+Sb)=S(a+b)",
+                            "Aa:(a⋅0)=0",
+                            "Aa:Ab:(a⋅Sb)=((a⋅b)+a))"];
 
 pub struct Deduction {
     depth: usize,

@@ -51,7 +51,7 @@ pub fn is_well_quantified(s: &str) -> bool {
 }
 
 pub fn is_simple_formula(s: &str) -> bool {
-    // Every atom is an equality of terms
+    // A simple formula is precisely an equivalence of any two terms
     let eq = match s.find("=") {
         Some(num) => num,
         None => return false
@@ -62,12 +62,11 @@ pub fn is_simple_formula(s: &str) -> bool {
 }
 
 pub fn is_complex_formula(s: &str) -> bool {
-    // Compounds must be properly quantified
+    // Complex formula is any well formed formula that is not simple
     if !is_well_quantified(s) {
         return false
     }
     let s = strip_quant(s);
-    // If the stripped version is an atom or term its not compound
     if is_simple_formula(s) || is_equation(s) {
         return false
     } else {
@@ -107,7 +106,7 @@ pub fn is_complex_formula(s: &str) -> bool {
     true
 }
 
-pub fn is_well_formed_formula(s: &str) -> bool {
+pub fn is_formula(s: &str) -> bool {
     if !is_well_quantified(s) {
         return false
     }
@@ -213,17 +212,17 @@ fn test_is_compound() {
 
 #[test]
 fn test_is_well_formed_formula() {
-    assert_eq!(is_well_formed_formula("a"),false,"a is not a well-formed formula");
-    assert_eq!(is_well_formed_formula("z'"),false,"z' is not a well-formed formula");
-    assert_eq!(is_well_formed_formula("0"),false,"0 is not a well-formed formula");
-    assert_eq!(is_well_formed_formula("S0"),false,"S0 is not a well-formed formula");
-    assert_eq!(is_well_formed_formula("(Sa+Sb)"),false,"(Sa+Sb) is not a well-formed formula");
-    assert_eq!(is_well_formed_formula("a=x"),true,"a=x is a well-formed formula");
-    assert_eq!(is_well_formed_formula("S0=Sv"),true,"S0=Sv is a well-formed formula");
-    assert_eq!(is_well_formed_formula("<~∃b:~a=b∧∀c:~a=c>"),true,"<~∃b:~a=b∧∀c:~a=c> is a well-formed formula");
-    assert_eq!(is_well_formed_formula("<~(a+b)=0⊃<a=b∨0=S0>>"),true,"<~(a+b)=0⊃<a=b∨0=S0>> is a well-formed formula");
-    assert_eq!(is_well_formed_formula("∃a':∀a:a=a"),false,"∃a':∀a:a=a should be rejected, it is malformed");
-    assert_eq!(is_well_formed_formula("'k"),false,"'k should be rejected, it is malformed");
-    assert_eq!(is_well_formed_formula("SS()"),false,"SS() should be rejected, it is malformed");
-    assert_eq!(is_well_formed_formula("<~∃b:a=a∧c=c>"),false,"<~∃b:a=a∧c=c> should be rejected, it is malformed");
+    assert_eq!(is_formula("a"),false,"a is not a well-formed formula");
+    assert_eq!(is_formula("z'"),false,"z' is not a well-formed formula");
+    assert_eq!(is_formula("0"),false,"0 is not a well-formed formula");
+    assert_eq!(is_formula("S0"),false,"S0 is not a well-formed formula");
+    assert_eq!(is_formula("(Sa+Sb)"),false,"(Sa+Sb) is not a well-formed formula");
+    assert_eq!(is_formula("a=x"),true,"a=x is a well-formed formula");
+    assert_eq!(is_formula("S0=Sv"),true,"S0=Sv is a well-formed formula");
+    assert_eq!(is_formula("<~∃b:~a=b∧∀c:~a=c>"),true,"<~∃b:~a=b∧∀c:~a=c> is a well-formed formula");
+    assert_eq!(is_formula("<~(a+b)=0⊃<a=b∨0=S0>>"),true,"<~(a+b)=0⊃<a=b∨0=S0>> is a well-formed formula");
+    assert_eq!(is_formula("∃a':∀a:a=a"),false,"∃a':∀a:a=a should be rejected, it is malformed");
+    assert_eq!(is_formula("'k"),false,"'k should be rejected, it is malformed");
+    assert_eq!(is_formula("SS()"),false,"SS() should be rejected, it is malformed");
+    assert_eq!(is_formula("<~∃b:a=a∧c=c>"),false,"<~∃b:a=a∧c=c> should be rejected, it is malformed");
 }

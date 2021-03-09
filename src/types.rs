@@ -1,7 +1,7 @@
 
 use std::fmt;
 
-use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_complex_formula};
+use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
 
 pub enum Formula {
     Simple(String),
@@ -12,14 +12,14 @@ impl Formula {
     pub fn new(input: &str) -> Formula {
         if is_simple_formula(input) {
             return Formula::Simple(input.to_owned())
-        } else if is_complex_formula(input) {
+        } else if is_formula(input) {
             return Formula::Complex(input.to_owned()) 
         } else {
             panic!("{} is not a well formed formula",input)
         }
     }
 
-    // Fast creation for variants without checking
+    // Fast creation of variants without checking
     pub fn new_simple(input: &str) -> Formula {
         return Formula::Simple(input.to_owned())
     }
@@ -60,7 +60,7 @@ impl Term {
         }
     }
 
-    // Fast creation for variants without checking
+    // Fast creation of variants without checking
     pub fn new_variable(input: &str) -> Term {
         return Term::Variable(input.to_owned())
     }

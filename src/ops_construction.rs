@@ -14,7 +14,7 @@ pub fn add(x: &Term, y: &Term) -> Term {
 }
 
 pub fn mul(x: &Term, y: &Term) -> Term {
-    let new_s = format!("({}·{})",x,y);
+    let new_s = format!("({}*{})",x,y);
     Term::new_equation(&new_s)
 }
 
@@ -31,17 +31,17 @@ pub fn eq(x: &Term, y: &Term) -> Formula {
 }
 
 pub fn or(x: &Formula, y: &Formula) -> Formula {
-    let new_s = format!("<{}∨{}>",x,y);
+    let new_s = format!("[{}|{}]",x,y);
     Formula::new_complex(&new_s)
 }
 
 pub fn and(x: &Formula, y: &Formula) -> Formula {
-    let new_s = format!("<{}∧{}>",x,y);
+    let new_s = format!("[{}&{}]",x,y);
     Formula::new_complex(&new_s)
 }
 
 pub fn implies(x: &Formula, y: &Formula) -> Formula {
-    let new_s = format!("<{}⊃{}>",x,y);
+    let new_s = format!("[{}>{}]",x,y);
     Formula::new_complex(&new_s)
 }
 
@@ -50,7 +50,7 @@ pub fn implies(x: &Formula, y: &Formula) -> Formula {
 // Maybe some way to avoid panic here
 pub fn exists(v: &Term, x: &Formula) -> Formula {
     if let Term::Variable(var) = v {
-        Formula::new_complex(&format!("∃{}:{}",var,x))
+        Formula::new_complex(&format!("E{}:{}",var,x))
     } else {
         panic!("{} is not a Term::Variable",v)
     }
@@ -58,7 +58,7 @@ pub fn exists(v: &Term, x: &Formula) -> Formula {
 
 pub fn forall(v: &Term, x: &Formula) -> Formula {
     if let Term::Variable(var) = v {
-        Formula::new_complex(&format!("∀{}:{}",var,x))
+        Formula::new_complex(&format!("A{}:{}",var,x))
     } else {
         panic!("{} is not a Term::Variable",v)
     }

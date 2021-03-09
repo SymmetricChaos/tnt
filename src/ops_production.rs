@@ -6,13 +6,13 @@ use crate::string_manip::{replace_var_in_string, split_eq, get_bound_vars};
 // These may check for additional internal contraints and will panic on failure
 pub fn specification(x: &Formula, v: &Term, t: &Term) -> Formula {
     if let Term::Variable(_) = v {
-        if x.to_string().contains(&format!("∀{}:",v)) {
-            let mut new_s = x.to_string().clone().replace(&format!("∀{}:",v.to_string()),"");
-            if !get_bound_vars(&x.to_string()).contains(&v.to_string()) {
+        if x.to_string().contains(&format!("A{}:",v)) {
+            let mut new_s = x.to_string().clone().replace(&format!("A{}:",v.to_string()),"");
+            if get_bound_vars(&x.to_string()).contains(&v.to_string()) {
                 new_s = replace_var_in_string(&new_s,&v.to_string(),&t.to_string());
                 return Formula::new(&new_s)
             } else {
-                panic!("Specification Error: {} is bound in {}",v,x)
+                panic!("Specification Error: {} is not bound in {}",v,x)
             }
         } else {
             panic!("Specification Error: {} is not univerally quantified in {}",v,x)
@@ -49,15 +49,16 @@ pub fn existence(x: &Formula, t: &Term, v: &Term) -> Formula {
 }
 
 // Should panic or warn if quantification not present
-pub fn interchange_ea(x: &Formula, v: &Term, n: usize) -> Formula {
+pub fn interchange_ea(x: &Formula, v: &Term, nth: usize) -> Formula {
     if let Term::Variable(_) = v {
-        let e = format!("~∃{}:",v);
-        let a = format!("∀{}:~",v);
+        let e = format!("~E{}:",v);
+        let a = format!("A{}:~",v);
         let mut new_s = x.to_string().clone();
         let xs = x.to_string();
         let qs = xs.match_indices(&e);
-        for (pos,q) in qs.enumerate() {
-            if pos == n {
+        for (n,q) in qs.enumerate() {
+            println!("{:?} {:?}",n,q);
+            if n == nth {
                 new_s.replace_range(q.0..q.0+q.1.len(), &a);
                 break
             }
@@ -71,10 +72,10 @@ pub fn interchange_ea(x: &Formula, v: &Term, n: usize) -> Formula {
 // Should panic or warn if quantification not present
 pub fn interchange_ae(x: &Formula, v: &Term, n: usize) -> Formula {
     if let Term::Variable(_) = v {
-        let e = format!("~∃{}:",v);
-        let a = format!("∀{}:~",v);
+        let e = format!("~E{}:",v);
+        let a = format!("A{}:~",v);
         let mut new_s = x.to_string().clone();
-        let xs = x.to_string();
+        let xs = &x.to_string();
         let qs = xs.match_indices(&a);
         for (pos,q) in qs.enumerate() {
             if pos == n {
@@ -188,10 +189,10 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
 fn test_specification() {
     let a = Term::new("a");
     let one = Term::new("S0");
-    let formula1 = Formula::new("∀a:a=a");
-    let formula2 = Formula::new("∃a':∀a:<a=a∧a'=a'>");
+    let formula1 = Formula::new("Aa:a=a");
+    let formula2 = Formula::new("Ea':Aa:[a=a&a'=a']");
     assert_eq!(specification(&formula1,&a,&one).to_string(),"S0=S0");
-    assert_eq!(specification(&formula2,&a,&one).to_string(),"∃a':<S0=S0∧a'=a'>");
+    assert_eq!(specification(&formula2,&a,&one).to_string(),"Ea':[S0=S0&a'=a']");
 }
 
 #[test]
@@ -224,20 +225,20 @@ fn test_successor() {
 
 #[test]
 fn test_interchange_ea() {
-    let formula1 = Formula::new("∀a:~∃u':(a+u')=Sa");
-    let formula2 = Formula::new("<∀a:~∃u':(a+u')=Sa∧~∃u':u'=SS0");
+    let formula1 = Formula::new("Aa:~Eu':(a+u')=Sa");
+    let formula2 = Formula::new("Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0");
     let variable = Term::new("u'");
-    assert_eq!(interchange_ea(&formula1,&variable,0).to_string(),"∀a:∀u':~(a+u')=Sa");
-    assert_eq!(interchange_ea(&formula2,&variable,1).to_string(),"<∀a:~∃u':(a+u')=Sa∧∀u':~u'=SS0");
+    assert_eq!(interchange_ea(&formula1,&variable,0).to_string(),"Aa:Au':~(a+u')=Sa");
+    assert_eq!(interchange_ea(&formula2,&variable,1).to_string(),"<Aa:~Eu':(a+u')=Sa∧Au':~u'=SS0");
 }
 
 #[test]
 fn test_interchange_ae() {
-    let formula1 = Formula::new("∀a:∀u':~(a+u')=Sa");
-    let formula2 = Formula::new("<∀a:~∃u':(a+u')=Sa∧∀u':~u'=SS0");
+    let formula1 = Formula::new("Aa:Au':~(a+u')=Sa");
+    let formula2 = Formula::new("Aa:~Eu':(a+u')=Sa&Au':~u'=SS0");
     let variable = Term::new("u'");
-    assert_eq!(interchange_ae(&formula1,&variable,0).to_string(),"∀a:~∃u':(a+u')=Sa");
-    assert_eq!(interchange_ae(&formula2,&variable,0).to_string(),"<∀a:~∃u':(a+u')=Sa∧~∃u':u'=SS0");
+    assert_eq!(interchange_ae(&formula1,&variable,0).to_string(),"Aa:~Eu':(a+u')=Sa");
+    assert_eq!(interchange_ae(&formula2,&variable,0).to_string(),"Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0");
 }
 
 #[test]
@@ -246,5 +247,5 @@ fn test_induction() {
     let v = Term::new("v");
     let base = Formula::new("0=0");
     let gen = Formula::new("Sv=Sv");
-    assert_eq!(induction(&theorem,&v,&base,&gen).to_string(),"∀v:v=v");
+    assert_eq!(induction(&theorem,&v,&base,&gen).to_string(),"Av:v=v");
 }

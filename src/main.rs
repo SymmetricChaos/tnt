@@ -12,15 +12,13 @@ use crate::ops_production::{successor, specification, transitivity};
 use crate::types::{Term, Formula};
 use crate::deduction::{AXIOMS};
 
-// Nonstandard symbols used: ∀∃∧∨⊃·
-
 fn main() {
 
     //prove 1+1=2
     let a = &Term::new("a");
     let b = &Term::new("b");
     let zero = &Term::new("0");
-    let one = &Term::new("1");
+    let one = &Term::new("S0");
 
     let s0 = &Formula::new(AXIOMS[2]);
     println!("{}",s0);
