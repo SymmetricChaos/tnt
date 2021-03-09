@@ -226,19 +226,19 @@ fn test_successor() {
 #[test]
 fn test_interchange_ea() {
     let formula1 = Formula::new("Aa:~Eu':(a+u')=Sa");
-    let formula2 = Formula::new("Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0");
+    let formula2 = Formula::new("[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
     let variable = Term::new("u'");
     assert_eq!(interchange_ea(&formula1,&variable,0).to_string(),"Aa:Au':~(a+u')=Sa");
-    assert_eq!(interchange_ea(&formula2,&variable,1).to_string(),"<Aa:~Eu':(a+u')=Sa∧Au':~u'=SS0");
+    assert_eq!(interchange_ea(&formula2,&variable,1).to_string(),"[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
 }
 
 #[test]
 fn test_interchange_ae() {
     let formula1 = Formula::new("Aa:Au':~(a+u')=Sa");
-    let formula2 = Formula::new("Aa:~Eu':(a+u')=Sa&Au':~u'=SS0");
+    let formula2 = Formula::new("[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
     let variable = Term::new("u'");
     assert_eq!(interchange_ae(&formula1,&variable,0).to_string(),"Aa:~Eu':(a+u')=Sa");
-    assert_eq!(interchange_ae(&formula2,&variable,0).to_string(),"Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0");
+    assert_eq!(interchange_ae(&formula2,&variable,0).to_string(),"[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
 }
 
 #[test]
