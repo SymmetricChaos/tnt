@@ -18,15 +18,6 @@ impl Formula {
             panic!("{} is not a well formed formula",input)
         }
     }
-
-    // Fast creation for variants without checking
-    pub fn new_simple(input: &str) -> Formula {
-        return Formula::Simple(input.to_owned())
-    }
-
-    pub fn new_complex(input: &str) -> Formula {
-        return Formula::Complex(input.to_owned())
-    }
 }
 
 impl fmt::Display for Formula {
@@ -46,7 +37,6 @@ pub enum Term {
     Equation(String),
 }
 
-
 impl Term {
     pub fn new(input: &str) -> Term {
         if is_num(input) {
@@ -54,23 +44,10 @@ impl Term {
         } else if is_var(input) {
             return Term::Variable(input.to_owned())
         } else if is_equation(input) {
-            return Term::Equation(input.to_owned())
+            return Term::Variable(input.to_owned())
         } else {
             panic!("{} is not a valid Term",input)
         }
-    }
-
-    // Fast creation for variants without checking
-    pub fn new_variable(input: &str) -> Term {
-        return Term::Variable(input.to_owned())
-    }
-
-    pub fn new_number(input: &str) -> Term {
-        return Term::Number(input.to_owned())
-    }
-
-    pub fn new_equation(input: &str) -> Term {
-        return Term::Equation(input.to_owned())
     }
 }
 

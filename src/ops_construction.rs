@@ -1,69 +1,75 @@
-use crate::types::{Term,Formula,Atom,Variable,Termlike,Wellformed};
+use crate::types::{Term,Formula};
 
 // Rules of construction. 
-// These do not panic
 
 // Arithmetic
-pub fn succ<T: Termlike>(x: &T) -> Term {
-    let new_s = format!("S{}",x.get_string());
+pub fn succ(x: &Term) -> Term {
+    let new_s = format!("S{}",x);
     Term::new(&new_s)
 }
 
-pub fn add<A: Termlike, B: Termlike>(x: &A, y: &B) -> Term {
-    let new_s = format!("({}+{})",x.get_string(),y.get_string());
-    Term::new(&new_s)
+pub fn add(x: &Term, y: &Term) -> Term {
+    let new_s = format!("({}+{})",x,y);
+    Term::new_equation(&new_s)
 }
 
-pub fn mul<A: Termlike, B: Termlike>(x: &A, y: &B) -> Term {
-    let new_s = format!("({}·{})",x.get_string(),y.get_string());
-    Term::new(&new_s)
+pub fn mul(x: &Term, y: &Term) -> Term {
+    let new_s = format!("({}·{})",x,y);
+    Term::new_equation(&new_s)
 }
 
 
 // Logical
-pub fn not<T: Wellformed>(x: &T) -> Formula {
-    let new_s = format!("~{}",x.get_string());
-    Formula::new(&new_s)
+pub fn not(x: &Formula) -> Formula {
+    let new_s = format!("~{}",x);
+    Formula::new_complex(&new_s)
 }
 
-pub fn eq<A: Termlike, B: Termlike>(x: &A, y: &B) -> Atom {
-    let new_s = format!("{}={}",x.get_string(),y.get_string());
-    Atom::new(&new_s)
+pub fn eq(x: &Term, y: &Term) -> Formula {
+    let new_s = format!("{}={}",x,y);
+    Formula::new_simple(&new_s)
 }
 
-pub fn or<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
-    let new_s = format!("<{}∨{}>",x.get_string(),y.get_string());
-    Formula::new(&new_s)
+pub fn or(x: &Formula, y: &Formula) -> Formula {
+    let new_s = format!("<{}∨{}>",x,y);
+    Formula::new_complex(&new_s)
 }
 
-pub fn and<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
-    let new_s = format!("<{}∧{}>",x.get_string(),y.get_string());
-    Formula::new(&new_s)
+pub fn and(x: &Formula, y: &Formula) -> Formula {
+    let new_s = format!("<{}∧{}>",x,y);
+    Formula::new_complex(&new_s)
 }
 
-pub fn implies<A: Wellformed, B: Wellformed>(x: &A, y: &B) -> Formula {
-    let new_s = format!("<{}⊃{}>",x.get_string(),y.get_string());
-    Formula::new(&new_s)
+pub fn implies(x: &Formula, y: &Formula) -> Formula {
+    let new_s = format!("<{}⊃{}>",x,y);
+    Formula::new_complex(&new_s)
 }
 
 
 // Quantification
-pub fn exists<F: Wellformed>(v: &Variable, x: &F) -> Formula {
-    let new_s = format!("∃{}:{}",v.get_string(),x.get_string());
-    Formula::new(&new_s)
+// Maybe some way to avoid panic here
+pub fn exists(v: &Term, x: &Formula) -> Formula {
+    if let Term::Variable(var) = v {
+        Formula::new_complex(&format!("∃{}:{}",var,x))
+    } else {
+        panic!("{} is not a Term::Variable",v)
+    }
 }
 
-pub fn forall<F: Wellformed>(v: &Variable, x: &F) -> Formula {
-    let new_s = format!("∀{}:{}",v.get_string(),x.get_string());
-    Formula::new(&new_s)
+pub fn forall(v: &Term, x: &Formula) -> Formula {
+    if let Term::Variable(var) = v {
+        Formula::new_complex(&format!("∀{}:{}",var,x))
+    } else {
+        panic!("{} is not a Term::Variable",v)
+    }
 }
 
 
 // TODO: test pathalogical inputs
 #[test]
 fn test_add() {
-    let a = Term::new("a");
-    let b = Term::new("b");
-    assert_eq!(add(&a,&b).s,"(a+b)");
-    assert_eq!(add(&a,&add(&b,&b)).s,"(a+(b+b))");
+    let a = Term::new_variable("a");
+    let b = Term::new_variable("b");
+    assert_eq!(add(&a,&b).to_string(),"(a+b)");
+    assert_eq!(add(&a,&add(&b,&b)).to_string(),"(a+(b+b))");
 }

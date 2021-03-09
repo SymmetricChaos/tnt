@@ -23,5 +23,4 @@ impl Deduction  {
         Deduction{ depth: 0, reality: None, title, theorems: Vec::<TNT>::new(), descriptions: Vec::<String>::new() }
     }
 
-
 }
