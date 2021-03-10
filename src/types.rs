@@ -29,8 +29,8 @@ impl Formula {
         return Formula::Complex(input.to_owned())
     }
 
-    pub fn latex(&self) -> String {
-        to_latex(self.to_string())
+    pub fn latex(&self, dent: usize) -> String {
+        to_latex(self.to_string(),dent)
     }
 }
 
@@ -78,8 +78,8 @@ impl Term {
         return Term::Equation(input.to_owned())
     }
 
-    pub fn latex(&self) -> String {
-        to_latex(self.to_string())
+    pub fn latex(&self, dent: usize) -> String {
+        to_latex(self.to_string(), dent)
     }
 }
 

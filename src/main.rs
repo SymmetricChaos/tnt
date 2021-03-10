@@ -50,16 +50,14 @@ fn main() {
     let s4 = &generalization(s3, a);
     let s5 = &induction(t, a, s1, s4);
 
-    println!("{}",s0);
-    println!("{}",s1);
-    println!("begin supposition");
-    println!("{}",d0);
-    println!("{}",d1);
-    println!("end supposition");
-    println!("{}",s2);
-    println!("{}",s3);
-    println!("{}",s4);
-    println!("{}",s5);
-
-    println!("{}",s5.latex())
+    println!("{}",s0.latex(0));
+    println!("{}",s1.latex(0));
+    println!("$begin supposition$\\\\");
+    println!("{}",d0.latex(1));
+    println!("{}",d1.latex(1));
+    println!("$end supposition$\\\\");
+    println!("{}",s2.latex(0));
+    println!("{}",s3.latex(0));
+    println!("{}",s4.latex(0));
+    println!("{}",s5.latex(0))
 }
