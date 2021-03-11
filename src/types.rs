@@ -3,6 +3,8 @@ use std::fmt;
 use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
 use crate::translate::{to_latex,to_english};
 
+
+#[derive(Clone)]
 pub enum Formula {
     Simple(String),
     Complex(String),
@@ -28,6 +30,7 @@ impl Formula {
         return Formula::Complex(input.to_owned())
     }
 
+    // Pretty names
     pub fn latex(&self, dent: usize) -> String {
         to_latex(self.to_string(),dent)
     }
@@ -47,7 +50,7 @@ impl fmt::Display for Formula {
 }
 
 
-
+#[derive(Clone)]
 pub enum Term {
     Variable(String),
     Number(String),
@@ -81,6 +84,7 @@ impl Term {
         return Term::Equation(input.to_owned())
     }
 
+    // Pretty names
     pub fn latex(&self, dent: usize) -> String {
         to_latex(self.to_string(), dent)
     }
@@ -104,7 +108,38 @@ impl fmt::Display for Term {
 
 // All types used are accounted for here
 // This will allow us to parse a string into a type
+#[derive(Clone)]
 pub enum TNT {
     Term(Term),
     Formula(Formula)
+}
+
+impl TNT {
+    pub fn new(input: &str) -> TNT {
+        if is_equation(input) {
+            return TNT::Term(Term::new(input))
+        } else if is_formula(input) {
+            return TNT::Formula(Formula::new(input))
+        } else {
+            panic!()
+        }
+    }
+
+    pub fn new_formula(input: &Formula) -> TNT {
+        TNT::Formula(input.clone())
+    }
+
+    pub fn new_term(input: &Term) -> TNT {
+        TNT::Term(input.clone())
+    }
+}
+
+
+impl fmt::Display for TNT {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self {
+            TNT::Term(term) => write!(f, "{}", term),
+            TNT::Formula(term) => write!(f, "{}", term),
+        }
+    }
 }

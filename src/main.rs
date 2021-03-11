@@ -11,7 +11,7 @@ mod translate;
 use crate::ops_production::{successor, specification, transitivity, generalization, induction};
 use crate::ops_construction::{succ,implies};
 use crate::types::{Term, Formula};
-use crate::deduction::{AXIOMS};
+use crate::deduction::{AXIOMS,Deduction};
 
 
 fn main() {
@@ -63,5 +63,13 @@ fn main() {
     println!("{}",s5.latex(0));
 
     println!("{}",s5);
-    println!("{}",s5.english())
+    println!("{}",s5.english());
+
+    println!("\n\n");
+
+    let mut d = Deduction::new("Prove 0 is a Natural Number");
+    d.add_premise(Formula::new(AXIOMS[1]), "");
+    d.specification(0, a, zero, "");
+    d.existence(1, &Term::new("(0+0)"), a, "");
+    d.quick_print();
 }

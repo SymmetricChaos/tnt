@@ -38,7 +38,8 @@ pub fn generalization(x: &Formula, v: &Term) -> Formula {
 pub fn existence(x: &Formula, t: &Term, v: &Term) -> Formula {
     if let Term::Variable(_) = v {
         if !get_bound_vars(&x.to_string()).contains(&v.to_string()) {
-            Formula::new(&replace_var_in_string(&x.to_string(), &t.to_string(), &v.to_string()))
+            let out = exists(v,x);
+            return Formula::new(&out.to_string().replace(&t.to_string(), &v.to_string()))
             
         } else {
             panic!("Existence Error: {} is bound in {}",v,x)
