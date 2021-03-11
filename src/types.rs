@@ -1,8 +1,7 @@
-
 use std::fmt;
 
 use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
-use crate::latex::to_latex;
+use crate::translate::{to_latex,to_english};
 
 pub enum Formula {
     Simple(String),
@@ -31,6 +30,10 @@ impl Formula {
 
     pub fn latex(&self, dent: usize) -> String {
         to_latex(self.to_string(),dent)
+    }
+
+    pub fn english(&self) -> String {
+        to_english(self.to_string())
     }
 }
 
@@ -80,6 +83,10 @@ impl Term {
 
     pub fn latex(&self, dent: usize) -> String {
         to_latex(self.to_string(), dent)
+    }
+
+    pub fn english(&self) -> String {
+        to_english(self.to_string())
     }
 }
 

@@ -6,12 +6,13 @@ mod ops_production;
 mod ops_construction;
 mod string_manip;
 mod deduction;
-mod latex;
+mod translate;
 
 use crate::ops_production::{successor, specification, transitivity, generalization, induction};
 use crate::ops_construction::{succ,implies};
 use crate::types::{Term, Formula};
 use crate::deduction::{AXIOMS};
+
 
 fn main() {
     //prove 1+1=2
@@ -59,5 +60,8 @@ fn main() {
     println!("{}",s2.latex(0));
     println!("{}",s3.latex(0));
     println!("{}",s4.latex(0));
-    println!("{}",s5.latex(0))
+    println!("{}",s5.latex(0));
+
+    println!("{}",s5);
+    println!("{}",s5.english())
 }
