@@ -71,5 +71,20 @@ fn main() {
     d.add_premise(Formula::new(AXIOMS[1]), "");
     d.specification(0, a, zero, "");
     d.existence(1, &Term::new("(0+0)"), a, "");
-    d.quick_print();
+    d.pretty_print();
+
+    println!("\n\n");
+
+    let t = &Formula::new("(S0*a)=a"); //The theorem to be proven
+    let mut e = Deduction::new("Prove 1 is the Left Multiplicative Identity");
+    e.add_premise(Formula::new(AXIOMS[3]), "");
+    e.specification(0, a, one, "");
+    e.supposition(Formula::new("Aa:(S0*a)=a"), "");
+    e.specification(2, a, &succ(a), "comment");
+    e.implication("");
+    e.specification(4, a, a, "");
+    e.generalization(5, a, "");
+    e.induction(t, a, 1, 6, "");
+    e.pretty_print();
+    e.latex_print();
 }
