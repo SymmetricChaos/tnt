@@ -3,13 +3,6 @@ use crate::types::{Formula,Term};
 use crate::ops_production::{specification,generalization,existence,successor,predecessor,induction};
 use crate::ops_construction::{implies};
 
-// The Peano Axioms
-pub const AXIOMS: [&str;5] = ["Aa:~Sa=0",
-                            "Aa:(a+0)=a",
-                            "Aa:Ab:(a+Sb)=S(a+b)",
-                            "Aa:(a*0)=0",
-                            "Aa:Ab:(a⋅Sb)=((a*b)+a))"];
-
 pub struct Deduction {
     depth: usize,
     tag_stack: Vec<usize>,
@@ -18,13 +11,56 @@ pub struct Deduction {
     theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, tag for supposition block
 }
 
-
+// When 'true' forces the theorems to be printed every time they are added, helps with debugging
+const NOISY: bool = false;
 
 impl Deduction {
     pub fn new(title: &str) -> Deduction {
-        Deduction{ depth: 0, tag_stack: vec![0], parent: None, title: title.to_string(), theorems: Vec::<(Formula,String,usize,usize)>::new() }
+        Deduction{ depth: 0, tag_stack: vec![0], parent: None, title: title.to_string(), theorems: Vec::<(Formula,String,usize,usize)>::new()}
     }
 
+
+    // Internal methods
+    fn get_theorem(&self, n: usize) -> &Formula {
+        let t = &self.theorems[n];
+        if t.2 > self.depth && n < *self.tag_stack.last().unwrap() {
+            panic!("Cannot get theorem from within a higher supposition")
+        }
+        &t.0
+    }
+
+    fn get_last_theorem(&self) -> &Formula {
+        let t = &self.theorems.last().unwrap();
+        &t.0
+    }
+
+    fn push_new(&mut self, theorem: Formula, comment: &str) {
+        if NOISY { 
+            println!("{}",theorem)
+        }
+        self.theorems.push( (theorem,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+    }
+
+
+    // Access methods
+    pub fn theorem(&self, n: usize) -> &Formula {
+        &self.theorems[n].0
+    }
+
+    pub fn theorems(&self) -> Vec<Formula> {
+        let mut out: Vec<Formula> = Vec::new();
+        for row in self.theorems.clone() {
+            out.push(row.0)
+        }
+        out
+    }
+
+    pub fn theorems_raw(&self) -> Vec<(Formula, String, usize, usize)> {
+        self.theorems.clone()
+    }
+
+
+    // Printing methods
     pub fn quick_print(&self) {
         println!("{}",self.title);
         for t in self.theorems.iter() {
@@ -44,52 +80,53 @@ impl Deduction {
         }
     }
 
+
+    // Logical methods
     pub fn add_premise(&mut self, premise: Formula, comment: &str) {
-        self.theorems.push( (premise,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        self.push_new( premise,comment );
     }
 
     pub fn specification(&mut self, n: usize, var: &Term, replacement: &Term, comment: &str) {
-        let t = specification(&self.theorems[n].0.clone(), &var, &replacement);
-        self.theorems.push( (t,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        let t = specification(self.get_theorem(n), &var, &replacement);
+        self.push_new( t, comment );
     }
 
     pub fn generalization(&mut self, n: usize, var: &Term, comment: &str) {
-        let t = generalization(&self.theorems[n].0.clone(), &var);
-        self.theorems.push( (t,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        let t = generalization(self.get_theorem(n), &var);
+        self.push_new( t, comment );
     }
 
     pub fn existence(&mut self, n: usize, term: &Term, var: &Term, comment: &str) {
         let t = existence(&self.theorems[n].0.clone() , &term, &var);
-        self.theorems.push( (t,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        self.push_new( t, comment );
     }
 
     pub fn successor(&mut self, n: usize, comment: &str) {
-        let t = successor(&self.theorems[n].0.clone());
-        self.theorems.push( (t,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        let t = successor(self.get_theorem(n));
+        self.push_new( t, comment );
     }
 
     pub fn predecessor(&mut self, n: usize, comment: &str) {
-        let t = predecessor(&self.theorems[n].0.clone());
-        self.theorems.push( (t,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        let t = predecessor(self.get_theorem(n));
+        self.push_new( t, comment );
     }
 
-    
     pub fn supposition(&mut self, premise: Formula, comment: &str) {
         self.depth += 1;
         self.tag_stack.push(self.theorems.len());
-        self.theorems.push( (premise,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        self.push_new( premise, comment );
     }
     
     pub fn implication(&mut self, comment: &str) {
         self.depth -= 1;
         let first_premise = self.tag_stack.pop().unwrap();
-        let t= implies(&self.theorems[first_premise].0, &self.theorems.last().unwrap().0);
-        self.theorems.push( (t,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        let t = implies(self.get_theorem(first_premise), self.get_last_theorem());
+        self.push_new( t, comment );
     }
 
     pub fn induction(&mut self, theorem: &Formula, var: &Term, base: usize, general: usize, comment: &str) {
-        let t= induction(theorem,var,&self.theorems[base].0,&self.theorems[general].0);
-        self.theorems.push( (t,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        let t = induction(theorem,var,self.get_theorem(base),self.get_theorem(general));
+        self.push_new( t, comment );
     }
     
 }

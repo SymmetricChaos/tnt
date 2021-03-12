@@ -4,7 +4,7 @@ use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
 use crate::translate::{to_latex,to_english};
 
 
-#[derive(Clone)]
+#[derive(Clone,Debug,PartialEq)]
 pub enum Formula {
     Simple(String),
     Complex(String),
@@ -50,7 +50,7 @@ impl fmt::Display for Formula {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone,Debug,PartialEq)]
 pub enum Term {
     Variable(String),
     Number(String),
@@ -108,7 +108,7 @@ impl fmt::Display for Term {
 
 // All types used are accounted for here
 // This will allow us to parse a string into a type
-#[derive(Clone)]
+#[derive(Clone,Debug,)]
 pub enum TNT {
     Term(Term),
     Formula(Formula)
@@ -123,14 +123,6 @@ impl TNT {
         } else {
             panic!()
         }
-    }
-
-    pub fn new_formula(input: &Formula) -> TNT {
-        TNT::Formula(input.clone())
-    }
-
-    pub fn new_term(input: &Term) -> TNT {
-        TNT::Term(input.clone())
     }
 }
 
