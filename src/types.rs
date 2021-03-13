@@ -108,7 +108,7 @@ impl fmt::Display for Term {
 
 // All types used are accounted for here
 // This will allow us to parse a string into a type
-#[derive(Clone,Debug,)]
+#[derive(Clone,Debug,PartialEq)]
 pub enum TNT {
     Term(Term),
     Formula(Formula)
@@ -125,7 +125,6 @@ impl TNT {
         }
     }
 }
-
 
 impl fmt::Display for TNT {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

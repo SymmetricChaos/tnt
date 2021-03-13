@@ -14,6 +14,13 @@ pub struct Deduction {
 // When 'true' forces the theorems to be printed every time they are added, helps with debugging
 const NOISY: bool = false;
 
+const AXIOMS: [&str;5] = ["Aa:~Sa=0",
+                            "Aa:(a+0)=a",
+                            "Aa:Ab:(a+Sb)=S(a+b)",
+                            "Aa:(a*0)=0",
+                            "Aa:Ab:(a*Sb)=((a*b)+a)"];
+
+
 impl Deduction {
     pub fn new(title: &str) -> Deduction {
         Deduction{ depth: 0, tag_stack: vec![0], parent: None, title: title.to_string(), theorems: Vec::<(Formula,String,usize,usize)>::new()}
@@ -83,6 +90,11 @@ impl Deduction {
 
     // Logical methods
     pub fn add_premise(&mut self, premise: Formula, comment: &str) {
+        if self.depth == 0 {
+            if !AXIOMS.contains(&premise.to_string().as_str()) {
+                panic!("At depth 0 only an axiom can be taken as a premise.")
+            }
+        }
         self.push_new( premise,comment );
     }
 

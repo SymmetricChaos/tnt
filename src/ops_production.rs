@@ -101,7 +101,7 @@ pub fn induction(theorem: &Formula, v: &Term, base: &Formula, general: &Formula)
                 panic!("Induction Error: base case must be {}",x0)
             }
             if general.to_string() != format!("A{}:[{}>{}]",v,theorem,xs) {
-                panic!("Induction Error: general case must be {}",xs)
+                panic!("Induction Error: general case must be A{}:[{}>{}]",v,theorem,xs)
             }
             forall(v,theorem)
         }
@@ -247,6 +247,6 @@ fn test_induction() {
     let theorem = Formula::new("v=v");
     let v = Term::new("v");
     let base = Formula::new("0=0");
-    let gen = Formula::new("Sv=Sv");
+    let gen = Formula::new("Av:[v=v>Sv=Sv]");
     assert_eq!(induction(&theorem,&v,&base,&gen).to_string(),"Av:v=v");
 }

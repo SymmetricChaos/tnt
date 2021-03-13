@@ -9,7 +9,7 @@ mod deduction;
 mod translate;
 
 use crate::types::{Term, Formula};
-use crate::deduction::{Deduction};
+use crate::deduction::Deduction;
 
 
 fn main() {
@@ -20,7 +20,6 @@ fn main() {
                               Formula::new("Aa:Ab:(a+Sb)=S(a+b)"),
                               Formula::new( "Aa:(a*0)=0"),
                               Formula::new("Aa:Ab:(a*Sb)=((a*b)+a)")];
-
 
     let a = &Term::new("a");
     let sa = &Term::new("Sa");

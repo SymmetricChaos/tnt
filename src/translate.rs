@@ -94,8 +94,8 @@ pub fn to_english(text: String) -> String {
     text
 }
 
-#[test]
 
+#[test]
 fn test_to_english() {
     let s1 = "Az:~Eb:(z+b)=0".to_string();
     let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*(b+c))=S0]".to_string();
