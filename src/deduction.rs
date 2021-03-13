@@ -1,6 +1,6 @@
 
 use crate::types::{Formula,Term};
-use crate::ops_production::{specification,generalization,existence,successor,predecessor,induction};
+use crate::ops_production::*;
 use crate::ops_construction::{implies};
 
 pub struct Deduction {
@@ -111,12 +111,22 @@ impl Deduction {
         self.push_new( t, comment );
     }
 
+    pub fn interchange_ea(&mut self, n: usize, v: &Term, pos: usize, comment: &str) {
+        let t = interchange_ea(self.get_theorem(n), v, pos);
+        self.push_new( t, comment );
+    }
+
+    pub fn interchange_ae(&mut self, n: usize, v: &Term, pos: usize, comment: &str) {
+        let t = interchange_ae(self.get_theorem(n), v, pos);
+        self.push_new( t, comment );
+    }
+    
     pub fn supposition(&mut self, premise: Formula, comment: &str) {
         self.depth += 1;
         self.tag_stack.push(self.theorems.len());
         self.push_new( premise, comment );
     }
-    
+
     pub fn implication(&mut self, comment: &str) {
         self.depth -= 1;
         let first_premise = self.tag_stack.pop().unwrap();
