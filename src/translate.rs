@@ -2,7 +2,7 @@ use onig::Regex;
 
 pub fn to_latex(text: String, indent: usize) -> String {
     let mut latex = "".to_string();
-    latex.push_str(&format!("\\hspace*{{{}em}}",1+2*indent));
+    latex.push_str(&format!("\\hspace{{{}em}}",1+2*indent));
 
     let mut text = text;
     text = text.replace("A","\\forall ");
@@ -15,7 +15,6 @@ pub fn to_latex(text: String, indent: usize) -> String {
     text = text.replace("]","\\rangle");
 
     latex.push_str(&text);
-    latex.push_str("\\\\");
 
     latex
 }

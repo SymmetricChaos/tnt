@@ -94,9 +94,24 @@ impl Deduction {
     }
 
     pub fn latex_print(&self) {
+        println!("\\begin{{align*}}");
+        let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
-            println!("{}) {}",pos,t.0.latex(t.2));
+            if t.2 > prev_depth {
+                println!("&{}\\text{{begin supposition}}&\\\\","   ".repeat(prev_depth));
+            } else if t.2 < prev_depth {
+                println!("&{}\\text{{end supposition}}&\\\\","   ".repeat(t.2));
+            } else {
+            }
+
+            if t.1 != "" {
+                println!("&{}) {}\\hspace{{1em}}&\\text{{[{}]}}\\\\",pos,t.0.latex(t.2),t.1);
+            } else {
+                println!("&{}) {}&\\\\",pos,t.0.latex(t.2));
+            }
+            prev_depth = t.2;
         }
+        println!("\\end{{align*}}");
     }
 
 
