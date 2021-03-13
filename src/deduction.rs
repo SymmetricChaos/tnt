@@ -71,19 +71,31 @@ impl Deduction {
     pub fn quick_print(&self) {
         println!("{}",self.title);
         for t in self.theorems.iter() {
-            println!("{}",t.0)
+            if t.1 != "" {
+                println!("{} #{}",t.0,t.1)
+            } else {
+                println!("{}",t.0)
+            }
         }
     }
 
     pub fn pretty_print(&self) {
+        let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
-            println!("{}) {}{}",pos,"   ".repeat(t.2), t.0.to_string());
+            if t.2 > prev_depth {
+                println!("{}begin supposition","   ".repeat(prev_depth));
+            } else if t.2 < prev_depth {
+                println!("{}end supposition","   ".repeat(t.2));
+            } else {
+            }
+            println!("{}{}) {}", "   ".repeat(t.2), pos, t.0.to_string());
+            prev_depth = t.2;
         }
     }
 
     pub fn latex_print(&self) {
-        for t in self.theorems.iter() {
-            println!("{}",t.0.latex(t.2));
+        for (pos,t) in self.theorems.iter().enumerate() {
+            println!("{}) {}",pos,t.0.latex(t.2));
         }
     }
 

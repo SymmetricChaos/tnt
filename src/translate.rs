@@ -1,8 +1,8 @@
 use onig::Regex;
 
-pub fn to_latex(text: String, dent: usize) -> String {
+pub fn to_latex(text: String, indent: usize) -> String {
     let mut latex = "".to_string();
-    latex.push_str(&format!("\\hspace*{{{}em}}",2*dent));
+    latex.push_str(&format!("\\hspace*{{{}em}}",1+2*indent));
 
     let mut text = text;
     text = text.replace("A","\\forall ");
