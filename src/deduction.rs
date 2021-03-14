@@ -124,6 +124,7 @@ impl Deduction {
         println!("\\text{{{}}}",self.get_last_theorem().english())
     }
 
+
     // Logical methods
     pub fn add_premise(&mut self, premise: Formula, comment: &str) {
         if self.depth == 0 {

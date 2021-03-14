@@ -12,7 +12,7 @@ use crate::types::{Term, Formula};
 use crate::deduction::{Deduction,PEANO};
 use crate::translate::{arithmetize,dearithmetize};
 
-// symbols used: AESabcdefghijkmnopqrstuwxyz'~+*=&|()[]>:
+// symbols used: 0AESabcdefghijkmnopqrstuwxyz'~+*=&|()[]>: with # as a terminal character used only to arithmetize a proof
 
 fn main() {
 

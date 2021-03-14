@@ -1,30 +1,6 @@
 use onig::Regex;
-use num::{FromPrimitive, Integer, Zero, bigint::BigUint};
-use std::collections::HashMap;
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref CHARMAP: HashMap<char, BigUint> = {
-        let mut m = HashMap::new();
-        let s = "0AESabcdefghijkmnopqrstuwxyz'~+*=&|()[]>:".chars();
-        for (n,c) in s.enumerate() {
-            m.insert(c, BigUint::from_usize(n).unwrap());
-        }
-        m
-    };
-}
-
-lazy_static! {
-    static ref NUMMAP: HashMap<BigUint,char> = {
-        let mut m = HashMap::new();
-        let s = "0AESabcdefghijkmnopqrstuwxyz'~+*=&|()[]>:".chars();
-        for (n,c) in s.enumerate() {
-            m.insert(BigUint::from_usize(n).unwrap(),c);
-        }
-        m
-    };
-}
-
+use num::{bigint::BigUint};
+use std::{str::from_utf8};
 
 
 pub fn to_latex(text: String, indent: usize) -> String {
@@ -120,30 +96,16 @@ pub fn to_english(text: String) -> String {
     text
 }
 
-
+// Each symbol could be compressed into 6 bits instead of eight but this is easier
 pub fn arithmetize(text: String) -> BigUint {
-    let mut n = BigUint::zero();
-    let p = BigUint::from_i32(64).unwrap();
-
-    let symbols = text.chars();
-    for c in symbols {
-        n += &CHARMAP[&c];
-        n *= &p
-    }
-    n
+    BigUint::from_bytes_be(&text.into_bytes())
 }
 
 pub fn dearithmetize(number: BigUint) -> String {
-    let mut n = number;
-    let mut c: Vec<char> = Vec::new();
-    let p = BigUint::from_i32(64).unwrap();
-
-    while n != BigUint::zero() {
-        let (quotient,remainder) = n.div_mod_floor(&p);
-        c.push(NUMMAP[&remainder]);
-        n = quotient;
+    match from_utf8(&number.to_bytes_be()) {
+        Ok(s) => s.to_string(),
+        Err(e) => panic!("{}",e), 
     }
-    c.iter().rev().collect()
 }
 
 
