@@ -3,6 +3,7 @@ use crate::types::{Formula,Term};
 use crate::ops_production::*;
 use crate::ops_construction::{implies};
 use lazy_static::lazy_static;
+use num::{BigUint};
 
 pub struct Deduction {
     depth: usize,
@@ -124,6 +125,15 @@ impl Deduction {
         println!("\\text{{{}}}",self.get_last_theorem().english())
     }
 
+    pub fn arithmetize(&self) -> BigUint {
+        let mut n: Vec<u8> = Vec::new();
+        let th = self.theorems();
+        for t in th {
+            n.extend( t.to_string().into_bytes().iter() );
+            n.push(32);
+        }
+        BigUint::from_bytes_be(&n)
+    }
 
     // Logical methods
     pub fn add_premise(&mut self, premise: Formula, comment: &str) {

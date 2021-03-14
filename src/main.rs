@@ -12,7 +12,7 @@ use crate::types::{Term, Formula};
 use crate::deduction::{Deduction,PEANO};
 use crate::translate::{arithmetize,dearithmetize};
 
-// symbols used: 0AESabcdefghijkmnopqrstuwxyz'~+*=&|()[]>: with # as a terminal character used only to arithmetize a proof
+// symbols used: 0AESabcdefghijkmnopqrstuwxyz'~+*=&|()[]>: with space as a terminal character used only to arithmetize a proof
 
 fn main() {
 
@@ -45,8 +45,17 @@ fn main() {
     assert_eq!(e.theorem(7),t2);
     e.latex_print();
 
+    println!("\n");
+
     let num = arithmetize(e.theorem(7).to_string());
     let word = dearithmetize(num.clone());
     println!("{}",num);
     println!("{}",word);
+
+    println!("\n");
+
+    let bignumber = e.arithmetize();
+    let bigword = dearithmetize(bignumber.clone());
+    println!("{}",bignumber);
+    println!("{}",bigword);
 }
