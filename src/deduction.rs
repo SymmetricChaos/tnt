@@ -2,28 +2,36 @@
 use crate::types::{Formula,Term};
 use crate::ops_production::*;
 use crate::ops_construction::{implies};
+use lazy_static::lazy_static;
 
 pub struct Deduction {
     depth: usize,
     tag_stack: Vec<usize>,
     parent: Option<Vec<Formula>>,
     title: String,
+    axioms: Vec<Formula>,
     theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, tag for supposition block
 }
 
 // When 'true' forces the theorems to be printed every time they are added, helps with debugging
 const NOISY: bool = false;
 
-const AXIOMS: [&str;5] = ["Aa:~Sa=0",
-                            "Aa:(a+0)=a",
-                            "Aa:Ab:(a+Sb)=S(a+b)",
-                            "Aa:(a*0)=0",
-                            "Aa:Ab:(a*Sb)=((a*b)+a)"];
+lazy_static! {
+    pub static ref PEANO: Vec<Formula> = {
+        let mut m = Vec::new();
+        m.push(Formula::new("Aa:~Sa=0"));
+        m.push(Formula::new("Aa:(a+0)=a"));
+        m.push(Formula::new("Aa:Ab:(a+Sb)=S(a+b)"));
+        m.push(Formula::new("Aa:(a*0)=0"));
+        m.push(Formula::new("Aa:Ab:(a*Sb)=((a*b)+a)"));
+        m
+    };
+}
 
 
 impl Deduction {
-    pub fn new(title: &str) -> Deduction {
-        Deduction{ depth: 0, tag_stack: vec![0], parent: None, title: title.to_string(), theorems: Vec::<(Formula,String,usize,usize)>::new()}
+    pub fn new(title: &str, axioms: Vec<Formula>) -> Deduction {
+        Deduction{ depth: 0, tag_stack: vec![0], parent: None, title: title.to_string(), axioms, theorems: Vec::<(Formula,String,usize,usize)>::new()}
     }
 
 
@@ -94,6 +102,7 @@ impl Deduction {
     }
 
     pub fn latex_print(&self) {
+        println!("\\chapter{{{}}}",self.title);
         println!("\\begin{{align*}}");
         let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
@@ -112,17 +121,17 @@ impl Deduction {
             prev_depth = t.2;
         }
         println!("\\end{{align*}}");
+        println!("\\text{{{}}}",self.get_last_theorem().english())
     }
-
 
     // Logical methods
     pub fn add_premise(&mut self, premise: Formula, comment: &str) {
         if self.depth == 0 {
-            if !AXIOMS.contains(&premise.to_string().as_str()) {
+            if !self.axioms.contains(&premise) {
                 panic!("At depth 0 only an axiom can be taken as a premise.")
             }
         }
-        self.push_new( premise,comment );
+        self.push_new( premise, comment );
     }
 
     pub fn specification(&mut self, n: usize, var: &Term, replacement: &Term, comment: &str) {

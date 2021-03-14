@@ -1,7 +1,8 @@
 use std::fmt;
+use num::bigint::BigUint;
 
 use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
-use crate::translate::{to_latex,to_english};
+use crate::translate::{to_latex,to_english,arithmetize};
 
 
 #[derive(Clone,Debug,PartialEq)]
@@ -37,6 +38,10 @@ impl Formula {
 
     pub fn english(&self) -> String {
         to_english(self.to_string())
+    }
+
+    pub fn arithmetize(&self) -> BigUint {
+        arithmetize(self.to_string())
     }
 }
 
