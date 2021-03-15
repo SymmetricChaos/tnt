@@ -3,9 +3,8 @@ use num::{bigint::BigUint};
 use std::str::from_utf8;
 
 
-pub fn to_latex(text: String, indent: usize) -> String {
+pub fn to_latex(text: String) -> String {
     let mut latex = "".to_string();
-    latex.push_str(&format!("\\hspace{{{}em}}",1+2*indent));
 
     let mut text = text;
     text = text.replace("A","\\forall ");

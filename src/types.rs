@@ -7,7 +7,6 @@ use crate::translate::{to_latex,to_english,arithmetize};
 
 
 
-
 #[derive(Clone,Debug,PartialEq)]
 pub enum Formula {
     Simple(String),
@@ -35,8 +34,8 @@ impl Formula {
     }
 
     // Pretty names
-    pub fn latex(&self, dent: usize) -> String {
-        to_latex(self.to_string(),dent)
+    pub fn latex(&self) -> String {
+        to_latex(self.to_string())
     }
 
     pub fn english(&self) -> String {
@@ -95,8 +94,8 @@ impl Term {
     }
 
     // Pretty names
-    pub fn latex(&self, dent: usize) -> String {
-        to_latex(self.to_string(), dent)
+    pub fn latex(&self) -> String {
+        to_latex(self.to_string())
     }
 
     pub fn english(&self) -> String {

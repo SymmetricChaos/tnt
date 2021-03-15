@@ -127,10 +127,10 @@ impl Deduction {
             }
 
             if t.1 != "" {
-                let line = format!("&{}) {}\\hspace{{1em}}&\\text{{[{}]}}\\\\\n",pos,t.0.latex(t.2),t.1).into_bytes();
+                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.2*2,pos,t.0.latex(),t.1).into_bytes();
                 file.write(&line)?;
             } else {
-                let line = format!("&{}) {}&\\\\\n",pos,t.0.latex(t.2)).into_bytes();
+                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\\\\n",t.2*2,pos,t.0.latex()).into_bytes();
                 file.write(&line)?;
             }
 
