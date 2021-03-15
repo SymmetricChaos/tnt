@@ -40,10 +40,12 @@ impl Deduction {
 
 
     // Internal methods
+
+    // Need to rigorously ensure this is correct
     fn get_theorem(&self, n: usize) -> &Formula {
         let t = &self.theorems[n];
-        if t.2 > self.depth && n < *self.tag_stack.last().unwrap() {
-            panic!("Cannot get theorem from within a higher supposition")
+        if t.2 > 0 && n < *self.tag_stack.last().unwrap() {
+            panic!("Cannot get theorem from within a supposition")
         }
         &t.0
     }
@@ -71,7 +73,7 @@ impl Deduction {
         &t.0
     }
 
-    pub fn theorems(&self) -> Vec<Formula> {
+    pub fn all_theorems(&self) -> Vec<Formula> {
         let mut out: Vec<Formula> = Vec::new();
         for row in self.theorems.clone() {
             out.push(row.0)
@@ -142,7 +144,7 @@ impl Deduction {
 
     pub fn arithmetize(&self) -> BigUint {
         let mut n: Vec<u8> = Vec::new();
-        let mut th = self.theorems();
+        let mut th = self.all_theorems();
         th.reverse();
         for t in th {
             n.extend( t.to_string().into_bytes().iter() );
