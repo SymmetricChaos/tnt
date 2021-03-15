@@ -1,3 +1,7 @@
 /target
 *.tex
 *.code-workspace
+*.gz
+*.pdf
+*.log
+*.aux

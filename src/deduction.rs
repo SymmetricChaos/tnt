@@ -66,6 +66,11 @@ impl Deduction {
         &self.theorems[n].0
     }
 
+    pub fn last_theorem(&self) -> &Formula {
+        let t = &self.theorems.last().unwrap();
+        &t.0
+    }
+
     pub fn theorems(&self) -> Vec<Formula> {
         let mut out: Vec<Formula> = Vec::new();
         for row in self.theorems.clone() {
@@ -80,17 +85,6 @@ impl Deduction {
 
 
     // Printing methods
-    pub fn quick_print(&self) {
-        println!("{}",self.title);
-        for t in self.theorems.iter() {
-            if t.1 != "" {
-                println!("{} #{}",t.0,t.1)
-            } else {
-                println!("{}",t.0)
-            }
-        }
-    }
-
     pub fn pretty_print(&self) {
         let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
@@ -105,33 +99,6 @@ impl Deduction {
         }
     }
 
-    pub fn latex_print(&self) {
-        println!("\\documentclass[12pt]{{article}}");
-        println!("\\usepackage{{amsmath}}");
-        println!("\\begin{{document}}");
-        println!("\\section*{{{}}}",self.title);
-        println!("\\begin{{align*}}");
-        let mut prev_depth = 0;
-        for (pos,t) in self.theorems.iter().enumerate() {
-            if t.2 > prev_depth {
-                println!("&{}\\text{{begin supposition}}&\\\\","   ".repeat(prev_depth));
-            } else if t.2 < prev_depth {
-                println!("&{}\\text{{end supposition}}&\\\\","   ".repeat(t.2));
-            } else {
-            }
-
-            if t.1 != "" {
-                println!("&{}) {}\\hspace{{1em}}&\\text{{[{}]}}\\\\",pos,t.0.latex(t.2),t.1);
-            } else {
-                println!("&{}) {}&\\\\",pos,t.0.latex(t.2));
-            }
-            prev_depth = t.2;
-        }
-        println!("\\end{{align*}}");
-        println!("\\text{{{}}}",self.get_last_theorem().english());
-        println!("\\end{{document}}");
-    }
-
     pub fn latex_file(&self, filename: &str) -> std::io::Result<()>{
         let filename = format!("{}.tex",filename);
         let mut file = File::create(filename)?;
@@ -144,7 +111,6 @@ impl Deduction {
         file.write(b"\\begin{document}\n")?;
         file.write(&section_title.into_bytes())?;
         file.write(b"\\begin{align*}\n")?;
-
 
         let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
@@ -228,6 +194,16 @@ impl Deduction {
 
     pub fn interchange_ae(&mut self, n: usize, v: &Term, pos: usize, comment: &str) {
         let t = interchange_ae(self.get_theorem(n), v, pos);
+        self.push_new( t, comment );
+    }
+
+    pub fn symmetry(&mut self, n: usize, comment: &str) {
+        let t = symmetry(self.get_theorem(n));
+        self.push_new( t, comment );
+    }
+
+    pub fn transitivity(&mut self, n1: usize, n2: usize, comment: &str) {
+        let t = transitivity(self.get_theorem(n1), self.get_theorem(n2));
         self.push_new( t, comment );
     }
     

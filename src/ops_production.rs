@@ -163,7 +163,7 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
             if let Some((l1,r1)) = split_eq(&a1.to_string()) {
                 if let Some((l2,r2)) = split_eq(&a2.to_string()) {
                     if r1 != l2 {
-                        panic!("Transitivity Error: The right term of a1 must match the left term of a2")
+                        panic!("Transitivity Error: The right term of {} does not match the left term of {}",a1,a2)
                     }
                     let lt = Term::new(&l1);
                     let rt = Term::new(&r2);
