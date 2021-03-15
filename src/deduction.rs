@@ -103,7 +103,10 @@ impl Deduction {
     }
 
     pub fn latex_print(&self) {
-        println!("\\chapter{{{}}}",self.title);
+        println!("\\documentclass[12pt]{{article}}");
+        println!("\\usepackage{{amsmath}}");
+        println!("\\begin{{document}}");
+        println!("\\section*{{{}}}",self.title);
         println!("\\begin{{align*}}");
         let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
@@ -122,12 +125,14 @@ impl Deduction {
             prev_depth = t.2;
         }
         println!("\\end{{align*}}");
-        println!("\\text{{{}}}",self.get_last_theorem().english())
+        println!("\\text{{{}}}",self.get_last_theorem().english());
+        println!("\\end{{document}}");
     }
 
     pub fn arithmetize(&self) -> BigUint {
         let mut n: Vec<u8> = Vec::new();
-        let th = self.theorems();
+        let mut th = self.theorems();
+        th.reverse();
         for t in th {
             n.extend( t.to_string().into_bytes().iter() );
             n.push(32);

@@ -1,6 +1,6 @@
 use onig::Regex;
 use num::{bigint::BigUint};
-use std::{str::from_utf8};
+use std::str::from_utf8;
 
 
 pub fn to_latex(text: String, indent: usize) -> String {
@@ -21,6 +21,7 @@ pub fn to_latex(text: String, indent: usize) -> String {
 
     latex
 }
+
 
 // ASCII ONLY
 fn nth_char(text: &str, n: usize) -> &str {

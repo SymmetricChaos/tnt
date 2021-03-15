@@ -5,6 +5,9 @@ use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
 use crate::translate::{to_latex,to_english,arithmetize};
 
 
+
+
+
 #[derive(Clone,Debug,PartialEq)]
 pub enum Formula {
     Simple(String),
@@ -55,13 +58,15 @@ impl fmt::Display for Formula {
 }
 
 
+
+
+
 #[derive(Clone,Debug,PartialEq)]
 pub enum Term {
     Variable(String),
     Number(String),
     Equation(String),
 }
-
 
 impl Term {
     pub fn new(input: &str) -> Term {
@@ -108,6 +113,8 @@ impl fmt::Display for Term {
         }
     }
 }
+
+
 
 
 
