@@ -110,6 +110,7 @@ impl Deduction {
 
         file.write(b"\\documentclass[12pt]{article}\n")?;
         file.write(b"\\usepackage{amsmath}\n")?;
+        file.write(b"\\allowdisplaybreaks\n")?;
         file.write(b"\\begin{document}\n")?;
         file.write(&section_title.into_bytes())?;
         file.write(b"\\begin{align*}\n")?;
