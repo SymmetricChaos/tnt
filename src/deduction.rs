@@ -1,9 +1,12 @@
+use std::{fs::File, io::Write};
+use lazy_static::lazy_static;
+use num::BigUint;
 
 use crate::types::{Formula,Term};
 use crate::ops_production::*;
-use crate::ops_construction::{implies};
-use lazy_static::lazy_static;
-use num::{BigUint};
+use crate::ops_construction::implies;
+
+
 
 pub struct Deduction {
     depth: usize,
@@ -129,6 +132,48 @@ impl Deduction {
         println!("\\end{{document}}");
     }
 
+    pub fn latex_file(&self, filename: &str) -> std::io::Result<()>{
+        let filename = format!("{}.tex",filename);
+        let mut file = File::create(filename)?;
+
+        let section_title = format!("\\section*{{{}}}\n",self.title);
+        let translate_last = format!("\\text{{{}}}",self.get_last_theorem().english());
+
+        file.write(b"\\documentclass[12pt]{article}\n")?;
+        file.write(b"\\usepackage{amsmath}\n")?;
+        file.write(b"\\begin{document}\n")?;
+        file.write(&section_title.into_bytes())?;
+        file.write(b"\\begin{align*}\n")?;
+
+
+        let mut prev_depth = 0;
+        for (pos,t) in self.theorems.iter().enumerate() {
+
+            if t.2 > prev_depth {
+                let line = format!("&{}\\text{{begin supposition}}&\\\\\n","   ".repeat(prev_depth)).into_bytes();
+                file.write(&line)?;
+            } else if t.2 < prev_depth {
+                let line = format!("&{}\\text{{end supposition}}&\\\\\n","   ".repeat(t.2)).into_bytes();
+                file.write(&line)?;
+            }
+
+            if t.1 != "" {
+                let line = format!("&{}) {}\\hspace{{1em}}&\\text{{[{}]}}\\\\\n",pos,t.0.latex(t.2),t.1).into_bytes();
+                file.write(&line)?;
+            } else {
+                let line = format!("&{}) {}&\\\\\n",pos,t.0.latex(t.2)).into_bytes();
+                file.write(&line)?;
+            }
+
+            prev_depth = t.2;
+        }
+
+        file.write(b"\\end{align*}\n")?;
+        file.write(&translate_last.into_bytes())?;
+        file.write(b"\\end{document}")?;
+        Ok(())
+    }
+
     pub fn arithmetize(&self) -> BigUint {
         let mut n: Vec<u8> = Vec::new();
         let mut th = self.theorems();
@@ -139,6 +184,7 @@ impl Deduction {
         }
         BigUint::from_bytes_be(&n)
     }
+
 
     // Logical methods
     pub fn add_premise(&mut self, premise: Formula, comment: &str) {
