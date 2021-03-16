@@ -66,7 +66,6 @@ pub fn english_all_quants(text: String) -> String {
 
         q = quant.find(&text);
     }
-
     text
 }
 
@@ -77,6 +76,21 @@ pub fn english_num(text: String) -> String {
     while n.is_some() {
         let (lo,hi) = n.unwrap();
         text.replace_range(lo..hi, &format!("{}",hi-lo-1));
+        n = num.find(&text);
+    }
+    text
+}
+
+pub fn english_successor(text: String) -> String {
+    let mut text = text;
+    let num = Regex::new("S+[a-z]\'*").unwrap();
+    let mut n = num.find(&text);
+    while n.is_some() {
+        let (lo,hi) = n.unwrap();
+        let substr = &text.clone()[lo..hi];
+        let addend = substr.matches("S").count();
+        let var = &substr[addend..];
+        text.replace_range(lo..hi, &format!("({} plus {})",var,addend));
         n = num.find(&text);
     }
     text
@@ -93,10 +107,11 @@ pub fn to_english(text: String) -> String {
     text = text.replace("|"," or ");
     text = english_all_quants(text);
     text = english_num(text);
+    text = english_successor(text);
     text
 }
 
-// Each symbol could be compressed into 6 bits instead of eight but this is easier
+// Each symbol could be represented with 6 bits instead of eight but this is easier 
 pub fn arithmetize(text: String) -> BigUint {
     BigUint::from_bytes_be(&text.into_bytes())
 }
@@ -113,7 +128,7 @@ pub fn dearithmetize(number: BigUint) -> String {
 #[test]
 fn test_to_english() {
     let s1 = "Az:~Eb:(z+b)=0".to_string();
-    let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*(b+c))=S0]".to_string();
+    let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*(b+SSc'))=S0]".to_string();
     assert_eq!(to_english(s1),"for all z: for no b: (z plus b) equals 0");
-    assert_eq!(to_english(s2),"[it is not true that for all o': o' times 2 equals 0 implies that there exists b: there exists c: (0 times (b plus c)) equals 1]");
+    assert_eq!(to_english(s2),"[it is not true that for all o': o' times 2 equals 0 implies that there exists b: there exists c: (0 times (b plus (c' plus 2))) equals 1]");
 }

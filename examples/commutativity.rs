@@ -83,5 +83,4 @@ fn main() {
         Ok(_) => println!("\nSuccessfully created .tex file!"),
         Err(w) => println!("\nError: {}",w)
     };
-    
 }
