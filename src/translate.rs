@@ -1,6 +1,6 @@
 use onig::Regex;
 use num::{bigint::BigUint};
-use std::str::from_utf8;
+use std::{str::from_utf8};
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -10,6 +10,18 @@ lazy_static! {
     pub static ref SUCC_VAR_MIN_ONE: Regex = Regex::new("S+[a-z]\'*").unwrap();
     pub static ref NUM: Regex = Regex::new("S*0").unwrap();
     pub static ref NUM_GEQ_ONE: Regex = Regex::new("S+0").unwrap();
+    pub static ref FORALL_CHAIN: Regex = Regex::new("((?<!~)A[a-z]\'*:)+").unwrap();
+    pub static ref NOT_FORALL_CHAIN: Regex = Regex::new("(~A[a-z]\'*:)+").unwrap();
+    pub static ref EXISTS_CHAIN: Regex = Regex::new("((?<!~)E[a-z]\'*:)+").unwrap();
+    pub static ref NOT_EXISTS_CHAIN: Regex = Regex::new("(~E[a-z]\'*:)+").unwrap();
+}
+
+pub fn get_vars(s: &str) ->  Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for st in VAR.find_iter(s) {
+        out.push(s[st.0..st.1].to_owned());
+    }
+    out
 }
 
 
@@ -42,9 +54,9 @@ pub fn english_quant(text: &str) -> String {
     if nth_char(text,0) == "~" {
         let var = &text[2..text.len()-1];
         if nth_char(text,1) == "E" {
-            return format!("for no {}: ", var)
+            return format!("there is no {}, such that ", var)
         } else if nth_char(text,1) == "A" {
-            return format!("it is not true that for all {}: ", var)
+            return format!("it is not true that for all {}, ", var)
         } else {
             panic!("found invalid quantifier during translation")
         }
@@ -52,9 +64,9 @@ pub fn english_quant(text: &str) -> String {
     } else {
         let var = &text[1..text.len()-1];
         if nth_char(text,0) == "E" {
-            return format!("there exists {}: ", var)
+            return format!("there exists {}, such that ", var)
         } else if nth_char(text,0) == "A" {
-            return format!("for all {}: ", var)
+            return format!("for all {}, ", var)
         } else {
             panic!("found invalid quantifier during translation")
         }
@@ -78,14 +90,54 @@ pub fn english_all_quants(text: String) -> String {
     text
 }
 
+pub fn english_quant_chains(text: String) -> String {
+    let mut text = text;
+    let mut exists = EXISTS_CHAIN.find(&text);
 
-// I think it will be easier to deal with quantifiers using a partially connected graph
-// Should take in a string and give vector of vectors where each subvector is a vector of tuples representing chained quantifications
-// Then we can use that to build up a nice English translation
-pub fn quant_vec(text: String) {
+    while exists.is_some() {
+        let e = exists.unwrap();
+        let range = e.0..e.1;
+        let vars = get_vars(&text[range.clone()]);
+        let replacement = format!("there exist {}, such that ", vars.join(", "));
+        text.replace_range(range, &replacement);
+        exists = EXISTS_CHAIN.find(&text);
+    }
+
+    let mut forall = FORALL_CHAIN.find(&text);
+
+    while forall.is_some() {
+        let e = forall.unwrap();
+        let range = e.0..e.1;
+        let vars = get_vars(&text[range.clone()]);
+        let replacement = format!("for all {}, ", vars.join(", "));
+        text.replace_range(range, &replacement);
+        forall = FORALL_CHAIN.find(&text);
+    }
+
+    let mut for_no = NOT_EXISTS_CHAIN.find(&text);
+
+    while for_no.is_some() {
+        let e = for_no.unwrap();
+        let range = e.0..e.1;
+        let vars = get_vars(&text[range.clone()]);
+        let replacement = format!("there is no {}, such that ", vars.join(", "));
+        text.replace_range(range, &replacement);
+        for_no = NOT_EXISTS_CHAIN.find(&text);
+    }
     
-}
+    let mut not_all = NOT_FORALL_CHAIN.find(&text);
 
+    while not_all.is_some() {
+        let e = not_all.unwrap();
+        let range = e.0..e.1;
+        let vars = get_vars(&text[range.clone()]);
+        let replacement = format!("it is not true that for all {}, ", vars.join(", "));
+        text.replace_range(range, &replacement);
+        not_all = NOT_FORALL_CHAIN.find(&text);
+    }
+
+    text
+}
 
 pub fn english_num(text: String) -> String {
     let mut text = text;
@@ -106,7 +158,7 @@ pub fn english_successor(text: String) -> String {
         let substr = &text.clone()[lo..hi];
         let addend = substr.matches("S").count();
         let var = &substr[addend..];
-        text.replace_range(lo..hi, &format!("({} plus {})",var,addend));
+        text.replace_range(lo..hi, &format!("({} + {})",var,addend));
         n = SUCC_VAR_MIN_ONE.find(&text);
     }
     text
@@ -115,13 +167,13 @@ pub fn english_successor(text: String) -> String {
 
 pub fn to_english(text: String) -> String {
     let mut text = text;
-    text = text.replace("="," equals ");
+    text = text.replace("="," = ");
     text = text.replace("+"," + ");
     text = text.replace("*"," × ");
     text = text.replace(">"," implies that ");
     text = text.replace("&"," and ");
     text = text.replace("|"," or ");
-    text = english_all_quants(text);
+    text = english_quant_chains(text);
     text = english_num(text);
     text = english_successor(text);
     text
@@ -145,6 +197,10 @@ pub fn dearithmetize(number: BigUint) -> String {
 fn test_to_english() {
     let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
     let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*(b+SSc'))=S0]".to_string();
-    assert_eq!(to_english(s1),"for all z: for no b: (z plus b) equals 3");
-    assert_eq!(to_english(s2),"[it is not true that for all o': o' times 2 equals 0 implies that there exists b: there exists c: (0 times (b plus (c' plus 2))) equals 1]");
+    let s3 = "Aa:Ab:Ec:[(a+1)=c&(b+0)=c]".to_string();
+    assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
+    assert_eq!(to_english(s2.clone()),"[it is not true that for all o', o' × 2 = 0 implies that there exist b, c, such that (0 × (b + (c' + 2))) = 1]");
+    assert_eq!(to_english(s3.clone()),"for all a, b, there exist c, such that [(a + 1) = c and (b + 0) = c]");
+
+    english_quant_chains(s3);
 }
