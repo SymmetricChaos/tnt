@@ -82,17 +82,20 @@ pub fn split_arithmetic(s: &str) -> Option<(&str,&str)> {
     Some((l,r))
 }
 
-
+// Partition a &str into two pieces at the outermost leftmost logical operation
+// Used to validate Formula::Complex
 pub fn split_logical(s: &str) -> Option<(&str,&str)> {
     let leftmost = match left_string(s, vec!['['],vec!['&','|','>']) {
         Some(v) => v,
         None => return None
     };
-    let l = &s[leftmost.1+1..leftmost.2];
+    let l = &s[1..leftmost.2];
     let r = &s[leftmost.3..s.len()-1];
     Some((l,r))
 }
 
+// Partition a &str into two pieces at the outermost leftmost equals sign
+// Used to validate Formula::Simple
 pub fn split_eq(s: &str) -> Option<(&str,&str)> {
     if !s.contains(s) {
         return None

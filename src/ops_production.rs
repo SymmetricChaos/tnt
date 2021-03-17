@@ -91,6 +91,7 @@ pub fn interchange_ae(x: &Formula, v: &Term, n: usize) -> Formula {
 }
 
 pub fn induction(v: &Term, base: &Formula, general: &Formula) -> Formula {
+    // The theorem we need to generalize is the outermost, leftmost implication of the general case
     let theorem = Formula::new(left_implies(&general.to_string()).unwrap());
 
     if let Term::Variable(_) = v {

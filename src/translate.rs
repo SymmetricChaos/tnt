@@ -116,8 +116,8 @@ pub fn english_successor(text: String) -> String {
 pub fn to_english(text: String) -> String {
     let mut text = text;
     text = text.replace("="," equals ");
-    text = text.replace("*"," times ");
-    text = text.replace("+"," plus ");
+    text = text.replace("+"," + ");
+    text = text.replace("*"," × ");
     text = text.replace(">"," implies that ");
     text = text.replace("&"," and ");
     text = text.replace("|"," or ");
