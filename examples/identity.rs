@@ -9,7 +9,7 @@ fn main() {
 
     let t = &Formula::new("Aa:(S0*a)=a"); //The theorem to be proven
     let mut e = Deduction::new("Prove 1 is the Left Multiplicative Identity", PEANO.clone());
-    e.add_premise(PEANO[3].clone(), "axiom of absorbtion");
+    e.add_axiom(PEANO[3].clone(), "axiom of absorbtion");
     e.specification(0, a, one, "specification of 0, base case");
     e.supposition(Formula::new("Aa:(S0*a)=a"), "assume desired theorem");
     e.specification(2, a, sa, "specification of 2");
@@ -24,4 +24,8 @@ fn main() {
         Ok(_) => println!("Successfully created .tex file!"),
         Err(w) => println!("Error: {}",w)
     };
+
+    for i in e.theorems_raw() {
+        println!("{:?}",i)
+    }
 }

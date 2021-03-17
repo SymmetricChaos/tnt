@@ -6,15 +6,20 @@ use crate::types::{Formula,Term};
 use crate::ops_production::*;
 use crate::ops_construction::implies;
 
-
+pub struct Frame {
+    formula: Formula,
+    comment: String,
+    cur_depth: usize,
+    block_start: usize
+}
 
 pub struct Deduction {
     depth: usize,
     tag_stack: Vec<usize>,
-    parent: Option<Vec<Formula>>,
+    parent: usize, 
     title: String,
     axioms: Vec<Formula>,
-    theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, tag for supposition block
+    theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, tag for supposition block, rework this to use Frame
 }
 
 // When 'true' forces the theorems to be printed every time they are added, helps with debugging
@@ -35,24 +40,20 @@ lazy_static! {
 
 impl Deduction {
     pub fn new(title: &str, axioms: Vec<Formula>) -> Deduction {
-        Deduction{ depth: 0, tag_stack: vec![0], parent: None, title: title.to_string(), axioms, theorems: Vec::<(Formula,String,usize,usize)>::new()}
+        Deduction{ depth: 0, tag_stack: vec![0], parent: 0, title: title.to_string(), axioms, theorems: Vec::<(Formula,String,usize,usize)>::new()}
     }
 
 
     // Internal methods
 
-    // Need to rigorously ensure this is correct
+    // This is correct only because nested supposition is forbidden in the .supposition() method
+    // To allow nested supposition we need to track scope somehow
     fn get_theorem(&self, n: usize) -> &Formula {
-        let t = &self.theorems[n];
-        if t.2 > 0 && n < *self.tag_stack.last().unwrap() {
-            panic!("Cannot get theorem from within a supposition")
-        }
-        &t.0
+        &self.theorems[n].0
     }
 
     fn get_last_theorem(&self) -> &Formula {
-        let t = &self.theorems.last().unwrap();
-        &t.0
+        &self.theorems.last().unwrap().0
     }
 
     fn push_new(&mut self, theorem: Formula, comment: &str) {
@@ -156,13 +157,28 @@ impl Deduction {
 
 
     // Logical methods
+
+    // Currently deprecated, arbitrary premises can only be added by a supposition block
+    // Proper scoping should make this irrelevant
+    /* 
     pub fn add_premise(&mut self, premise: Formula, comment: &str) {
         if self.depth == 0 {
             if !self.axioms.contains(&premise) {
                 panic!("At depth 0 only an axiom can be taken as a premise.")
             }
+        } else {
+
         }
         self.push_new( premise, comment );
+    }
+    */
+
+    pub fn add_axiom(&mut self, premise: Formula, comment: &str) {
+        if !self.axioms.contains(&premise) {
+            panic!("{} is not a known axiom",premise);
+        } else {
+            self.push_new( premise, comment );
+        }
     }
 
     pub fn specification(&mut self, n: usize, var: &Term, replacement: &Term, comment: &str) {
@@ -211,6 +227,9 @@ impl Deduction {
     }
     
     pub fn supposition(&mut self, premise: Formula, comment: &str) {
+        if self.depth == 1 {
+            panic!("Nested supposition not currently supported")
+        }
         self.depth += 1;
         self.tag_stack.push(self.theorems.len());
         self.push_new( premise, comment );
