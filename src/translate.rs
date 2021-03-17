@@ -1,6 +1,16 @@
 use onig::Regex;
 use num::{bigint::BigUint};
 use std::str::from_utf8;
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref QUANT: Regex = Regex::new("~?[AE][a-z]\'*:").unwrap();
+    pub static ref VAR: Regex = Regex::new("[a-z]\'*").unwrap();
+    pub static ref SUCC_VAR: Regex = Regex::new("S*[a-z]\'*").unwrap();
+    pub static ref SUCC_VAR_MIN_ONE: Regex = Regex::new("S+[a-z]\'*").unwrap();
+    pub static ref NUM: Regex = Regex::new("S*0").unwrap();
+    pub static ref NUM_GEQ_ONE: Regex = Regex::new("S+0").unwrap();
+}
 
 
 pub fn to_latex(text: String) -> String {
@@ -54,8 +64,7 @@ pub fn english_quant(text: &str) -> String {
 // Should handle conjuctions of quantifiers
 pub fn english_all_quants(text: String) -> String {
     let mut text = text;
-    let quant = Regex::new("~?[AE][a-z]\'*:").unwrap();
-    let mut q = quant.find(&text);
+    let mut q = QUANT.find(&text);
     while q.is_some() {
         let (lo,hi) = q.unwrap();
         if hi+1 == text.len() {
@@ -64,34 +73,41 @@ pub fn english_all_quants(text: String) -> String {
         let nice_name = english_quant(&text[lo..hi]);
         text.replace_range(lo..hi, &nice_name);
 
-        q = quant.find(&text);
+        q = QUANT.find(&text);
     }
     text
 }
 
+
+// I think it will be easier to deal with quantifiers using a partially connected graph
+// Should take in a string and give vector of vectors where each subvector is a vector of tuples representing chained quantifications
+// Then we can use that to build up a nice English translation
+pub fn quant_vec(text: String) {
+    
+}
+
+
 pub fn english_num(text: String) -> String {
     let mut text = text;
-    let num = Regex::new("S+0").unwrap();
-    let mut n = num.find(&text);
+    let mut n = NUM_GEQ_ONE.find(&text);
     while n.is_some() {
         let (lo,hi) = n.unwrap();
         text.replace_range(lo..hi, &format!("{}",hi-lo-1));
-        n = num.find(&text);
+        n = NUM_GEQ_ONE.find(&text);
     }
     text
 }
 
 pub fn english_successor(text: String) -> String {
     let mut text = text;
-    let num = Regex::new("S+[a-z]\'*").unwrap();
-    let mut n = num.find(&text);
+    let mut n = SUCC_VAR_MIN_ONE.find(&text);
     while n.is_some() {
         let (lo,hi) = n.unwrap();
         let substr = &text.clone()[lo..hi];
         let addend = substr.matches("S").count();
         let var = &substr[addend..];
         text.replace_range(lo..hi, &format!("({} plus {})",var,addend));
-        n = num.find(&text);
+        n = SUCC_VAR_MIN_ONE.find(&text);
     }
     text
 }
@@ -127,8 +143,8 @@ pub fn dearithmetize(number: BigUint) -> String {
 
 #[test]
 fn test_to_english() {
-    let s1 = "Az:~Eb:(z+b)=0".to_string();
+    let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
     let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*(b+SSc'))=S0]".to_string();
-    assert_eq!(to_english(s1),"for all z: for no b: (z plus b) equals 0");
+    assert_eq!(to_english(s1),"for all z: for no b: (z plus b) equals 3");
     assert_eq!(to_english(s2),"[it is not true that for all o': o' times 2 equals 0 implies that there exists b: there exists c: (0 times (b plus (c' plus 2))) equals 1]");
 }
