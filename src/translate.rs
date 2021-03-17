@@ -98,7 +98,7 @@ pub fn english_quant_chains(text: String) -> String {
         let e = exists.unwrap();
         let range = e.0..e.1;
         let vars = get_vars(&text[range.clone()]);
-        let replacement = format!("there exist {}, such that ", vars.join(", "));
+        let replacement = format!("there exist {}, such that ", vars.join(" and "));
         text.replace_range(range, &replacement);
         exists = EXISTS_CHAIN.find(&text);
     }
@@ -109,7 +109,7 @@ pub fn english_quant_chains(text: String) -> String {
         let e = forall.unwrap();
         let range = e.0..e.1;
         let vars = get_vars(&text[range.clone()]);
-        let replacement = format!("for all {}, ", vars.join(", "));
+        let replacement = format!("for all {}, ", vars.join(" and "));
         text.replace_range(range, &replacement);
         forall = FORALL_CHAIN.find(&text);
     }
@@ -120,7 +120,7 @@ pub fn english_quant_chains(text: String) -> String {
         let e = for_no.unwrap();
         let range = e.0..e.1;
         let vars = get_vars(&text[range.clone()]);
-        let replacement = format!("there is no {}, such that ", vars.join(", "));
+        let replacement = format!("there is no {}, such that ", vars.join(" or "));
         text.replace_range(range, &replacement);
         for_no = NOT_EXISTS_CHAIN.find(&text);
     }
@@ -131,7 +131,7 @@ pub fn english_quant_chains(text: String) -> String {
         let e = not_all.unwrap();
         let range = e.0..e.1;
         let vars = get_vars(&text[range.clone()]);
-        let replacement = format!("it is not true that for all {}, ", vars.join(", "));
+        let replacement = format!("it is not true that for all {}, ", vars.join(" and "));
         text.replace_range(range, &replacement);
         not_all = NOT_FORALL_CHAIN.find(&text);
     }
@@ -199,8 +199,8 @@ fn test_to_english() {
     let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*(b+SSc'))=S0]".to_string();
     let s3 = "Aa:Ab:Ec:[(a+1)=c&(b+0)=c]".to_string();
     assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
-    assert_eq!(to_english(s2.clone()),"[it is not true that for all o', o' × 2 = 0 implies that there exist b, c, such that (0 × (b + (c' + 2))) = 1]");
-    assert_eq!(to_english(s3.clone()),"for all a, b, there exist c, such that [(a + 1) = c and (b + 0) = c]");
+    assert_eq!(to_english(s2.clone()),"[it is not true that for all o', o' × 2 = 0 implies that there exist b and c, such that (0 × (b + (c' + 2))) = 1]");
+    assert_eq!(to_english(s3.clone()),"for all a and b, there exist c, such that [(a + 1) = c and (b + 0) = c]");
 
     english_quant_chains(s3);
 }
