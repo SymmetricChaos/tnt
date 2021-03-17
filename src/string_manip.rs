@@ -88,7 +88,7 @@ pub fn split_logical(s: &str) -> Option<(&str,&str)> {
         Some(v) => v,
         None => return None
     };
-    let l = &s[1..leftmost.2];
+    let l = &s[leftmost.1+1..leftmost.2];
     let r = &s[leftmost.3..s.len()-1];
     Some((l,r))
 }
@@ -99,6 +99,15 @@ pub fn split_eq(s: &str) -> Option<(&str,&str)> {
     }
     let sp: Vec<&str> = s.splitn(2,"=").collect();
     Some((sp[0],sp[1]))
+}
+
+pub fn left_implies(s: &str) -> Option<&str> {
+    let leftmost = match left_string(s, vec!['['],vec!['>']) {
+        Some(v) => v,
+        None => return None
+    };
+    let l = &s[leftmost.1+1..leftmost.2];
+    Some(l)
 }
 
 
@@ -228,6 +237,16 @@ fn test_replace_var_in_string() {
 
 #[test]
 fn test_split_arithmetic() {
-    assert_eq!(split_arithmetic("(a+Sb)"),Some(("a","Sb")),"(a+Sb) should split into a and Sb");
+    assert_eq!(split_arithmetic("(a+Sb)"),Some(("a","Sb")));
 }
 
+
+#[test]
+fn test_split_logical() {
+    assert_eq!(split_logical("Au:[u=u>Su=Su]"),Some(("u=u","Su=Su")));
+}
+
+#[test]
+fn test_left_implies() {
+    assert_eq!(left_implies("Ad:[Ac:(c+d)=(d+c)>Ac:(c+Sd)=(Sd+c)]"),Some("Ac:(c+d)=(d+c)"));
+}

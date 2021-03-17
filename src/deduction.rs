@@ -223,8 +223,8 @@ impl Deduction {
         self.push_new( t, comment );
     }
 
-    pub fn induction(&mut self, theorem: &Formula, var: &Term, base: usize, general: usize, comment: &str) {
-        let t = induction(theorem,var,self.get_theorem(base),self.get_theorem(general));
+    pub fn induction(&mut self, var: &Term, base: usize, general: usize, comment: &str) {
+        let t = induction(var,self.get_theorem(base),self.get_theorem(general));
         self.push_new( t, comment );
     }
     

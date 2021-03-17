@@ -1,6 +1,6 @@
 use crate::types::{Term,Formula};
 use crate::ops_construction::*;
-use crate::string_manip::{replace_var_in_string, split_eq, get_bound_vars};
+use crate::string_manip::{replace_var_in_string, split_eq, get_bound_vars, left_implies};
 
 // Rules of production
 // These may check for additional internal contraints and will panic on failure
@@ -90,7 +90,9 @@ pub fn interchange_ae(x: &Formula, v: &Term, n: usize) -> Formula {
     }
 }
 
-pub fn induction(theorem: &Formula, v: &Term, base: &Formula, general: &Formula) -> Formula {
+pub fn induction(v: &Term, base: &Formula, general: &Formula) -> Formula {
+    let theorem = Formula::new(left_implies(&general.to_string()).unwrap());
+
     if let Term::Variable(_) = v {
         if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
             panic!("Induction Error: {} is already bound in {}",v,theorem.to_string())
@@ -103,7 +105,7 @@ pub fn induction(theorem: &Formula, v: &Term, base: &Formula, general: &Formula)
             if general.to_string() != format!("A{}:[{}>{}]",v,theorem,xs) {
                 panic!("Induction Error: general case must be A{}:[{}>{}]",v,theorem,xs)
             }
-            forall(v,theorem)
+            forall(v,&theorem)
         }
     } else {
         panic!("Induction Error: {} is not a Term::Variable",v)
@@ -120,7 +122,7 @@ pub fn successor(a: &Formula) -> Formula {
             unreachable!("Successor Error: unable to split {}",a)
         }
     } else {
-        panic!("Successor Error: {} is not a Formula::Simple",a)
+        panic!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a)
     }
 }
 
@@ -137,7 +139,7 @@ pub fn predecessor(a: &Formula) -> Formula {
         }
         unreachable!("Predecessor Error: unable to split {}",a)
     } else {
-        panic!("Successor Error: {} is not a Formula::Simple",a)
+        panic!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a)
     }
 }
 
@@ -152,7 +154,7 @@ pub fn symmetry(a: &Formula) -> Formula {
             unreachable!("Symmetry Error: unable to split {}",a)
         }
     } else {
-        panic!("Successor Error: {} is not a Formula::Simple",a)
+        panic!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a)
     }
 }
 
@@ -175,10 +177,10 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
                 unreachable!("Transitivity Error: unable to split {}",a1)
             }
         } else {
-            panic!("Transitivity Error: {} is not a Formula::Simple",a2)
+            panic!("Transitivity Error: {} is not a Formula::Simple which is required in order to split it",a2)
         }
     } else {
-        panic!("Transitivity Error: {} is not a Formula::Simple",a1)
+        panic!("Transitivity Error: {} is not a Formula::Simple which is required in order to split it",a1)
     }
 }
 
@@ -244,9 +246,8 @@ fn test_interchange_ae() {
 
 #[test]
 fn test_induction() {
-    let theorem = Formula::new("v=v");
     let v = Term::new("v");
     let base = Formula::new("0=0");
     let gen = Formula::new("Av:[v=v>Sv=Sv]");
-    assert_eq!(induction(&theorem,&v,&base,&gen).to_string(),"Av:v=v");
+    assert_eq!(induction(&v,&base,&gen).to_string(),"Av:v=v");
 }

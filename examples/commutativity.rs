@@ -38,7 +38,7 @@ fn main() {
     e.symmetry(19, "symmetry of 19");
     e.transitivity(18, 20, "transitivity of 18 and 20");
     e.generalization(21, d, "generalization of 21");
-    e.induction(&Formula::new("Ad:(d+Sc)=(Sd+c)"), c, 22, 13, "induction of c on 22 and 13");
+    e.induction( c, 22, 13, "induction of c on 22 and 13");
     e.specification(0, a, c, "specification of 0, a replaced by c");
     e.specification( 24, b, d, "specification of 24, b replaced by d");
     e.specification(0, a, d, "specification of 0, a replaced by d");
@@ -68,12 +68,12 @@ fn main() {
 
     e.generalization(46, b, "generalization of  46");
     e.specification(15, a, zero, "specification of 15, a replaced by 0");
-    e.induction(&Formula::new("(0+b)=b"), b, 48, 47, "induction of b on 48 and 47");
+    e.induction( b, 48, 47, "induction of b on 48 and 47");
     e.specification(49, b, c, "specification of 49, b replaced by c");
     e.symmetry(50, "symmetry of 50");
     e.transitivity(40, 51, "transitivity of 40 and 51");
     e.generalization(52, c, "generalization of 52");
-    e.induction(&Formula::new("Ac:(c+d)=(d+c)"), d, 53, 39, "induction of d on 53 and 39");
+    e.induction( d, 53, 39, "induction of d on 53 and 39");
 
     assert_eq!(e.last_theorem(),t);
 

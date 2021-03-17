@@ -16,7 +16,7 @@ fn main() {
     e.implication("implication of supposition block");
     e.specification(4, a, a, "specification of 4");
     e.generalization(5, a, "generalization of 5, general case");
-    e.induction(&Formula::new("(S0*a)=a"), a, 1, 6, "induction on 1 and 6");
+    e.induction(a, 1, 6, "induction on 1 and 6");
     assert_eq!(e.theorem(7),t);
     e.pretty_print();
 
