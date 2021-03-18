@@ -98,8 +98,13 @@ pub fn english_quant_chains(text: String) -> String {
         let e = exists.unwrap();
         let range = e.0..e.1;
         let vars = get_vars(&text[range.clone()]);
-        let replacement = format!("there exist {}, such that ", vars.join(" and "));
-        text.replace_range(range, &replacement);
+        if &text[range.clone()].matches('E').count() == &1 {
+            let replacement = format!("there exists {}, such that ", vars.join(""));
+            text.replace_range(range, &replacement);
+        } else {
+            let replacement = format!("there exist {}, such that ", vars.join(" and "));
+            text.replace_range(range, &replacement);
+        }
         exists = EXISTS_CHAIN.find(&text);
     }
 

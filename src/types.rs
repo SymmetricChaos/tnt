@@ -135,6 +135,14 @@ impl TNT {
             panic!()
         }
     }
+
+    pub fn latex(&self) -> String {
+        to_latex(self.to_string())
+    }
+
+    pub fn english(&self) -> String {
+        to_english(self.to_string())
+    }
 }
 
 impl TryFrom<Term> for TNT {
