@@ -70,8 +70,7 @@ impl Deduction {
     }
 
     pub fn last_theorem(&self) -> &Formula {
-        let t = &self.theorems.last().unwrap();
-        &t.0
+        &self.theorems.last().unwrap().0
     }
 
     pub fn all_theorems(&self) -> Vec<Formula> {
@@ -157,27 +156,11 @@ impl Deduction {
 
 
     // Logical methods
-
-    // Currently deprecated, arbitrary premises can only be added by a supposition block
-    // Proper scoping should make this irrelevant
-    /* 
-    pub fn add_premise(&mut self, premise: Formula, comment: &str) {
-        if self.depth == 0 {
-            if !self.axioms.contains(&premise) {
-                panic!("At depth 0 only an axiom can be taken as a premise.")
-            }
-        } else {
-
-        }
-        self.push_new( premise, comment );
-    }
-    */
-
     pub fn add_axiom(&mut self, premise: Formula, comment: &str) {
-        if !self.axioms.contains(&premise) {
-            panic!("{} is not a known axiom",premise);
-        } else {
+        if self.axioms.contains(&premise) {
             self.push_new( premise, comment );
+        } else {
+            panic!("{} is not a known axiom", premise);
         }
     }
 

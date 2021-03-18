@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{convert::TryFrom, fmt};
 use num::bigint::BigUint;
 
 use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
@@ -134,6 +134,22 @@ impl TNT {
         } else {
             panic!()
         }
+    }
+}
+
+impl TryFrom<Term> for TNT {
+    type Error = &'static str;
+
+    fn try_from(value: Term) -> Result<Self, Self::Error> {
+        Ok(TNT::Term(value))
+    }
+}
+
+impl TryFrom<Formula> for TNT {
+    type Error = &'static str;
+
+    fn try_from(value: Formula) -> Result<Self, Self::Error> {
+        Ok(TNT::Formula(value))
     }
 }
 
