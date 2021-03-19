@@ -2,7 +2,7 @@ use std::{convert::TryFrom, fmt};
 use num::bigint::BigUint;
 
 use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
-use crate::translate::{to_latex,to_english,arithmetize};
+use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
 
 
 
@@ -45,6 +45,10 @@ impl Formula {
     pub fn arithmetize(&self) -> BigUint {
         arithmetize(self.to_string())
     }
+
+    pub fn dearithmetize(number: &BigUint) -> Formula {
+        Formula::new(&dearithmetize(number))
+    }
 }
 
 impl fmt::Display for Formula {
@@ -55,6 +59,7 @@ impl fmt::Display for Formula {
         }
     }
 }
+
 
 
 
@@ -100,6 +105,14 @@ impl Term {
 
     pub fn english(&self) -> String {
         to_english(self.to_string())
+    }
+
+    pub fn arithmetize(&self) -> BigUint {
+        arithmetize(self.to_string())
+    }
+
+    pub fn dearithmetize(number: &BigUint) -> Term {
+        Term::new(&dearithmetize(number))
     }
 }
 

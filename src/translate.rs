@@ -45,49 +45,9 @@ pub fn to_latex(text: String) -> String {
 
 
 // ASCII ONLY
-fn nth_char(text: &str, n: usize) -> &str {
+// Currently unused
+fn _nth_char(text: &str, n: usize) -> &str {
     &text[n..n+1]
-}
-
-// Should be able to eliminate the ":" ending and replace it with english conjunctions in english_all_quants()
-pub fn english_quant(text: &str) -> String {
-    if nth_char(text,0) == "~" {
-        let var = &text[2..text.len()-1];
-        if nth_char(text,1) == "E" {
-            return format!("there is no {}, such that ", var)
-        } else if nth_char(text,1) == "A" {
-            return format!("it is not true that for all {}, ", var)
-        } else {
-            panic!("found invalid quantifier during translation")
-        }
-
-    } else {
-        let var = &text[1..text.len()-1];
-        if nth_char(text,0) == "E" {
-            return format!("there exists {}, such that ", var)
-        } else if nth_char(text,0) == "A" {
-            return format!("for all {}, ", var)
-        } else {
-            panic!("found invalid quantifier during translation")
-        }
-    }
-}
-
-// Should handle conjuctions of quantifiers
-pub fn english_all_quants(text: String) -> String {
-    let mut text = text;
-    let mut q = QUANT.find(&text);
-    while q.is_some() {
-        let (lo,hi) = q.unwrap();
-        if hi+1 == text.len() {
-            panic!("quantifiers cannot appear at the end of a formula")
-        }
-        let nice_name = english_quant(&text[lo..hi]);
-        text.replace_range(lo..hi, &nice_name);
-
-        q = QUANT.find(&text);
-    }
-    text
 }
 
 pub fn english_quant_chains(text: String) -> String {
@@ -184,12 +144,13 @@ pub fn to_english(text: String) -> String {
     text
 }
 
-// Each symbol could be represented with 6 bits instead of eight but this is easier 
+// Each symbol could be represented with 6 bits instead of eight but this is easier
+// Probably also faster and easier to compress id needed
 pub fn arithmetize(text: String) -> BigUint {
     BigUint::from_bytes_be(&text.into_bytes())
 }
 
-pub fn dearithmetize(number: BigUint) -> String {
+pub fn dearithmetize(number: &BigUint) -> String {
     match from_utf8(&number.to_bytes_be()) {
         Ok(s) => s.to_string(),
         Err(e) => panic!("{}",e), 
@@ -205,7 +166,5 @@ fn test_to_english() {
     let s3 = "Aa:Ab:Ec:[(a+1)=c&(b+0)=c]".to_string();
     assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
     assert_eq!(to_english(s2.clone()),"[it is not true that for all o', o' × 2 = 0 implies that there exist b and c, such that (0 × (b + (c' + 2))) = 1]");
-    assert_eq!(to_english(s3.clone()),"for all a and b, there exist c, such that [(a + 1) = c and (b + 0) = c]");
-
-    english_quant_chains(s3);
+    assert_eq!(to_english(s3.clone()),"for all a and b, there exists c, such that [(a + 1) = c and (b + 0) = c]");
 }
