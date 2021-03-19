@@ -1,6 +1,7 @@
 use onig::Regex;
 
-pub fn strip_succ(s: &str) -> &str {
+// Currently unused
+pub fn _strip_succ(s: &str) -> &str {
     let mut s = s;
     if s.starts_with("S") {
         s = s.strip_prefix("S").unwrap();
@@ -184,9 +185,10 @@ pub fn strip_quant(s: &str) -> &str {
     s
 }
 
+// Currently unused
 // TODO: Optimization tie this directly to the variable itself so that the regex doesn't need to be built every time to variable is searched for
 // Just in case we need to check directly if a variable exists in a string
-pub fn var_in_string(s: &str, v: &str) -> bool {
+pub fn _var_in_string(s: &str, v: &str) -> bool {
     // (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
     let p = format!("{}(?!')",v);
     let re = Regex::new(&p).unwrap();
@@ -208,6 +210,18 @@ pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> Strin
 
 
 
+
+#[test]
+fn test_strip_succ() {
+    assert_eq!(_strip_succ("SSSi'"),"SSi'");
+}
+
+#[test]
+fn test_strip_succ_all() {
+    assert_eq!(strip_succ_all("SSSi'"),"i'");
+}
+
+
 #[test]
 fn test_strip_quants() {
     assert_eq!(strip_quant("Ab:Ea:a=a"),"a=a");
@@ -227,11 +241,10 @@ fn test_get_bound_vars() {
 
 #[test]
 fn test_var_in_string() {
-    assert_eq!(var_in_string("Ea':∀b:(a'+a')=b","a"),false);
-    assert_eq!(var_in_string("Ea:Eb:(a'+a')=b","a''"),false);
-    assert_eq!(var_in_string("Ea:Eb:(a'+a')=b","c"),false);
+    assert_eq!(_var_in_string("Ea':∀b:(a'+a')=b","a"),false);
+    assert_eq!(_var_in_string("Ea:Eb:(a'+a')=b","a''"),false);
+    assert_eq!(_var_in_string("Ea:Eb:(a'+a')=b","c"),false);
 }
-
 
 #[test]
 fn test_replace_var_in_string() {
@@ -242,7 +255,6 @@ fn test_replace_var_in_string() {
 fn test_split_arithmetic() {
     assert_eq!(split_arithmetic("(a+Sb)"),Some(("a","Sb")));
 }
-
 
 #[test]
 fn test_split_logical() {

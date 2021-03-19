@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 pub mod deduction;
 pub mod types;
 mod properties;

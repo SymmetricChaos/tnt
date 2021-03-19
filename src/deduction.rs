@@ -6,17 +6,11 @@ use crate::types::{Formula,Term};
 use crate::ops_production::*;
 use crate::ops_construction::implies;
 
-pub struct Frame {
-    formula: Formula,
-    comment: String,
-    cur_depth: usize,
-    block_start: usize
-}
 
+/// The Deduction struct enforces valid use of deductive logic
 pub struct Deduction {
     depth: usize,
     tag_stack: Vec<usize>,
-    parent: usize, 
     title: String,
     axioms: Vec<Formula>,
     theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, tag for supposition block, rework this to use Frame
@@ -40,7 +34,7 @@ lazy_static! {
 
 impl Deduction {
     pub fn new(title: &str, axioms: Vec<Formula>) -> Deduction {
-        Deduction{ depth: 0, tag_stack: vec![0], parent: 0, title: title.to_string(), axioms, theorems: Vec::<(Formula,String,usize,usize)>::new()}
+        Deduction{ depth: 0, tag_stack: vec![0], title: title.to_string(), axioms, theorems: Vec::<(Formula,String,usize,usize)>::new()}
     }
 
 
