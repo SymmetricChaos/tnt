@@ -39,7 +39,6 @@ impl Deduction {
 
 
     // Internal methods
-
     // This is correct only because nested supposition is forbidden in the .supposition() method
     // To allow nested supposition we need to track scope somehow
     fn get_theorem(&self, n: usize) -> &Formula {
@@ -56,6 +55,7 @@ impl Deduction {
         }
         self.theorems.push( (theorem,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
     }
+
 
 
     // Access methods
@@ -78,6 +78,7 @@ impl Deduction {
     pub fn theorems_raw(&self) -> Vec<(Formula, String, usize, usize)> {
         self.theorems.clone()
     }
+
 
 
     // Printing methods
@@ -149,6 +150,7 @@ impl Deduction {
     }
 
 
+    
     // Logical methods
     pub fn add_axiom(&mut self, premise: Formula, comment: &str) {
         if self.axioms.contains(&premise) {

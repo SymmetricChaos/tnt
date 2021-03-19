@@ -22,11 +22,9 @@ pub fn strip_succ_all(s: &str) -> &str {
     s
 }
 
-
-// Returns the contents and positions of the outermost pairs of brackets
-pub fn bracket_match(s: &str, leftb: Vec<char>, rightb: Vec<char>) -> Option<Vec<(&str,usize,usize,usize)>> {
+// Get the outermost leftmost match for some arbitray bracketing system
+pub fn left_match(s: &str, leftb: Vec<char>, rightb: Vec<char>) -> Option<(usize,usize)> {
     let mut starts: Vec<usize> = Vec::new();
-    let mut spans: Vec<(usize,usize,usize)> = Vec::new();
 
     let sym = s.char_indices();
     for (pos,c) in sym {
@@ -35,63 +33,35 @@ pub fn bracket_match(s: &str, leftb: Vec<char>, rightb: Vec<char>) -> Option<Vec
             continue
         } else if rightb.contains(&c) {
             let left = starts.pop();
-            match left {
-                Some(num) => spans.push((num,pos,c.len_utf8())),
-                None => return None,
+            if starts.len() == 0 && left.is_some() {
+                return Some((left.unwrap(),pos))
+            } else if left.is_none() {
+                return None
             }
         }
     }
-
-    /*
-    Not needed for our purposes
-    if starts.len() != 0 {
-        panic!() // Too many left brackets. How to raise a proper error?
-    }
-    */
-
-    if spans.len() == 0 {
-        return None
-    }
-
-    // Return the substrings, their starts, their ends, and the position of the next character
-    // This construction gives the contents of the bracket without the brackets themselves
-    let mut out: Vec<(&str,usize,usize,usize)> = Vec::new();
-    for (lo,hi,w) in spans {
-        out.push((&s[lo..hi+w],lo,hi,hi+w))
-    }
-
-    Some(out)
+    None
 }
-
-pub fn left_string(s: &str, leftb: Vec<char>, rightb: Vec<char>) -> Option<(&str,usize,usize,usize)> {
-    let mut bracks = match bracket_match(s,leftb,rightb) {
-        Some(v) => v,
-        None => return None
-    };
-    bracks.sort_by_key(|x| x.1);
-    Some(bracks[0])
-}
-
 
 pub fn split_arithmetic(s: &str) -> Option<(&str,&str)> {
-    let leftmost = match left_string(s, vec!['('],vec!['*','+']) {
+    let leftmost = match left_match(s, vec!['('],vec!['*','+']) {
         Some(v) => v,
         None => return None
     };
-    let l = &s[1..leftmost.2];
-    let r = &s[leftmost.3..s.len()-1];
+    let l = &s[1..leftmost.1];
+    let r = &s[leftmost.1+1..s.len()-1];
     Some((l,r))
 }
 
 // Partition a &str into two pieces at the outermost leftmost logical operation
 // Used to validate Formula::Complex
 pub fn split_logical(s: &str) -> Option<(&str,&str)> {
-    let leftmost = match left_string(s, vec!['['],vec!['&','|','>']) {
+    let leftmost = match left_match(s, vec!['['],vec!['&','|','>']) {
         Some(v) => v,
         None => return None
     };
-    let l = &s[1..leftmost.2];
-    let r = &s[leftmost.3..s.len()-1];
+    let l = &s[1..leftmost.1];
+    let r = &s[leftmost.1+1..s.len()-1];
     Some((l,r))
 }
 
@@ -106,11 +76,12 @@ pub fn split_eq(s: &str) -> Option<(&str,&str)> {
 }
 
 pub fn left_implies(s: &str) -> Option<&str> {
-    let leftmost = match left_string(s, vec!['['],vec!['>']) {
+    let leftmost = match left_match(s, vec!['['],vec!['>']) {
         Some(v) => v,
         None => return None
     };
-    let l = &s[leftmost.1+1..leftmost.2];
+    println!("{:?}",leftmost);
+    let l = &s[leftmost.0+1..leftmost.1];
     Some(l)
 }
 
@@ -221,7 +192,6 @@ fn test_strip_succ_all() {
     assert_eq!(strip_succ_all("SSSi'"),"i'");
 }
 
-
 #[test]
 fn test_strip_quants() {
     assert_eq!(strip_quant("Ab:Ea:a=a"),"a=a");
@@ -241,7 +211,7 @@ fn test_get_bound_vars() {
 
 #[test]
 fn test_var_in_string() {
-    assert_eq!(_var_in_string("Ea':∀b:(a'+a')=b","a"),false);
+    assert_eq!(_var_in_string("Ea':Ab:(a'+a')=b","a"),false);
     assert_eq!(_var_in_string("Ea:Eb:(a'+a')=b","a''"),false);
     assert_eq!(_var_in_string("Ea:Eb:(a'+a')=b","c"),false);
 }
@@ -258,7 +228,7 @@ fn test_split_arithmetic() {
 
 #[test]
 fn test_split_logical() {
-    assert_eq!(split_logical("Au:[u=u>Su=Su]"),Some(("u=u","Su=Su")));
+    assert_eq!(split_logical("[u=u>Su=Su]"),Some(("u=u","Su=Su")));
 }
 
 #[test]
