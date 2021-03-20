@@ -188,7 +188,9 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
 
 
 
-// TODO: test pathalogical inputs
+// TODO: test pathalogical inputs for all of these
+// TODO: test panic modes for all of these
+
 #[test]
 fn test_specification() {
     let a = Term::new("a");
@@ -225,7 +227,6 @@ fn test_successor() {
     let atom = Formula::new("Sm''=SSu");
     assert_eq!(successor(&atom).to_string(),"SSm''=SSSu");
 }
-
 
 #[test]
 fn test_interchange_ea() {
