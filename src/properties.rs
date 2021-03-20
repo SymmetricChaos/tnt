@@ -1,26 +1,27 @@
 use onig::Regex;
+use lazy_static::lazy_static;
 
-use crate::string_manip::{strip_succ_all,split_arithmetic,split_logical,get_vars,get_bound_vars,get_free_vars,strip_quant};
+use crate::string_manip::{strip_succ_all, split_arithmetic, split_logical, get_unquant_vars, get_bound_vars, get_free_vars, strip_quant};
+
+lazy_static! {
+    pub static ref VAR: Regex = Regex::new("^[a-z]\'*$").unwrap();
+    pub static ref NUM: Regex = Regex::new("^S*0$").unwrap();
+    pub static ref NUM_GEQ_ONE: Regex = Regex::new("S+0").unwrap();
+    pub static ref FORALL_CHAIN: Regex = Regex::new("((?<!~)A[a-z]\'*:)+").unwrap();
+    pub static ref NOT_FORALL_CHAIN: Regex = Regex::new("(~A[a-z]\'*:)+").unwrap();
+    pub static ref EXISTS_CHAIN: Regex = Regex::new("((?<!~)E[a-z]\'*:)+").unwrap();
+    pub static ref NOT_EXISTS_CHAIN: Regex = Regex::new("(~E[a-z]\'*:)+").unwrap();
+}
 
 pub fn is_var(s: &str) -> bool {
-    // Valid variables are any one of the lower case letters a to z followed by zero or more apostophes
-    let re = Regex::new(r"^[a-z]'*$").unwrap();
-    return re.is_match(&s)
+    return VAR.is_match(&s)
 }
-
 
 pub fn is_num(s: &str) -> bool {
-    if !s.contains("0") {
-        return false
-    } else if strip_succ_all(s) == "0" {
-        return true
-    }
-    return false
+    return NUM.is_match(&s)
 }
 
-pub fn is_equation(s: &str) -> bool {
-    // Any arithmetic combination of numbers and variable or successors of them is an equation
-    // This will match any Term
+pub fn is_term(s: &str) -> bool {
     let s = strip_succ_all(s);
     if is_var(s) || is_num(s) {
         return true
@@ -29,18 +30,16 @@ pub fn is_equation(s: &str) -> bool {
             Some(t) => t,
             None => return false
         };
-        return is_equation(l) && is_equation(r)
+        return is_term(l) && is_term(r)
     }
 }
 
 
 
 
-
+// A well-formed formula must have no bound variables that are unused
 pub fn is_well_quantified(s: &str) -> bool {
-    // Variables used, ignoring quantifiers
-    let vars = get_vars(strip_quant(s));
-    // Bound variables
+    let vars = get_unquant_vars(s);
     let bvars = get_bound_vars(s);
     for b in bvars {
         if !vars.contains(&b) {
@@ -50,15 +49,15 @@ pub fn is_well_quantified(s: &str) -> bool {
     true
 }
 
+// A simple formula is precisely an equivalence of any two terms
 pub fn is_simple_formula(s: &str) -> bool {
-    // A simple formula is precisely an equivalence of any two terms
     let eq = match s.find("=") {
         Some(num) => num,
         None => return false
     };
     let l = &s[0..eq];
     let r = &s[eq+1..];
-    is_equation(l) && is_equation(r)
+    is_term(l) && is_term(r)
 }
 
 pub fn is_complex_formula(s: &str) -> bool {
@@ -67,7 +66,7 @@ pub fn is_complex_formula(s: &str) -> bool {
         return false
     }
     let s = strip_quant(s);
-    if is_simple_formula(s) || is_equation(s) {
+    if is_simple_formula(s) || is_term(s) {
         return false
     } else {
         let (l,r) = match split_logical(s) {
@@ -164,20 +163,20 @@ fn test_is_num() {
 
 #[test]
 fn test_is_term() {
-    assert_eq!(is_equation("a"),true,"a is a term");
-    assert_eq!(is_equation("z'"),true,"z' is a term");
-    assert_eq!(is_equation("0"),true,"0 is a term");
-    assert_eq!(is_equation("S0"),true,"S0 is a term");
-    assert_eq!(is_equation("(Sa+Sb)"),true,"(Sa+Sb) is a term");
-    assert_eq!(is_equation("a=x"),false,"a=x is not a term");
-    assert_eq!(is_equation("S0=Sv"),false,"S0=Sv is not a term");
-    assert_eq!(is_equation("[~Eb:~a=b&Ac:~a=c]"),false,"[~Eb:~a=b&Ac:~a=c] is not a term");
-    assert_eq!(is_equation("[~(a+b)=0>[a=b|0=S0]]"),false,"[~(a+b)=0>[a=b|0=S0]] is not a term");
+    assert_eq!(is_term("a"),true,"a is a term");
+    assert_eq!(is_term("z'"),true,"z' is a term");
+    assert_eq!(is_term("0"),true,"0 is a term");
+    assert_eq!(is_term("S0"),true,"S0 is a term");
+    assert_eq!(is_term("(Sa+Sb)"),true,"(Sa+Sb) is a term");
+    assert_eq!(is_term("a=x"),false,"a=x is not a term");
+    assert_eq!(is_term("S0=Sv"),false,"S0=Sv is not a term");
+    assert_eq!(is_term("[~Eb:~a=b&Ac:~a=c]"),false,"[~Eb:~a=b&Ac:~a=c] is not a term");
+    assert_eq!(is_term("[~(a+b)=0>[a=b|0=S0]]"),false,"[~(a+b)=0>[a=b|0=S0]] is not a term");
 
-    assert_eq!(is_equation("Ea':Aa:a=a"),false,"Ea':Aa:a=a should be rejected, it is malformed");
-    assert_eq!(is_equation("'k"),false,"'k should be rejected, it is malformed");
-    assert_eq!(is_equation("SS()"),false,"SS() should be rejected, it is malformed");
-    assert_eq!(is_equation("[~Eb:a=a&c=c]"),false,"[~Eb:a=a&c=c] should be rejected, it is malformed");
+    assert_eq!(is_term("Ea':Aa:a=a"),false,"Ea':Aa:a=a should be rejected, it is malformed");
+    assert_eq!(is_term("'k"),false,"'k should be rejected, it is malformed");
+    assert_eq!(is_term("SS()"),false,"SS() should be rejected, it is malformed");
+    assert_eq!(is_term("[~Eb:a=a&c=c]"),false,"[~Eb:a=a&c=c] should be rejected, it is malformed");
 }
 
 #[test]

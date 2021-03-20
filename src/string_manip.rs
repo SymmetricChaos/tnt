@@ -1,25 +1,17 @@
 use onig::Regex;
 
-// Currently unused
-pub fn _strip_succ(s: &str) -> &str {
-    let mut s = s;
-    if s.starts_with("S") {
-        s = s.strip_prefix("S").unwrap();
-    }
-    s
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref HEAD_QUANT: Regex = Regex::new("^[AE][a-z]\'*:").unwrap();
+    pub static ref QUANT_VAR: Regex = Regex::new("[a-z]\'*(?=:)").unwrap();
+    pub static ref UN_QUANT_VAR: Regex = Regex::new("[a-z]\'*(?!:)").unwrap();
+    pub static ref VAR: Regex = Regex::new("[a-z]\'*").unwrap();
+    pub static ref QUANT: Regex = Regex::new("~?[AE][a-z]\'*:").unwrap();
 }
 
-
 pub fn strip_succ_all(s: &str) -> &str {
-    let mut s = s;
-    loop {
-        if s.starts_with("S") {
-            s = s.strip_prefix("S").unwrap();
-        } else {
-            break
-        }
-    }
-    s
+    s.trim_start_matches('S')
 }
 
 // Get the outermost leftmost match for some arbitray bracketing system
@@ -54,7 +46,7 @@ pub fn split_arithmetic(s: &str) -> Option<(&str,&str)> {
 }
 
 // Partition a &str into two pieces at the outermost leftmost logical operation
-// Used to validate Formula::Complex
+// Use only to validate Formula::Complex
 pub fn split_logical(s: &str) -> Option<(&str,&str)> {
     let leftmost = match left_match(s, vec!['['],vec!['&','|','>']) {
         Some(v) => v,
@@ -66,7 +58,7 @@ pub fn split_logical(s: &str) -> Option<(&str,&str)> {
 }
 
 // Partition a &str into two pieces at the outermost leftmost equals sign
-// Used to validate Formula::Simple
+// Use only to validate Formula::Simple
 pub fn split_eq(s: &str) -> Option<(&str,&str)> {
     if !s.contains(s) {
         return None
@@ -75,6 +67,7 @@ pub fn split_eq(s: &str) -> Option<(&str,&str)> {
     Some((sp[0],sp[1]))
 }
 
+// Left half of an implies statement
 pub fn left_implies(s: &str) -> Option<&str> {
     let leftmost = match left_match(s, vec!['['],vec!['>']) {
         Some(v) => v,
@@ -86,39 +79,44 @@ pub fn left_implies(s: &str) -> Option<&str> {
 }
 
 
-// Set of all variables
+// Vector of all variables
 pub fn get_vars(s: &str) ->  Vec<String> {
-    let re = Regex::new(r"[a-z]'*").unwrap();
     let mut out: Vec<String> = Vec::new();
-    for st in re.find_iter(s) {
+    for st in VAR.find_iter(s) {
         out.push(s[st.0..st.1].to_owned());
     }
     out
 }
 
-
-// Set of string representing quantifications of variables
-pub fn get_quants(s: &str) -> Vec<String> {
-    let re = Regex::new("[AE][a-z]\'*:").unwrap();
+// Vector of all variables except the ones in quantifications, needed to check if a formula is well quantified
+pub fn get_unquant_vars(s: &str) ->  Vec<String> {
     let mut out: Vec<String> = Vec::new();
-    for st in re.find_iter(s) {
+    for st in UN_QUANT_VAR.find_iter(s) {
         out.push(s[st.0..st.1].to_owned());
     }
     out
 }
 
+// Vector of string representing quantifications of variables
+// Currnetly unused
+pub fn _get_quants(s: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for st in QUANT.find_iter(s) {
+        out.push(s[st.0..st.1].to_owned());
+    }
+    out
+}
 
-// Set of quantified variables
+// Vector of quantified variables
 pub fn get_bound_vars(s: &str) -> Vec<String> {
-    let quants = get_quants(s);
-    let mut bound: Vec<String> = Vec::new();
-    for q in quants.iter() {
-        bound.push(q[1..q.len()-1].to_owned());
+    let mut out: Vec<String> = Vec::new();
+    for st in QUANT_VAR.find_iter(s) {
+        out.push(s[st.0..st.1].to_owned());
     }
-    bound
+    out
 }
 
-
+// Vector of variables not quantified in the formula
 pub fn get_free_vars(s: &str) -> Vec<String> {
     let var = get_vars(s);
     let bound = get_bound_vars(s);
@@ -134,43 +132,26 @@ pub fn get_free_vars(s: &str) -> Vec<String> {
 
 // Remove leading negations
 pub fn strip_neg(s: &str) -> &str {
-    let mut s = s;
-    while s.starts_with("~") {
-        s = s.strip_prefix("~").unwrap();
-    }
-    s
+    s.trim_start_matches('~')
 }
 
 
 // Remove the leading quantifiers and negations
 pub fn strip_quant(s: &str) -> &str {
     let mut s = strip_neg(s);
-    let re = Regex::new("^[AE][a-z]\'*:").unwrap();
-    let mut m = re.find(s);
+    let mut m = HEAD_QUANT.find(s);
     while m.is_some() {
         let e = m.unwrap().1;
         s = &s[e..];
         s = strip_neg(s);
-        m = re.find(s);
+        m = HEAD_QUANT.find(s);
     }
     s
 }
 
 // Currently unused
 // TODO: Optimization tie this directly to the variable itself so that the regex doesn't need to be built every time to variable is searched for
-// Just in case we need to check directly if a variable exists in a string
-pub fn _var_in_string(s: &str, v: &str) -> bool {
-    // (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
-    let p = format!("{}(?!')",v);
-    let re = Regex::new(&p).unwrap();
-    if re.find(s).is_some() {
-        return true
-    } else {
-        return false
-    }
-}
-
-
+// (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
 pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {
     let p = format!("{}(?!')",pattern);
     let re = Regex::new(&p).unwrap();
@@ -178,14 +159,6 @@ pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> Strin
     out.to_string()
 }
 
-
-
-
-
-#[test]
-fn test_strip_succ() {
-    assert_eq!(_strip_succ("SSSi'"),"SSi'");
-}
 
 #[test]
 fn test_strip_succ_all() {
@@ -207,13 +180,6 @@ fn test_get_vars() {
 fn test_get_bound_vars() {
     let v1 = vec!["a'","b"];
     assert_eq!(get_bound_vars("Ea':Ab:(a+a')=b"),v1);
-}
-
-#[test]
-fn test_var_in_string() {
-    assert_eq!(_var_in_string("Ea':Ab:(a'+a')=b","a"),false);
-    assert_eq!(_var_in_string("Ea:Eb:(a'+a')=b","a''"),false);
-    assert_eq!(_var_in_string("Ea:Eb:(a'+a')=b","c"),false);
 }
 
 #[test]
