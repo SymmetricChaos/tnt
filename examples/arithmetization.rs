@@ -1,4 +1,4 @@
-use tnt::types::{Formula,Term};
+use tnt::types::{Formula,Number,Term};
 
 fn main() {
 
@@ -12,9 +12,9 @@ fn main() {
     let n0 = f0.arithmetize();
     let d0 = Formula::dearithmetize(&n0);
 
-    let f1 = Term::new("SS0");
+    let f1 = Number::new("SS0");
     let n1 = f1.arithmetize();
-    let d1 = Term::dearithmetize(&n1);
+    let d1 = Number::dearithmetize(&n1);
 
     println!("{} -> {} -> {}",f0,n0,d0);
     println!("{} -> {} -> {}",f1,n1,d1);

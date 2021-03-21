@@ -22,6 +22,8 @@ pub fn is_num(s: &str) -> bool {
 }
 
 pub fn is_term(s: &str) -> bool {
+    // Any arithmetic combination of numbers and variable or successors of them is an equation
+    // This will match any Term
     let s = strip_succ_all(s);
     if is_var(s) || is_num(s) {
         return true

@@ -151,8 +151,20 @@ pub fn strip_quant(s: &str) -> &str {
 
 // Currently unused
 // TODO: Optimization tie this directly to the variable itself so that the regex doesn't need to be built every time to variable is searched for
-// (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
-pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {
+// Just in case we need to check directly if a variable exists in a string
+pub fn _var_in_string(s: &str, v: &str) -> bool {
+    // (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
+    let p = format!("{}(?!')",v);
+    let re = Regex::new(&p).unwrap();
+    if re.find(s).is_some() {
+        return true
+    } else {
+        return false
+    }
+}
+
+
+pub fn _replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {
     let p = format!("{}(?!')",pattern);
     let re = Regex::new(&p).unwrap();
     let out = re.replace_all(s,replacement);
@@ -184,7 +196,7 @@ fn test_get_bound_vars() {
 
 #[test]
 fn test_replace_var_in_string() {
-    assert_eq!(replace_var_in_string("Ea':Ab:(a'+a)=b","a","x"),"Ea':Ab:(a'+x)=b");
+    assert_eq!(_replace_var_in_string("Ea':Ab:(a'+a)=b","a","x"),"Ea':Ab:(a'+x)=b");
 }
 
 #[test]

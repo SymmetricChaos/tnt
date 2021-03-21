@@ -1,123 +1,96 @@
-use crate::types::{Term,Formula};
+use crate::types::{Formula,Variable,Term,Equation,Number};
 use crate::ops_construction::*;
-use crate::string_manip::{replace_var_in_string, split_eq, get_bound_vars, left_implies};
+use crate::string_manip::{split_eq, get_bound_vars, left_implies};
 
 // Rules of production
 // These may check for additional internal contraints and will panic on failure
-pub fn specification(x: &Formula, v: &Term, t: &Term) -> Formula {
-    if let Term::Variable(_) = v {
-        if x.to_string().contains(&format!("A{}:",v)) {
-            let mut new_s = x.to_string().clone().replace(&format!("A{}:",v.to_string()),"");
-            if get_bound_vars(&x.to_string()).contains(&v.to_string()) {
-                new_s = replace_var_in_string(&new_s,&v.to_string(),&t.to_string());
-                return Formula::new(&new_s)
-            } else {
-                panic!("Specification Error: {} is not bound in {}",v,x)
-            }
+pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Formula {
+    if x.to_string().contains(&format!("A{}:",v)) {
+        if get_bound_vars(&x.to_string()).contains(&v.to_string()) {
+            x.replace_var(v, t)
         } else {
-            panic!("Specification Error: {} is not univerally quantified in {}",v,x)
+            panic!("Specification Error: {} is not bound in {}",v,x)
         }
     } else {
-        panic!("Specification Error: {} is not a Term::Variable",v)
+        panic!("Specification Error: {} is not univerally quantified in {}",v,x)
     }
 }
 
-pub fn generalization(x: &Formula, v: &Term) -> Formula {
-    if let Term::Variable(_) = v {
-        if !get_bound_vars(&x.to_string()).contains(&v.to_string()) {
-            return forall(v,x)
-        } else {
-            panic!("Generalization Error: {} is bound in {}",v,x)
-        }
+pub fn generalization(x: &Formula, v: &Variable) -> Formula {
+    if !get_bound_vars(&x.to_string()).contains(&v.to_string()) {
+        return forall(v,x)
     } else {
-        panic!("Generalization Error: {} is not a Term::Variable",v)
+        panic!("Generalization Error: {} is bound in {}",v,x)
     }
-
 }
 
-pub fn existence(x: &Formula, t: &Term, v: &Term) -> Formula {
-    if let Term::Variable(_) = v {
-        if !get_bound_vars(&x.to_string()).contains(&v.to_string()) {
-            let out = exists(v,x);
-            return Formula::new(&out.to_string().replace(&t.to_string(), &v.to_string()))
-            
-        } else {
-            panic!("Existence Error: {} is bound in {}",v,x)
-        }
+pub fn existence<T: Term>(x: &Formula, t: &T, v: &Variable) -> Formula {
+    if !get_bound_vars(&x.to_string()).contains(&v.to_string()) {
+        let out = exists(v,x);
+        return Formula::new(&out.to_string().replace(&t.get_string(), &v.to_string()))
+        
     } else {
-        panic!("Existence Error: {} is not a Term::Variable",v)
+        panic!("Existence Error: {} is bound in {}",v,x)
     }
 }
 
 // Should panic or warn if quantification not present
-pub fn interchange_ea(x: &Formula, v: &Term, nth: usize) -> Formula {
-    if let Term::Variable(_) = v {
-        let e = format!("~E{}:",v);
-        let a = format!("A{}:~",v);
-        let mut new_s = x.to_string().clone();
-        let xs = x.to_string();
-        let qs = xs.match_indices(&e);
-        for (n,q) in qs.enumerate() {
-            println!("{:?} {:?}",n,q);
-            if n == nth {
-                new_s.replace_range(q.0..q.0+q.1.len(), &a);
-                break
-            }
+pub fn interchange_ea(x: &Formula, v: &Variable, nth: usize) -> Formula {
+    let e = format!("~E{}:",v);
+    let a = format!("A{}:~",v);
+    let mut new_s = x.to_string().clone();
+    let xs = x.to_string();
+    let qs = xs.match_indices(&e);
+    for (n,q) in qs.enumerate() {
+        println!("{:?} {:?}",n,q);
+        if n == nth {
+            new_s.replace_range(q.0..q.0+q.1.len(), &a);
+            break
         }
-        Formula::new_complex(&new_s)
-    } else {
-        panic!("Interchange Error: {} is not a Term::Variable",v)
     }
+    Formula::new_complex(&new_s)
 }
 
 // Should panic or warn if quantification not present
-pub fn interchange_ae(x: &Formula, v: &Term, n: usize) -> Formula {
-    if let Term::Variable(_) = v {
-        let e = format!("~E{}:",v);
-        let a = format!("A{}:~",v);
-        let mut new_s = x.to_string().clone();
-        let xs = &x.to_string();
-        let qs = xs.match_indices(&a);
-        for (pos,q) in qs.enumerate() {
-            if pos == n {
-                new_s.replace_range(q.0..q.0+q.1.len(), &e);
-                break
-            }
+pub fn interchange_ae(x: &Formula, v: &Variable, n: usize) -> Formula {
+    let e = format!("~E{}:",v);
+    let a = format!("A{}:~",v);
+    let mut new_s = x.to_string().clone();
+    let xs = &x.to_string();
+    let qs = xs.match_indices(&a);
+    for (pos,q) in qs.enumerate() {
+        if pos == n {
+            new_s.replace_range(q.0..q.0+q.1.len(), &e);
+            break
         }
-        Formula::new_complex(&new_s)
-    } else {
-        panic!("Interchange Error: {} is not a Term::Variable",v)
     }
+    Formula::new_complex(&new_s)
 }
 
-pub fn induction(v: &Term, base: &Formula, general: &Formula) -> Formula {
+pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Formula {
     // The theorem we need to generalize is the outermost, leftmost implication of the general case
     let theorem = Formula::new(left_implies(&general.to_string()).unwrap());
 
-    if let Term::Variable(_) = v {
-        if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
-            panic!("Induction Error: {} is already bound in {}",v,theorem.to_string())
-        } else {
-            let xs = replace_var_in_string(&theorem.to_string(), &v.to_string(), &format!("S{}",v));
-            let x0 = replace_var_in_string(&theorem.to_string(), &v.to_string(), "0");
-            if x0 != base.to_string() {
-                panic!("Induction Error: base case must be {}",x0)
-            }
-            if general.to_string() != format!("A{}:[{}>{}]",v,theorem,xs) {
-                panic!("Induction Error: general case must be A{}:[{}>{}]",v,theorem,xs)
-            }
-            forall(v,&theorem)
-        }
+    if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
+        panic!("Induction Error: {} is already bound in {}",v,theorem.to_string())
     } else {
-        panic!("Induction Error: {} is not a Term::Variable",v)
+        let xs = theorem.replace_var(v, &(v << 1));//replace_var_in_string(&theorem.to_string(), &v.to_string(), &format!("S{}",v));
+        let x0 = theorem.replace_var(v, &Number::new("0"));//replace_var_in_string(&theorem.to_string(), &v.to_string(), "0");
+        if x0.to_string() != base.to_string() {
+            panic!("Induction Error: base case must be {}",x0)
+        }
+        if general.to_string() != format!("A{}:[{}>{}]",v,theorem,xs) {
+            panic!("Induction Error: general case must be A{}:[{}>{}]",v,theorem,xs)
+        }
+        forall(v,&theorem)
     }
 }
 
 pub fn successor(a: &Formula) -> Formula {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
-            let lt = Term::new(&format!("S{}",l));
-            let rt = Term::new(&format!("S{}",r));
+            let lt = Equation::new(&format!("S{}",l));
+            let rt = Equation::new(&format!("S{}",r));
             return eq(&lt,&rt)
         } else {
             unreachable!("Successor Error: unable to split {}",a)
@@ -131,8 +104,8 @@ pub fn predecessor(a: &Formula) -> Formula {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
             if l.starts_with("S") && r.starts_with("S") {
-                let lt = Term::new(&l.strip_prefix("S").unwrap());
-                let rt = Term::new(&r.strip_prefix("S").unwrap());
+                let lt = Equation::new(&l.strip_prefix("S").unwrap());
+                let rt = Equation::new(&r.strip_prefix("S").unwrap());
                 return eq(&lt,&rt)
             } else {
                 panic!("Predecessor Error: both terms of {} must begin with S",a)
@@ -148,8 +121,8 @@ pub fn predecessor(a: &Formula) -> Formula {
 pub fn symmetry(a: &Formula) -> Formula {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
-            let lt = Term::new(&l);
-            let rt = Term::new(&r);
+            let lt = Equation::new(&l);
+            let rt = Equation::new(&r);
             return eq(&rt,&lt)
         } else {
             unreachable!("Symmetry Error: unable to split {}",a)
@@ -168,8 +141,8 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
                     if r1 != l2 {
                         panic!("Transitivity Error: The right term of {} does not match the left term of {}",a1,a2)
                     }
-                    let lt = Term::new(&l1);
-                    let rt = Term::new(&r2);
+                    let lt = Equation::new(&l1);
+                    let rt = Equation::new(&r2);
                     return eq(&lt,&rt)
                 } else {
                     unreachable!("Transitivity Error: unable to split {}",a2)
@@ -193,8 +166,9 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
 
 #[test]
 fn test_specification() {
-    let a = Term::new("a");
-    let one = Term::new("S0");
+    use crate::types::Number;
+    let a = Variable::new("a");
+    let one = Number::new("S0");
     let formula1 = Formula::new("Aa:a=a");
     let formula2 = Formula::new("Ea':Aa:[a=a&a'=a']");
     assert_eq!(specification(&formula1,&a,&one).to_string(),"S0=S0");
@@ -232,7 +206,7 @@ fn test_successor() {
 fn test_interchange_ea() {
     let formula1 = Formula::new("Aa:~Eu':(a+u')=Sa");
     let formula2 = Formula::new("[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
-    let variable = Term::new("u'");
+    let variable = Variable::new("u'");
     assert_eq!(interchange_ea(&formula1,&variable,0).to_string(),"Aa:Au':~(a+u')=Sa");
     assert_eq!(interchange_ea(&formula2,&variable,1).to_string(),"[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
 }
@@ -241,14 +215,14 @@ fn test_interchange_ea() {
 fn test_interchange_ae() {
     let formula1 = Formula::new("Aa:Au':~(a+u')=Sa");
     let formula2 = Formula::new("[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
-    let variable = Term::new("u'");
+    let variable = Variable::new("u'");
     assert_eq!(interchange_ae(&formula1,&variable,0).to_string(),"Aa:~Eu':(a+u')=Sa");
     assert_eq!(interchange_ae(&formula2,&variable,0).to_string(),"[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
 }
 
 #[test]
 fn test_induction() {
-    let v = Term::new("v");
+    let v = Variable::new("v");
     let base = Formula::new("0=0");
     let gen = Formula::new("Av:[v=v>Sv=Sv]");
     assert_eq!(induction(&v,&base,&gen).to_string(),"Av:v=v");

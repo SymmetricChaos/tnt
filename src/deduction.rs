@@ -2,7 +2,7 @@ use std::{fs::File, io::Write};
 use lazy_static::lazy_static;
 use num::BigUint;
 
-use crate::types::{Formula,Term};
+use crate::types::{Formula,Term,Variable};
 use crate::ops_production::*;
 use crate::ops_construction::implies;
 
@@ -160,18 +160,18 @@ impl Deduction {
         }
     }
 
-    pub fn specification(&mut self, n: usize, var: &Term, replacement: &Term, comment: &str) {
-        let t = specification(self.get_theorem(n), &var, &replacement);
+    pub fn specification<T: Term>(&mut self, n: usize, var: &Variable, replacement: &T, comment: &str) {
+        let t = specification(self.get_theorem(n), &var, replacement);
         self.push_new( t, comment );
     }
 
-    pub fn generalization(&mut self, n: usize, var: &Term, comment: &str) {
+    pub fn generalization(&mut self, n: usize, var: &Variable, comment: &str) {
         let t = generalization(self.get_theorem(n), &var);
         self.push_new( t, comment );
     }
 
-    pub fn existence(&mut self, n: usize, term: &Term, var: &Term, comment: &str) {
-        let t = existence(&self.theorems[n].0.clone() , &term, &var);
+    pub fn existence<T: Term>(&mut self, n: usize, term: &T, var: &Variable, comment: &str) {
+        let t = existence(&self.theorems[n].0.clone() , term, &var);
         self.push_new( t, comment );
     }
 
@@ -185,12 +185,12 @@ impl Deduction {
         self.push_new( t, comment );
     }
 
-    pub fn interchange_ea(&mut self, n: usize, v: &Term, pos: usize, comment: &str) {
+    pub fn interchange_ea(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) {
         let t = interchange_ea(self.get_theorem(n), v, pos);
         self.push_new( t, comment );
     }
 
-    pub fn interchange_ae(&mut self, n: usize, v: &Term, pos: usize, comment: &str) {
+    pub fn interchange_ae(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) {
         let t = interchange_ae(self.get_theorem(n), v, pos);
         self.push_new( t, comment );
     }
@@ -221,7 +221,7 @@ impl Deduction {
         self.push_new( t, comment );
     }
 
-    pub fn induction(&mut self, var: &Term, base: usize, general: usize, comment: &str) {
+    pub fn induction(&mut self, var: &Variable, base: usize, general: usize, comment: &str) {
         let t = induction(var,self.get_theorem(base),self.get_theorem(general));
         self.push_new( t, comment );
     }
