@@ -1,8 +1,12 @@
-use std::{convert::TryFrom, fmt};
+use std::fmt;
 use num::bigint::BigUint;
+use onig::Regex;
+use std::ops::{Add,Mul,Shl};
 
-use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
+use crate::properties::{is_term,is_num,is_var,is_simple_formula,is_formula};
 use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
+
+
 
 
 
@@ -65,66 +69,424 @@ impl fmt::Display for Formula {
 
 
 
-#[derive(Clone,Debug,PartialEq)]
-pub enum Term {
-    Variable(String),
-    Number(String),
-    Equation(String),
+
+
+pub trait Term {
+    /// An &str is automatically converted to the correct variant, this requires potentially slow parsing of the &str
+    fn new(input: &str) -> Self;
+
+    /// Translate the Term to LaTeX representation
+    fn latex(&self) -> String;
+
+    /// Translate the Term to relatively readable English
+    fn english(&self) -> String;
+
+    /// Return a BigUint that represents the Term
+    fn arithmetize(&self) -> BigUint;
+
+    /// Create a Term from a BigUint
+    fn dearithmetize(number: &BigUint) -> Self;
+
+    fn get_string(&self) -> String;
 }
 
-impl Term {
-    pub fn new(input: &str) -> Term {
+pub struct Variable {
+    string: String,
+    re: Regex,
+}
+
+pub struct Number {
+    string: String,
+}
+
+pub struct Equation {
+    string: String,
+}
+
+impl Term for Variable {
+    fn new(input: &str) -> Variable {
+        if is_var(input) {
+            let p = format!("{}(?!')",input);
+            let re = Regex::new(&p).unwrap();
+            let string = input.to_owned();
+            return Variable{ string, re }
+        } else {
+            panic!("{} is not a valid Variable",input)
+        }
+    }
+
+    fn latex(&self) -> String {
+        to_latex(self.string.clone())
+    }
+
+    /// Translate the Term to relatively readable English
+    fn english(&self) -> String {
+        to_english(self.string.clone())
+    }
+
+    /// Return a BigUint that represents the Term
+    fn arithmetize(&self) -> BigUint {
+        arithmetize(self.string.clone())
+    }
+
+    /// Create a Term from a BigUint
+    fn dearithmetize(number: &BigUint) -> Variable {
+        Variable::new(&dearithmetize(number))
+    }
+
+    fn get_string(&self) -> String {
+        self.string.clone()
+    }
+}
+
+impl fmt::Display for Variable {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.string)
+    }
+}
+
+impl<'a, 'b> Add<&'b Variable> for &'a Variable {
+    type Output = Equation;
+
+    fn add(self, other: &'b Variable) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Add<&'b Number> for &'a Variable {
+    type Output = Equation;
+
+    fn add(self, other: &'b Number) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Add<&'b Equation> for &'a Variable {
+    type Output = Equation;
+
+    fn add(self, other: &'b Equation) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Variable> for &'a Variable {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Variable) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Number> for &'a Variable {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Number) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Equation> for &'a Variable {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Equation) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a> Shl<usize> for &'a Variable {
+    type Output = Equation;
+
+    fn shl(self, other: usize) -> Equation {
+        let s = "S".repeat(other);
+        let new = format!("{}{}", s, self.get_string());
+        Equation{ string: new }
+    }
+}
+
+
+
+
+
+
+
+impl Term for Number {
+    fn new(input: &str) -> Number {
         if is_num(input) {
-            return Term::Number(input.to_owned())
-        } else if is_var(input) {
-            return Term::Variable(input.to_owned())
-        } else if is_equation(input) {
-            return Term::Equation(input.to_owned())
+            let string = input.to_owned();
+            return Number{ string }
+        } else {
+            panic!("{} is not a valid Number",input)
+        }
+    }
+
+    fn latex(&self) -> String {
+        to_latex(self.string.clone())
+    }
+
+    /// Translate the Term to relatively readable English
+    fn english(&self) -> String {
+        to_english(self.string.clone())
+    }
+
+    /// Return a BigUint that represents the Term
+    fn arithmetize(&self) -> BigUint {
+        arithmetize(self.string.clone())
+    }
+
+    /// Create a Term from a BigUint
+    fn dearithmetize(number: &BigUint) -> Number {
+        Number::new(&dearithmetize(number))
+    }
+
+    fn get_string(&self) -> String {
+        self.string.clone()
+    }
+}
+
+impl fmt::Display for Number {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.string)
+    }
+}
+
+impl<'a, 'b> Add<&'b Variable> for &'a Number {
+    type Output = Equation;
+
+    fn add(self, other: &'b Variable) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Add<&'b Number> for &'a Number {
+    type Output = Equation;
+
+    fn add(self, other: &'b Number) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Add<&'b Equation> for &'a Number {
+    type Output = Equation;
+
+    fn add(self, other: &'b Equation) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Variable> for &'a Number {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Variable) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Number> for &'a Number {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Number) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Equation> for &'a Number {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Equation) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a> Shl<usize> for &'a Number {
+    type Output = Number;
+
+    fn shl(self, other: usize) -> Number {
+        let s = "S".repeat(other);
+        let new = format!("{}{}", s, self.get_string());
+        Number{ string: new }
+    }
+}
+
+
+
+
+
+impl Term for Equation {
+    fn new(input: &str) -> Equation {
+        if is_term(input) {
+            let string = input.to_owned();
+            return Equation{ string }
         } else {
             panic!("{} is not a valid Term",input)
         }
     }
 
-    // Fast creation of variants without checking
-    pub fn new_variable(input: &str) -> Term {
-        return Term::Variable(input.to_owned())
+    fn latex(&self) -> String {
+        to_latex(self.string.clone())
     }
 
-    pub fn new_number(input: &str) -> Term {
-        return Term::Number(input.to_owned())
+    /// Translate the Term to relatively readable English
+    fn english(&self) -> String {
+        to_english(self.string.clone())
     }
 
-    pub fn new_equation(input: &str) -> Term {
-        return Term::Equation(input.to_owned())
+    /// Return a BigUint that represents the Term
+    fn arithmetize(&self) -> BigUint {
+        arithmetize(self.string.clone())
     }
 
-    // Pretty names
-    pub fn latex(&self) -> String {
-        to_latex(self.to_string())
+    /// Create a Term from a BigUint
+    fn dearithmetize(number: &BigUint) -> Equation {
+        Equation::new(&dearithmetize(number))
     }
 
-    pub fn english(&self) -> String {
-        to_english(self.to_string())
-    }
-
-    pub fn arithmetize(&self) -> BigUint {
-        arithmetize(self.to_string())
-    }
-
-    pub fn dearithmetize(number: &BigUint) -> Term {
-        Term::new(&dearithmetize(number))
+    fn get_string(&self) -> String {
+        self.string.clone()
     }
 }
 
-impl fmt::Display for Term {
+impl fmt::Display for Equation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self {
-            Term::Variable(term) => write!(f, "{}", term),
-            Term::Number(term) => write!(f, "{}", term),
-            Term::Equation(term) => write!(f, "{}", term),
-        }
+        write!(f, "{}", self.string)
     }
 }
+
+impl<'a, 'b> Add<&'b Variable> for &'a Equation {
+    type Output = Equation;
+
+    fn add(self, other: &'b Variable) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Add<&'b Number> for &'a Equation {
+    type Output = Equation;
+
+    fn add(self, other: &'b Number) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Add<&'b Equation> for &'a Equation {
+    type Output = Equation;
+
+    fn add(self, other: &'b Equation) -> Equation {
+        let new = format!("({}+{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Variable> for &'a Equation {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Variable) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Number> for &'a Equation {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Number) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a, 'b> Mul<&'b Equation> for &'a Equation {
+    type Output = Equation;
+
+    fn mul(self, other: &'b Equation) -> Equation {
+        let new = format!("({}*{})", self.get_string(), other.get_string());
+        Equation{ string: new }
+    }
+}
+
+impl<'a> Shl<usize> for &'a Equation {
+    type Output = Equation;
+
+    fn shl(self, other: usize) -> Equation {
+        let s = "S".repeat(other);
+        let new = format!("{}{}", s, self.get_string());
+        Equation{ string: new }
+    }
+}
+
+
+
+
+
+#[test]
+fn test_variable() {
+    let v1 = &Variable::new("a");
+    let v2 = &Variable::new("b");
+    let n1 = &Number::new("0");
+    let e1 = &Equation::new("(x'+SS0)");
+
+    assert_eq!((v1 + v2).get_string(),"(a+b)");
+    assert_eq!((v1 * v2).get_string(),"(a*b)");
+    assert_eq!((v1 << 2 ).get_string(),"SSa");
+    assert_eq!((v1 + n1).get_string(),"(a+0)");
+    assert_eq!((v1 * n1).get_string(),"(a*0)");
+    assert_eq!((v1 + e1).get_string(),"(a+(x'+SS0))");
+    assert_eq!((v1 * e1).get_string(),"(a*(x'+SS0))");
+}
+
+#[test]
+fn test_number() {
+    let v1 = &Variable::new("a");
+    let n1 = &Number::new("0");
+    let n2 = &Number::new("S0");
+    let e1 = &Equation::new("(x'+SS0)");
+
+    assert_eq!((n1 + n2).get_string(),"(0+S0)");
+    assert_eq!((n1 * n2).get_string(),"(0*S0)");
+    assert_eq!((n1 << 2 ).get_string(),"SS0");
+    assert_eq!((n1 + v1).get_string(),"(0+a)");
+    assert_eq!((n1 * v1).get_string(),"(0*a)");
+    assert_eq!((n1 + e1).get_string(),"(0+(x'+SS0))");
+    assert_eq!((n1 * e1).get_string(),"(0*(x'+SS0))");
+
+}
+
+#[test]
+fn test_equation() {
+    let v1 = &Variable::new("a");
+    let n1 = &Number::new("0");
+    let e1 = &Equation::new("(x'+SS0)");
+    let e2 = &Equation::new("S(u*v)");
+
+    assert_eq!((e1 + e2).get_string(),"((x'+SS0)+S(u*v))");
+    assert_eq!((e1 * e2).get_string(),"((x'+SS0)*S(u*v))");
+    assert_eq!((e1 << 2 ).get_string(),"SS(x'+SS0)");
+    assert_eq!((e1 + v1).get_string(),"((x'+SS0)+a)");
+    assert_eq!((e1 * v1).get_string(),"((x'+SS0)*a)");
+    assert_eq!((e1 + n1).get_string(),"((x'+SS0)+0)");
+    assert_eq!((e1 * n1).get_string(),"((x'+SS0)*0)");
+
+
+}
+
+
+
+
+
+
 
 
 
@@ -132,6 +494,7 @@ impl fmt::Display for Term {
 
 // All types used are accounted for here
 // This will allow us to parse a string into a type
+/*
 #[derive(Clone,Debug,PartialEq)]
 pub enum TNT {
     Term(Term),
@@ -182,3 +545,4 @@ impl fmt::Display for TNT {
         }
     }
 }
+ */

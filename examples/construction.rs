@@ -1,3 +1,4 @@
+/* 
 use tnt::types::TNT;
 
 fn main() {
@@ -18,4 +19,9 @@ fn main() {
         println!("\n{}\n{}\n{}",name,formula,formula.english());
     }
     
+}
+*/
+
+fn main() {
+    println!("Temporarily deprecated")
 }
