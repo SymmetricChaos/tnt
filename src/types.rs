@@ -9,6 +9,7 @@ use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
 
 
 
+
 /// A Formula is a well-formed formula, either Simple or Complex
 #[derive(Clone,Debug,PartialEq)]
 pub enum Formula {
@@ -60,9 +61,25 @@ impl Formula {
         Formula::new(&dearithmetize(number))
     }
 
+    /// Replace every instance of a Variable with some Term
     pub fn replace_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
-        let out = v.re.replace_all(&self.to_string(), &replacement.get_string()[..]);
-        Formula::new(&out)
+        Formula::new(&v.re.replace_all(&self.to_string(), &replacement.get_string()[..]))
+    }
+
+    /// Eliminate universal quantification of a Variable then replace every instance with some Term
+    pub fn specify_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
+        let out = self.to_string().replace(&format!("A{}:",v),"");
+        Formula::new(&v.re.replace_all(&out, &replacement.get_string()[..]))
+    }
+
+    /// Does the Formula contain the Variable in question?
+    pub fn contains_var(&self, v: &Variable) -> bool {
+        v.re.find(&self.to_string()).is_some()
+    }
+
+    /// Does the Formula contain the Variable in within a quantification?
+    pub fn contains_var_bound(&self, v: &Variable) -> bool {
+        v.req.find(&self.to_string()).is_some()
     }
 }
 
@@ -74,7 +91,6 @@ impl fmt::Display for Formula {
         }
     }
 }
-
 
 
 
@@ -102,6 +118,7 @@ pub trait Term {
 pub struct Variable {
     string: String,
     re: Regex,
+    req: Regex,
 }
 
 pub struct Number {
@@ -115,10 +132,12 @@ pub struct Equation {
 impl Term for Variable {
     fn new(input: &str) -> Variable {
         if is_var(input) {
-            let p = format!("{}(?!')",input);
-            let re = Regex::new(&p).unwrap();
+            let p1 = format!("{}(?!')",input);
+            let re = Regex::new(&p1).unwrap();
+            let p2 = format!("[AE]{}:",input);
+            let req = Regex::new(&p2).unwrap();
             let string = input.to_owned();
-            return Variable{ string, re }
+            return Variable{ string, re, req }
         } else {
             panic!("{} is not a valid Variable",input)
         }
@@ -218,8 +237,6 @@ impl<'a> Shl<usize> for &'a Variable {
         Equation{ string: new }
     }
 }
-
-
 
 
 
@@ -441,7 +458,6 @@ impl<'a> Shl<usize> for &'a Equation {
 
 
 
-
 #[test]
 fn test_variable() {
     let v1 = &Variable::new("a");
@@ -489,8 +505,6 @@ fn test_equation() {
     assert_eq!((e1 * v1).get_string(),"((x'+SS0)*a)");
     assert_eq!((e1 + n1).get_string(),"((x'+SS0)+0)");
     assert_eq!((e1 * n1).get_string(),"((x'+SS0)*0)");
-
-
 }
 
 

@@ -1,26 +1,29 @@
 use crate::types::{Formula,Variable,Term,Equation,Number};
 use crate::ops_construction::*;
-use crate::string_manip::{split_eq, get_bound_vars, left_implies};
+use crate::string_manip::{split_eq, get_bound_vars, left_implies, get_vars};
 
 // Rules of production
 // These may check for additional internal contraints and will panic on failure
 pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Formula {
     if x.to_string().contains(&format!("A{}:",v)) {
-        if get_bound_vars(&x.to_string()).contains(&v.to_string()) {
-            x.replace_var(v, t)
-        } else {
-            panic!("Specification Error: {} is not bound in {}",v,x)
+        let var_in_t = get_vars(&t.get_string());
+        let bound_in_x = get_bound_vars(&x.to_string());
+        for var in var_in_t {
+            if bound_in_x.contains(&var) && t.get_string() != v.get_string() {
+                panic!("Specification Error: The Term {} contains the variable {} which is already bound in {}",t.get_string(),var,x)
+            }
         }
+        return x.specify_var(v, t)
     } else {
         panic!("Specification Error: {} is not univerally quantified in {}",v,x)
     }
 }
 
 pub fn generalization(x: &Formula, v: &Variable) -> Formula {
-    if !get_bound_vars(&x.to_string()).contains(&v.to_string()) {
+    if !x.contains_var_bound(&v) {
         return forall(v,x)
     } else {
-        panic!("Generalization Error: {} is bound in {}",v,x)
+        panic!("Generalization Error: {} is already bound in {}",v,x)
     }
 }
 
@@ -34,16 +37,17 @@ pub fn existence<T: Term>(x: &Formula, t: &T, v: &Variable) -> Formula {
     }
 }
 
-// Should panic or warn if quantification not present
 pub fn interchange_ea(x: &Formula, v: &Variable, nth: usize) -> Formula {
     let e = format!("~E{}:",v);
     let a = format!("A{}:~",v);
     let mut new_s = x.to_string().clone();
     let xs = x.to_string();
     let qs = xs.match_indices(&e);
-    for (n,q) in qs.enumerate() {
-        println!("{:?} {:?}",n,q);
-        if n == nth {
+    if qs.clone().count() < nth {
+        panic!("Interchange Error: The quantification {} does not exist in {}",e,x);
+    }
+    for (pos,q) in qs.enumerate() {
+        if pos == nth {
             new_s.replace_range(q.0..q.0+q.1.len(), &a);
             break
         }
@@ -51,15 +55,17 @@ pub fn interchange_ea(x: &Formula, v: &Variable, nth: usize) -> Formula {
     Formula::new_complex(&new_s)
 }
 
-// Should panic or warn if quantification not present
-pub fn interchange_ae(x: &Formula, v: &Variable, n: usize) -> Formula {
+pub fn interchange_ae(x: &Formula, v: &Variable, nth: usize) -> Formula {
     let e = format!("~E{}:",v);
     let a = format!("A{}:~",v);
     let mut new_s = x.to_string().clone();
     let xs = &x.to_string();
     let qs = xs.match_indices(&a);
+    if qs.clone().count() < nth {
+        panic!("Interchange Error: The quantification {} does not exist in {}",a,x);
+    }
     for (pos,q) in qs.enumerate() {
-        if pos == n {
+        if pos == nth {
             new_s.replace_range(q.0..q.0+q.1.len(), &e);
             break
         }
@@ -74,8 +80,8 @@ pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Formula {
     if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
         panic!("Induction Error: {} is already bound in {}",v,theorem.to_string())
     } else {
-        let xs = theorem.replace_var(v, &(v << 1));//replace_var_in_string(&theorem.to_string(), &v.to_string(), &format!("S{}",v));
-        let x0 = theorem.replace_var(v, &Number::new("0"));//replace_var_in_string(&theorem.to_string(), &v.to_string(), "0");
+        let xs = theorem.replace_var(v, &(v << 1));
+        let x0 = theorem.replace_var(v, &Number::new("0"));
         if x0.to_string() != base.to_string() {
             panic!("Induction Error: base case must be {}",x0)
         }
@@ -117,7 +123,6 @@ pub fn predecessor(a: &Formula) -> Formula {
     }
 }
 
-// Can be simplified
 pub fn symmetry(a: &Formula) -> Formula {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
@@ -131,7 +136,6 @@ pub fn symmetry(a: &Formula) -> Formula {
         panic!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a)
     }
 }
-
 
 pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
     if let Formula::Simple(_) = a1 {
@@ -167,20 +171,58 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
 #[test]
 fn test_specification() {
     use crate::types::Number;
-    let a = Variable::new("a");
-    let one = Number::new("S0");
-    let formula1 = Formula::new("Aa:a=a");
-    let formula2 = Formula::new("Ea':Aa:[a=a&a'=a']");
-    assert_eq!(specification(&formula1,&a,&one).to_string(),"S0=S0");
-    assert_eq!(specification(&formula2,&a,&one).to_string(),"Ea':[S0=S0&a'=a']");
+    let a = &Variable::new("a");
+    let one = &Number::new("S0");
+    let formula1 = &Formula::new("Aa:a=a");
+    let formula2 = &Formula::new("Ea':Aa:[a=a&a'=a']");
+    assert_eq!(specification(formula1,a,one).to_string(),"S0=S0");
+    assert_eq!(specification(formula2,a,one).to_string(),"Ea':[S0=S0&a'=a']");
+}
+
+#[test]
+#[should_panic]
+fn test_specification_err1() {
+    use crate::types::Number;
+    let a = &Variable::new("b");
+    let one = &Number::new("S0");
+    let formula1 = &Formula::new("Aa:a=a");
+    specification(formula1,a,one);
+}
+
+#[test]
+#[should_panic]
+fn test_specification_err2() {
+    use crate::types::Number;
+    let a = &Variable::new("a");
+    let one = &Number::new("S0");
+    let formula1 = &Formula::new("Aa:a=a");
+    specification(formula1,a,&(a+one));
+}
+
+#[test]
+fn test_generalization() {
+    let a = &Variable::new("a");
+    let x = &Variable::new("x'");
+    let formula1 = &Formula::new("a=a");
+    let formula2 = &Formula::new("Ea':Aa:[a=a&x'=a']");
+    assert_eq!(generalization(formula1,a).to_string(),"Aa:a=a");
+    assert_eq!(generalization(formula2,x).to_string(),"Ax':Ea':Aa:[a=a&x'=a']");
+}
+
+#[test]
+#[should_panic]
+fn test_generalization_err() {
+    let c = &Variable::new("c");
+    let formula1 = &Formula::new("Ec:a=c");
+    println!("{}",generalization(formula1,c));
 }
 
 #[test]
 fn test_symmetry() {
-    let atom1 = Formula::new("a=b");
-    let atom2 = Formula::new("b=S(a+S0)");
-    assert_eq!(symmetry(&atom1).to_string(),"b=a");
-    assert_eq!(symmetry(&atom2).to_string(),"S(a+S0)=b");
+    let atom1 = &Formula::new("a=b");
+    let atom2 = &Formula::new("b=S(a+S0)");
+    assert_eq!(symmetry(atom1).to_string(),"b=a");
+    assert_eq!(symmetry(atom2).to_string(),"S(a+S0)=b");
 }
 
 #[test]

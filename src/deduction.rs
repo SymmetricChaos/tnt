@@ -7,13 +7,13 @@ use crate::ops_production::*;
 use crate::ops_construction::implies;
 
 
-/// The Deduction struct enforces valid use of deductive logic
+/// The Deduction struct enforces valid use of deductive logic to produce proofs in Typographical Number Theory and output LaTeX formatted proofs.
 pub struct Deduction {
     depth: usize,
     tag_stack: Vec<usize>,
     title: String,
     axioms: Vec<Formula>,
-    theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, tag for supposition block, rework this to use Frame
+    theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, start of current supposition, rework this to use Frame
 }
 
 // When 'true' forces the theorems to be printed every time they are added, helps with debugging
@@ -30,7 +30,6 @@ lazy_static! {
         m
     };
 }
-
 
 impl Deduction {
     pub fn new(title: &str, axioms: Vec<Formula>) -> Deduction {
@@ -148,6 +147,8 @@ impl Deduction {
         }
         BigUint::from_bytes_be(&n)
     }
+
+    // TODO: Dearithmetize? Probably needs to track more information
 
 
     
