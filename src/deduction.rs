@@ -166,6 +166,7 @@ impl Deduction {
         self.push_new( t, comment );
     }
 
+    // This needs to be restricted to within a supposition to panic if var is free in the premise
     pub fn generalization(&mut self, n: usize, var: &Variable, comment: &str) {
         let t = generalization(self.get_theorem(n), &var);
         self.push_new( t, comment );

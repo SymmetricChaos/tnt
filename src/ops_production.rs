@@ -44,7 +44,7 @@ pub fn interchange_ea(x: &Formula, v: &Variable, nth: usize) -> Formula {
     let xs = x.to_string();
     let qs = xs.match_indices(&e);
     if qs.clone().count() < nth {
-        panic!("Interchange Error: The quantification {} does not exist in {}",e,x);
+        panic!("Interchange Error: There quantification {} does not exist in {} {} times",e,x,nth);
     }
     for (pos,q) in qs.enumerate() {
         if pos == nth {
@@ -62,7 +62,7 @@ pub fn interchange_ae(x: &Formula, v: &Variable, nth: usize) -> Formula {
     let xs = &x.to_string();
     let qs = xs.match_indices(&a);
     if qs.clone().count() < nth {
-        panic!("Interchange Error: The quantification {} does not exist in {}",a,x);
+        panic!("Interchange Error: There quantification {} does not exist in {} {} times",e,x,nth);
     }
     for (pos,q) in qs.enumerate() {
         if pos == nth {
@@ -165,6 +165,7 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
 
 
 
+
 // TODO: test pathalogical inputs for all of these
 // TODO: test panic modes for all of these
 
@@ -199,6 +200,8 @@ fn test_specification_err2() {
     specification(formula1,a,&(a+one));
 }
 
+
+
 #[test]
 fn test_generalization() {
     let a = &Variable::new("a");
@@ -217,13 +220,24 @@ fn test_generalization_err() {
     println!("{}",generalization(formula1,c));
 }
 
+
+
 #[test]
 fn test_symmetry() {
-    let atom1 = &Formula::new("a=b");
-    let atom2 = &Formula::new("b=S(a+S0)");
-    assert_eq!(symmetry(atom1).to_string(),"b=a");
-    assert_eq!(symmetry(atom2).to_string(),"S(a+S0)=b");
+    let simple1 = &Formula::new("a=b");
+    let simple2 = &Formula::new("b=S(a+S0)");
+    assert_eq!(symmetry(simple1).to_string(),"b=a");
+    assert_eq!(symmetry(simple2).to_string(),"S(a+S0)=b");
 }
+
+#[test]
+#[should_panic]
+fn test_symmetry_err() {
+    let complex = &Formula::new("Aa:a=b");
+    symmetry(complex);
+}
+
+
 
 #[test]
 fn test_transitivity() {
@@ -233,39 +247,102 @@ fn test_transitivity() {
 }
 
 #[test]
-fn test_predecessor() {
-    let atom = Formula::new("Sm''=SSu");
-    assert_eq!(predecessor(&atom).to_string(),"m''=Su");
+#[should_panic]
+fn test_transitivity_err_1_left() {
+    let complex1 = &Formula::new("Aa:a=b");
+    let complex2 = &Formula::new("p=j''");
+    transitivity(complex1, complex2);
 }
+
+#[test]
+#[should_panic]
+fn test_transitivity_err_1_right() {
+    let complex1 = &Formula::new("Aa:a=b");
+    let complex2 = &Formula::new("p=j''");
+    transitivity(complex2, complex1);
+}
+
+#[test]
+#[should_panic]
+fn test_transitivity_err_2() {
+    let complex1 = &Formula::new("p=j''");
+    let complex2 = &Formula::new("q'=p");
+    transitivity(complex1, complex2);
+}
+
+
+
+#[test]
+fn test_predecessor() {
+    let simple = &Formula::new("Sm''=SSu");
+    assert_eq!(predecessor(simple).to_string(),"m''=Su");
+}
+
+#[test]
+#[should_panic]
+fn test_predecessor_err_1() {
+    let complex = &Formula::new("~Ei:(i+SS0)=g");
+    predecessor(complex);
+}
+
+#[test]
+#[should_panic]
+fn test_predecessor_err_2() {
+    let simple = &Formula::new("SSb'=0");
+    predecessor(simple);
+}
+
+
 
 #[test]
 fn test_successor() {
-    let atom = Formula::new("Sm''=SSu");
-    assert_eq!(successor(&atom).to_string(),"SSm''=SSSu");
+    let simple = &Formula::new("Sm''=SSu");
+    assert_eq!(successor(simple).to_string(),"SSm''=SSSu");
 }
+
+#[test]
+#[should_panic]
+fn test_successor_err() {
+    let complex = &Formula::new("~Ei:(i+SS0)=g");
+    successor(complex);
+}
+
+
 
 #[test]
 fn test_interchange_ea() {
-    let formula1 = Formula::new("Aa:~Eu':(a+u')=Sa");
-    let formula2 = Formula::new("[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
-    let variable = Variable::new("u'");
-    assert_eq!(interchange_ea(&formula1,&variable,0).to_string(),"Aa:Au':~(a+u')=Sa");
-    assert_eq!(interchange_ea(&formula2,&variable,1).to_string(),"[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
+    let formula1 = &Formula::new("Aa:~Eu':(a+u')=Sa");
+    let formula2 = &Formula::new("[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
+    let variable = &Variable::new("u'");
+    assert_eq!(interchange_ea(formula1,variable,0).to_string(),"Aa:Au':~(a+u')=Sa");
+    assert_eq!(interchange_ea(formula2,variable,1).to_string(),"[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
 }
+
+#[test]
+#[should_panic]
+fn test_interchange_ea_err() {
+    let formula1 = &Formula::new("Aa:~Eu':(a+u')=Sa");
+    let variable = &Variable::new("z");
+    interchange_ea(formula1,variable,0);
+}
+
+
 
 #[test]
 fn test_interchange_ae() {
-    let formula1 = Formula::new("Aa:Au':~(a+u')=Sa");
-    let formula2 = Formula::new("[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
-    let variable = Variable::new("u'");
-    assert_eq!(interchange_ae(&formula1,&variable,0).to_string(),"Aa:~Eu':(a+u')=Sa");
-    assert_eq!(interchange_ae(&formula2,&variable,0).to_string(),"[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
+    let formula1 = &Formula::new("Aa:Au':~(a+u')=Sa");
+    let formula2 = &Formula::new("[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
+    let variable = &Variable::new("u'");
+    assert_eq!(interchange_ae(formula1,variable,0).to_string(),"Aa:~Eu':(a+u')=Sa");
+    assert_eq!(interchange_ae(formula2,variable,0).to_string(),"[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
 }
+
+
 
 #[test]
 fn test_induction() {
-    let v = Variable::new("v");
-    let base = Formula::new("0=0");
-    let gen = Formula::new("Av:[v=v>Sv=Sv]");
-    assert_eq!(induction(&v,&base,&gen).to_string(),"Av:v=v");
+    let v = &Variable::new("v");
+    let base = &Formula::new("0=0");
+    let gen = &Formula::new("Av:[v=v>Sv=Sv]");
+    assert_eq!(induction(v,base,gen).to_string(),"Av:v=v");
 }
