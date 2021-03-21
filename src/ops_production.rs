@@ -1,15 +1,13 @@
-use crate::types::{Formula,Variable,Term,Number,Equation};
+use crate::types::{Formula,Variable,Term,Equation,Number};
 use crate::ops_construction::*;
-use crate::string_manip::{replace_var_in_string, split_eq, get_bound_vars, left_implies};
+use crate::string_manip::{split_eq, get_bound_vars, left_implies};
 
 // Rules of production
 // These may check for additional internal contraints and will panic on failure
 pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Formula {
     if x.to_string().contains(&format!("A{}:",v)) {
-        let mut new_s = x.to_string().clone().replace(&format!("A{}:",v.to_string()),"");
         if get_bound_vars(&x.to_string()).contains(&v.to_string()) {
-            new_s = replace_var_in_string(&new_s,&v.to_string(),&t.get_string());
-            return Formula::new(&new_s)
+            x.replace_var(v, t)
         } else {
             panic!("Specification Error: {} is not bound in {}",v,x)
         }
@@ -76,9 +74,9 @@ pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Formula {
     if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
         panic!("Induction Error: {} is already bound in {}",v,theorem.to_string())
     } else {
-        let xs = replace_var_in_string(&theorem.to_string(), &v.to_string(), &format!("S{}",v));
-        let x0 = replace_var_in_string(&theorem.to_string(), &v.to_string(), "0");
-        if x0 != base.to_string() {
+        let xs = theorem.replace_var(v, &(v << 1));//replace_var_in_string(&theorem.to_string(), &v.to_string(), &format!("S{}",v));
+        let x0 = theorem.replace_var(v, &Number::new("0"));//replace_var_in_string(&theorem.to_string(), &v.to_string(), "0");
+        if x0.to_string() != base.to_string() {
             panic!("Induction Error: base case must be {}",x0)
         }
         if general.to_string() != format!("A{}:[{}>{}]",v,theorem,xs) {
@@ -168,6 +166,7 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
 
 #[test]
 fn test_specification() {
+    use crate::types::Number;
     let a = Variable::new("a");
     let one = Number::new("S0");
     let formula1 = Formula::new("Aa:a=a");
@@ -223,7 +222,7 @@ fn test_interchange_ae() {
 
 #[test]
 fn test_induction() {
-    let v = Term::new("v");
+    let v = Variable::new("v");
     let base = Formula::new("0=0");
     let gen = Formula::new("Av:[v=v>Sv=Sv]");
     assert_eq!(induction(&v,&base,&gen).to_string(),"Av:v=v");

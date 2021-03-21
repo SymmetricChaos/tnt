@@ -171,7 +171,7 @@ pub fn _var_in_string(s: &str, v: &str) -> bool {
 }
 
 
-pub fn replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {
+pub fn _replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {
     let p = format!("{}(?!')",pattern);
     let re = Regex::new(&p).unwrap();
     let out = re.replace_all(s,replacement);
@@ -218,7 +218,7 @@ fn test_var_in_string() {
 
 #[test]
 fn test_replace_var_in_string() {
-    assert_eq!(replace_var_in_string("Ea':Ab:(a'+a)=b","a","x"),"Ea':Ab:(a'+x)=b");
+    assert_eq!(_replace_var_in_string("Ea':Ab:(a'+a)=b","a","x"),"Ea':Ab:(a'+x)=b");
 }
 
 #[test]

@@ -53,6 +53,11 @@ impl Formula {
     pub fn dearithmetize(number: &BigUint) -> Formula {
         Formula::new(&dearithmetize(number))
     }
+
+    pub fn replace_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
+        let out = v.re.replace_all(&self.to_string(), &replacement.get_string()[..]);
+        Formula::new(&out)
+    }
 }
 
 impl fmt::Display for Formula {
@@ -63,9 +68,6 @@ impl fmt::Display for Formula {
         }
     }
 }
-
-
-
 
 
 

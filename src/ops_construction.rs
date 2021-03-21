@@ -1,4 +1,4 @@
-use crate::types::{Term,Formula,Variable,Number,Equation};
+use crate::types::{Term,Formula,Variable};
 
 // Rules of construction. 
 // Arithmetic construction is handled by degining +, *, and << for Term types to represent
@@ -47,6 +47,7 @@ pub fn forall(v: &Variable, x: &Formula) -> Formula {
 
 #[test]
 fn test_eq() {
+    use crate::types::{Number,Equation};
     let a = &Variable::new("a");
     let x = &Variable::new("x''");
     let zero = &Number::new("0");
