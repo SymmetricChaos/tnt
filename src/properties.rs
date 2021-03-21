@@ -1,21 +1,24 @@
 use onig::Regex;
+use lazy_static::lazy_static;
 
-use crate::string_manip::{strip_succ_all,split_arithmetic,split_logical,get_vars,get_bound_vars,get_free_vars,strip_quant};
+use crate::string_manip::{strip_succ_all, split_arithmetic, split_logical, get_unquant_vars, get_bound_vars, get_free_vars, strip_quant};
 
-pub fn is_var(s: &str) -> bool {
-    // Valid variables are any one of the lower case letters a to z followed by zero or more apostophes
-    let re = Regex::new(r"^[a-z]'*$").unwrap();
-    return re.is_match(&s)
+lazy_static! {
+    pub static ref VAR: Regex = Regex::new("^[a-z]\'*$").unwrap();
+    pub static ref NUM: Regex = Regex::new("^S*0$").unwrap();
+    pub static ref NUM_GEQ_ONE: Regex = Regex::new("S+0").unwrap();
+    pub static ref FORALL_CHAIN: Regex = Regex::new("((?<!~)A[a-z]\'*:)+").unwrap();
+    pub static ref NOT_FORALL_CHAIN: Regex = Regex::new("(~A[a-z]\'*:)+").unwrap();
+    pub static ref EXISTS_CHAIN: Regex = Regex::new("((?<!~)E[a-z]\'*:)+").unwrap();
+    pub static ref NOT_EXISTS_CHAIN: Regex = Regex::new("(~E[a-z]\'*:)+").unwrap();
 }
 
+pub fn is_var(s: &str) -> bool {
+    return VAR.is_match(&s)
+}
 
 pub fn is_num(s: &str) -> bool {
-    if !s.contains("0") {
-        return false
-    } else if strip_succ_all(s) == "0" {
-        return true
-    }
-    return false
+    return NUM.is_match(&s)
 }
 
 pub fn is_term(s: &str) -> bool {
@@ -36,11 +39,9 @@ pub fn is_term(s: &str) -> bool {
 
 
 
-
+// A well-formed formula must have no bound variables that are unused
 pub fn is_well_quantified(s: &str) -> bool {
-    // Variables used, ignoring quantifiers
-    let vars = get_vars(strip_quant(s));
-    // Bound variables
+    let vars = get_unquant_vars(s);
     let bvars = get_bound_vars(s);
     for b in bvars {
         if !vars.contains(&b) {
@@ -50,8 +51,8 @@ pub fn is_well_quantified(s: &str) -> bool {
     true
 }
 
+// A simple formula is precisely an equivalence of any two terms
 pub fn is_simple_formula(s: &str) -> bool {
-    // A simple formula is precisely an equivalence of any two terms
     let eq = match s.find("=") {
         Some(num) => num,
         None => return false

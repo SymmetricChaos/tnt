@@ -9,15 +9,17 @@ use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
 
 
 
-
-
+/// A Formula is a well-formed formula, either Simple or Complex
 #[derive(Clone,Debug,PartialEq)]
 pub enum Formula {
+    /// Formula::Simple consists of an equality of two terms
     Simple(String),
+    /// Formula::Complex consists of any well-formed formula
     Complex(String),
 }
 
 impl Formula {
+    /// An &str is automatically converted to the correct variant, this requires potentially slow parsing of the &str
     pub fn new(input: &str) -> Formula {
         if is_simple_formula(input) {
             return Formula::Simple(input.to_owned())
@@ -28,28 +30,32 @@ impl Formula {
         }
     }
 
-    // Fast creation of variants without checking
+    /// Fast creation of Formula::Simple with no checks
     pub fn new_simple(input: &str) -> Formula {
         return Formula::Simple(input.to_owned())
     }
 
+    /// Fast creation of Formula::Complex with no checks
     pub fn new_complex(input: &str) -> Formula {
         return Formula::Complex(input.to_owned())
     }
 
-    // Pretty names
+    /// Translate the Formula to LaTeX representation
     pub fn latex(&self) -> String {
         to_latex(self.to_string())
     }
 
+    /// Translate the Formula to relatively readable English
     pub fn english(&self) -> String {
         to_english(self.to_string())
     }
 
+    /// Return a BigUint that represents the Formula
     pub fn arithmetize(&self) -> BigUint {
         arithmetize(self.to_string())
     }
 
+    /// Create a formula from a BigUint
     pub fn dearithmetize(number: &BigUint) -> Formula {
         Formula::new(&dearithmetize(number))
     }
@@ -68,6 +74,7 @@ impl fmt::Display for Formula {
         }
     }
 }
+
 
 
 
@@ -140,6 +147,7 @@ impl Term for Variable {
         self.string.clone()
     }
 }
+
 
 impl fmt::Display for Variable {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -433,6 +441,7 @@ impl<'a> Shl<usize> for &'a Equation {
 
 
 
+
 #[test]
 fn test_variable() {
     let v1 = &Variable::new("a");
@@ -497,6 +506,7 @@ fn test_equation() {
 // All types used are accounted for here
 // This will allow us to parse a string into a type
 /*
+/// TNT consists of any valid statement either Term or Number
 #[derive(Clone,Debug,PartialEq)]
 pub enum TNT {
     Term(Term),
@@ -505,7 +515,7 @@ pub enum TNT {
 
 impl TNT {
     pub fn new(input: &str) -> TNT {
-        if is_equation(input) {
+        if is_term(input) {
             return TNT::Term(Term::new(input))
         } else if is_formula(input) {
             return TNT::Formula(Formula::new(input))
@@ -514,10 +524,12 @@ impl TNT {
         }
     }
 
+    /// Translate the TNT to LaTeX representation
     pub fn latex(&self) -> String {
         to_latex(self.to_string())
     }
 
+    /// Translate the TNT to relatively readable English
     pub fn english(&self) -> String {
         to_english(self.to_string())
     }
