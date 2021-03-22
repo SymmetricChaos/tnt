@@ -2,10 +2,9 @@ use std::{fs::File, io::Write};
 use lazy_static::lazy_static;
 use num::BigUint;
 
-use crate::types::{Formula,Term,Variable};
+use crate::{string_manip::get_free_vars, types::{Formula,Term,Variable}};
 use crate::ops_production::*;
 use crate::ops_construction::implies;
-
 
 /// The Deduction struct enforces valid use of deductive logic to produce proofs in Typographical Number Theory and output LaTeX formatted proofs.
 pub struct Deduction {
@@ -13,7 +12,7 @@ pub struct Deduction {
     tag_stack: Vec<usize>,
     title: String,
     axioms: Vec<Formula>,
-    theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, start of current supposition, rework this to use Frame
+    theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, start of current supposition
 }
 
 // When 'true' forces the theorems to be printed every time they are added, helps with debugging
@@ -74,7 +73,7 @@ impl Deduction {
         out
     }
 
-    pub fn theorems_raw(&self) -> Vec<(Formula, String, usize, usize)> {
+    pub fn all_theorems_raw(&self) -> Vec<(Formula, String, usize, usize)> {
         self.theorems.clone()
     }
 
@@ -166,14 +165,19 @@ impl Deduction {
         self.push_new( t, comment );
     }
 
-    // This needs to be restricted to within a supposition to panic if var is free in the premise
     pub fn generalization(&mut self, n: usize, var: &Variable, comment: &str) {
+        if self.depth != 0 {
+            let f = get_free_vars(&self.get_theorem(*self.tag_stack.last().unwrap()).to_string());
+            if f.contains(&var.to_string()) {
+                panic!("Generalization Error: the variable {} is free in the supposition {}",var,self.get_theorem(*self.tag_stack.last().unwrap()))
+            }
+        }
         let t = generalization(self.get_theorem(n), &var);
         self.push_new( t, comment );
     }
 
     pub fn existence<T: Term>(&mut self, n: usize, term: &T, var: &Variable, comment: &str) {
-        let t = existence(&self.theorems[n].0.clone() , term, &var);
+        let t = existence(&self.theorems[n].0.clone(), term, &var);
         self.push_new( t, comment );
     }
 
