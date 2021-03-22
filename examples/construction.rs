@@ -1,27 +1,12 @@
-/* 
-use tnt::types::TNT;
+use tnt::types::{Variable,Number,Term};
 
 fn main() {
 
-    let decision_formula = [
-        TNT::new("Ea:(a*SS0)=b"),
-        TNT::new("Aa:~Ec:(SSa*SSc)=b"),
-        TNT::new("Aa:[Ec:(a*c)=b>Ed:(d*SS0)=a]"),];
+    let a = &Variable::new("a");
+    let b = &Variable::new("b");
+    let zero = &Number::new("0");
 
-    let decision_name = [
-        "b is even",
-        "b is prime",
-        "b is a power of two",];
-
-    println!("Some valid statements of tnt:");
-
-    for (formula,name) in decision_formula.iter().zip(&decision_name) {
-        println!("\n{}\n{}\n{}",name,formula,formula.english());
-    }
-    
-}
-*/
-
-fn main() {
-    println!("Temporarily deprecated")
+    println!("Because all types that implement Term have an arithmetic interpretation they also implement addition and multiplication.");
+    println!("{}",a+b);
+    println!("{}",&(a+b)+zero);
 }

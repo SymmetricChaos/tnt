@@ -3,7 +3,7 @@ use num::bigint::BigUint;
 use onig::Regex;
 use std::ops::{Add,Mul,Shl};
 
-use crate::properties::{is_term,is_num,is_var,is_simple_formula,is_formula};
+use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
 use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
 
 
@@ -112,19 +112,25 @@ pub trait Term {
     /// Create a Term from a BigUint
     fn dearithmetize(number: &BigUint) -> Self;
 
+    // Get the contrained String
     fn get_string(&self) -> String;
 }
 
+// Variable keeps two Regex with it: the first is used to find only that variable in a Formula while the other is used 
+// to find the presence of a quantification of that variable
+#[derive(Debug)]
 pub struct Variable {
     string: String,
     re: Regex,
     req: Regex,
 }
 
+#[derive(Debug)]
 pub struct Number {
     string: String,
 }
 
+#[derive(Debug)]
 pub struct Equation {
     string: String,
 }
@@ -352,7 +358,7 @@ impl<'a> Shl<usize> for &'a Number {
 
 impl Term for Equation {
     fn new(input: &str) -> Equation {
-        if is_term(input) {
+        if is_equation(input) {
             let string = input.to_owned();
             return Equation{ string }
         } else {
@@ -458,6 +464,56 @@ impl<'a> Shl<usize> for &'a Equation {
 
 
 
+/// TNT consists of any valid statement
+#[derive(Debug)]
+pub enum TNT {
+    Formula(Formula),
+    Number(Number),
+    Variable(Variable),
+    Equation(Equation),
+}
+
+impl TNT {
+    pub fn new(input: &str) -> TNT {
+        if is_num(input) {
+            return TNT::Number(Number::new(input))
+        } else if is_var(input) {
+            return TNT::Variable(Variable::new(input))
+        } else if is_equation(input) {
+            return TNT::Equation(Equation::new(input))
+        } else if is_formula(input) {
+            return TNT::Formula(Formula::new(input))
+        } else {
+            panic!()
+        }
+    }
+
+    /// Translate the TNT to LaTeX representation
+    pub fn latex(&self) -> String {
+        to_latex(self.to_string())
+    }
+
+    /// Translate the TNT to relatively readable English
+    pub fn english(&self) -> String {
+        to_english(self.to_string())
+    }
+}
+
+impl fmt::Display for TNT {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self {
+            TNT::Number(term) => write!(f, "{}", term),
+            TNT::Variable(term) => write!(f, "{}", term),
+            TNT::Equation(term) => write!(f, "{}", term),
+            TNT::Formula(term) => write!(f, "{}", term),
+        }
+    }
+}
+
+
+
+
+
 #[test]
 fn test_variable() {
     let v1 = &Variable::new("a");
@@ -515,62 +571,3 @@ fn test_equation() {
 
 
 
-
-
-// All types used are accounted for here
-// This will allow us to parse a string into a type
-/*
-/// TNT consists of any valid statement either Term or Number
-#[derive(Clone,Debug,PartialEq)]
-pub enum TNT {
-    Term(Term),
-    Formula(Formula)
-}
-
-impl TNT {
-    pub fn new(input: &str) -> TNT {
-        if is_term(input) {
-            return TNT::Term(Term::new(input))
-        } else if is_formula(input) {
-            return TNT::Formula(Formula::new(input))
-        } else {
-            panic!()
-        }
-    }
-
-    /// Translate the TNT to LaTeX representation
-    pub fn latex(&self) -> String {
-        to_latex(self.to_string())
-    }
-
-    /// Translate the TNT to relatively readable English
-    pub fn english(&self) -> String {
-        to_english(self.to_string())
-    }
-}
-
-impl TryFrom<Term> for TNT {
-    type Error = &'static str;
-
-    fn try_from(value: Term) -> Result<Self, Self::Error> {
-        Ok(TNT::Term(value))
-    }
-}
-
-impl TryFrom<Formula> for TNT {
-    type Error = &'static str;
-
-    fn try_from(value: Formula) -> Result<Self, Self::Error> {
-        Ok(TNT::Formula(value))
-    }
-}
-
-impl fmt::Display for TNT {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self {
-            TNT::Term(term) => write!(f, "{}", term),
-            TNT::Formula(term) => write!(f, "{}", term),
-        }
-    }
-}
- */
