@@ -1,5 +1,4 @@
 use std::{fs::File, io::Write};
-use lazy_static::lazy_static;
 use num::BigUint;
 
 use crate::{string_manip::get_free_vars, types::{Formula,Term,Variable}};
@@ -17,18 +16,6 @@ pub struct Deduction {
 
 // When 'true' forces the theorems to be printed every time they are added, helps with debugging
 const NOISY: bool = false;
-
-lazy_static! {
-    pub static ref PEANO: Vec<Formula> = {
-        let mut m = Vec::new();
-        m.push(Formula::new("Aa:~Sa=0"));
-        m.push(Formula::new("Aa:(a+0)=a"));
-        m.push(Formula::new("Aa:Ab:(a+Sb)=S(a+b)"));
-        m.push(Formula::new("Aa:(a*0)=0"));
-        m.push(Formula::new("Aa:Ab:(a*Sb)=((a*b)+a)"));
-        m
-    };
-}
 
 impl Deduction {
     pub fn new(title: &str, axioms: Vec<Formula>) -> Deduction {

@@ -32,7 +32,6 @@ pub fn implies(x: &Formula, y: &Formula) -> Formula {
 
 
 // Quantification
-// Maybe some way to avoid panic here
 pub fn exists(v: &Variable, x: &Formula) -> Formula {
     Formula::new_complex(&format!("E{}:{}",v,x))
 }

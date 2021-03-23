@@ -1,5 +1,6 @@
 use tnt::types::{Term, Formula, Variable, Number};
-use tnt::deduction::{Deduction,PEANO};
+use tnt::deduction::Deduction;
+use tnt::axioms::PEANO;
 
 fn main() {
 
