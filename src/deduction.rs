@@ -99,39 +99,38 @@ impl Deduction {
         let mut file = File::create(filename)?;
 
         let section_title = format!("\\section*{{{}}}\n",self.title);
-        let translate_last = format!("\\text{{{}}}",self.get_last_theorem().english());
+        //let translate_last = format!("\\text{{{}}}",self.get_last_theorem().english());
 
-        file.write(b"\\documentclass[12pt]{article}\n")?;
+        file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
         file.write(b"\\usepackage{amsmath}\n")?;
         file.write(b"\\allowdisplaybreaks\n")?;
         file.write(b"\\begin{document}\n")?;
         file.write(&section_title.into_bytes())?;
-        file.write(b"\\begin{align*}\n")?;
+        file.write(b"\\begin{flalign*}\n")?;
 
         let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
 
             if t.2 > prev_depth {
-                let line = format!("&{}\\text{{begin supposition}}&\\\\\n","   ".repeat(prev_depth)).into_bytes();
+                let line = format!("&{}\\text{{begin supposition}}&\\\\&\n","   ".repeat(prev_depth)).into_bytes();
                 file.write(&line)?;
             } else if t.2 < prev_depth {
-                let line = format!("&{}\\text{{end supposition}}&\\\\\n","   ".repeat(t.2)).into_bytes();
+                let line = format!("&{}\\text{{end supposition}}&\\\\&\n","   ".repeat(t.2)).into_bytes();
                 file.write(&line)?;
             }
 
             if t.1 != "" {
-                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.2*2,pos,t.0.latex(),t.1).into_bytes();
+                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\&\n",t.2*2,pos,t.0.latex(),t.1).into_bytes();
                 file.write(&line)?;
             } else {
-                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\\\\n",t.2*2,pos,t.0.latex()).into_bytes();
+                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\\\&\n",t.2*2,pos,t.0.latex()).into_bytes();
                 file.write(&line)?;
             }
 
             prev_depth = t.2;
         }
 
-        file.write(b"\\end{align*}\n")?;
-        file.write(&translate_last.into_bytes())?;
+        file.write(b"\\end{flalign*}\n")?;
         file.write(b"\\end{document}")?;
         Ok(())
     }
