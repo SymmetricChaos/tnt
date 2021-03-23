@@ -95,7 +95,7 @@ impl fmt::Display for Formula {
 
 
 
-
+/// Term is implemented for Variable, Number, and Equation the structs that hold valid pieces of TNT formulas.
 pub trait Term {
     /// An &str is automatically converted to the correct variant, this requires potentially slow parsing of the &str
     fn new(input: &str) -> Self;
@@ -112,12 +112,11 @@ pub trait Term {
     /// Create a Term from a BigUint
     fn dearithmetize(number: &BigUint) -> Self;
 
-    // Get the contrained String
+    /// Get the contrained String
     fn get_string(&self) -> String;
 }
 
-// Variable keeps two Regex with it: the first is used to find only that variable in a Formula while the other is used 
-// to find the presence of a quantification of that variable
+/// Variable represents any valid variable of TNT, a lowercase English letter followed by zero or more apostophes. Besides the string itself it keeps two Regex with it representing the variable itself and quantification of the variable. This prevents the Regex from having to be built each time the Variable is searched for.
 #[derive(Debug)]
 pub struct Variable {
     string: String,
@@ -125,11 +124,13 @@ pub struct Variable {
     req: Regex,
 }
 
+/// Number represents any valid number of TNT, 0 preceeded by zero or more S.
 #[derive(Debug)]
 pub struct Number {
     string: String,
 }
 
+/// Equation representd any valid equation of TNT, any addition, multiplication, or successor of Variable, Number, or Equation.
 #[derive(Debug)]
 pub struct Equation {
     string: String,
@@ -279,6 +280,16 @@ impl Term for Number {
 
     fn get_string(&self) -> String {
         self.string.clone()
+    }
+}
+
+impl Number {
+    pub fn zero() -> Number {
+        Number{ string: "0".to_string() }
+    }
+
+    pub fn one() -> Number {
+        Number{ string: "S0".to_string() }
     }
 }
 
