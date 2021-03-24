@@ -4,6 +4,10 @@ An implementation of Hofstader's "Typographical Number Theory" in Rust. This all
 Consider the following short proof that 1+1 = 2.
 
 ```
+use tnt::types::{Term, Variable, Number};
+use tnt::deduction::Deduction;
+use tnt::axioms::PEANO;
+
 let a = &Variable::new("a");
 let b = &Variable::new("b");
 let zero = &Number::zero();
@@ -35,7 +39,7 @@ d.pretty_print()
 Formatted for LaTeX:
 
 ```
-\documentclass[12pt]{article}
+\documentclass[fleqn,11pt]{article}
 \usepackage{amsmath}
 \allowdisplaybreaks
 \begin{document}
