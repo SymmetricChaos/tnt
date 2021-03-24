@@ -62,3 +62,5 @@ Which renders as:
 
 # Future Goals
 Allow the Deduction struct to return the entire proof rendered in "plain english". Currently this is supported only by the Variable, Number, and Equation structs as well as the Formula enum which will return a UTF-8 string that replaces all technical symbols with either nontechnical symbols or words.
+
+Also the documentation is currently extremely sparse and needs examples.
