@@ -1,5 +1,7 @@
 # tnt
-An implementation of Hofstader's "Typographical Number Theory" in Rust. This allows the production of formal proofs that disallow nonsenical construction at compile time are checked for correctness at runtime. Proofs and their constituent formulas have a variety of readable outputs.
+An implementation of Hofstader's "Typographical Number Theory" from the book Godel, Escher, and Bach. This is not a proof assistant, it does not check the validity of a proof, rather it enforces the rules of inference at runtime. Certain nonsensical constructions are also caught at compile time. Currently nested suppositions are not supported, this doesn't restrict what can be proved but may make proofs longer.
+
+The Deduction struct can output a proof in a few different ways. The .pretty_print() method produces an ASCII representation while the .latex() method produces a complex LaTeX document.
 
 Consider the following short proof that 1+1 = 2.
 
@@ -23,10 +25,9 @@ d.successor(4, "");
 d.transitivity(2,5,"");
 ```
 
-A simple ASCII representation:
+Using .pretty_print()
 
 ```
-d.pretty_print()
 0) Aa:Ab:(a+Sb)=S(a+b)
 1) Ab:(S0+Sb)=S(S0+b)
 2) (S0+S0)=S(S0+0)   
@@ -36,7 +37,7 @@ d.pretty_print()
 6) (S0+S0)=SS0
 ```
 
-Formatted for LaTeX:
+Using .latex()
 
 ```
 \documentclass[fleqn,11pt]{article}
@@ -55,6 +56,9 @@ Formatted for LaTeX:
 \end{flalign*}
 ```
 
-Which produces:
+Which renders as:
 
 ![one and one is two](https://github.com/SymmetricChaos/tnt/blob/master/examples/addition_snip.PNG?raw=true)
+
+# Future Goals
+Allow the Deduction struct to return the entire proof rendered in "plain english". Currently this is supported only by the Variable, Number, and Equation structs as well as the Formula enum which will return a UTF-8 string that replaces all technical symbols with either nontechnical symbols or words.
