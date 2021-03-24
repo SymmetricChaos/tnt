@@ -53,4 +53,4 @@ Formatted for LaTeX:
 
 Which produces:
 
-[insert image]
+![one and one is two](https://github.com/SymmetricChaos/tnt/blob/master/examples/addition_snip.PNG?raw=true)
