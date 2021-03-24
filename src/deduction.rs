@@ -99,18 +99,18 @@ impl Deduction {
         for (pos,t) in self.theorems.iter().enumerate() {
 
             if t.2 > prev_depth {
-                let line = format!("&{}\\text{{begin supposition}}&\\\\&\n","   ".repeat(prev_depth)).into_bytes();
+                let line = format!("&{}\\text{{begin supposition}}&\\\\\n","   ".repeat(prev_depth)).into_bytes();
                 file.write(&line)?;
             } else if t.2 < prev_depth {
-                let line = format!("&{}\\text{{end supposition}}&\\\\&\n","   ".repeat(t.2)).into_bytes();
+                let line = format!("&{}\\text{{end supposition}}&\\\\\n","   ".repeat(t.2)).into_bytes();
                 file.write(&line)?;
             }
 
             if t.1 != "" {
-                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\&\n",t.2*2,pos,t.0.latex(),t.1).into_bytes();
+                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.2*2,pos,t.0.latex(),t.1).into_bytes();
                 file.write(&line)?;
             } else {
-                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\\\&\n",t.2*2,pos,t.0.latex()).into_bytes();
+                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\\\\n",t.2*2,pos,t.0.latex()).into_bytes();
                 file.write(&line)?;
             }
 

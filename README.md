@@ -40,7 +40,7 @@ Formatted for LaTeX:
 \allowdisplaybreaks
 \begin{document}
 \section*{One Plus One Equals Two}
-\begin{align*}
+\begin{flalign*}
 &\hspace{0em}0)\hspace{1em}\forall a:\forall b:(a+Sb)=S(a+b)\\
 &\hspace{0em}1)\hspace{1em}\forall b:(S0+Sb)=S(S0+b)\\
 &\hspace{0em}2)\hspace{1em}(S0+S0)=S(S0+0)\\
@@ -48,8 +48,7 @@ Formatted for LaTeX:
 &\hspace{0em}4)\hspace{1em}(S0+0)=S0\\
 &\hspace{0em}5)\hspace{1em}S(S0+0)=SS0\\
 &\hspace{0em}6)\hspace{1em}(S0+S0)=SS0\\
-\end{align*}
-\text{(1 + 1) = 2}\end{document}
+\end{flalign*}
 ```
 
 Which produces:
