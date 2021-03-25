@@ -43,15 +43,17 @@ impl Deduction {
 
 
 
-    // Access methods
+    /// Return the Formula at index n.
     pub fn theorem(&self, n: usize) -> &Formula {
         &self.theorems[n].0
     }
 
+    /// Return the last Formula.
     pub fn last_theorem(&self) -> &Formula {
         &self.theorems.last().unwrap().0
     }
 
+    /// Return a vector of all the Formulas in the Deduction.
     pub fn all_theorems(&self) -> Vec<Formula> {
         let mut out: Vec<Formula> = Vec::new();
         for row in self.theorems.clone() {
@@ -60,13 +62,14 @@ impl Deduction {
         out
     }
 
+    /// Dump the entire vector of tuples with all the attached information.
     pub fn all_theorems_raw(&self) -> Vec<(Formula, String, usize, usize)> {
         self.theorems.clone()
     }
 
 
 
-    // Printing methods
+    /// Print the Deduction as a nicely formatted as an ASCII representation.
     pub fn pretty_print(&self) {
         let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
@@ -81,7 +84,8 @@ impl Deduction {
         }
     }
 
-    pub fn latex_file(&self, filename: &str) -> std::io::Result<()>{
+    /// Create a LaTeX file the given file name that displays the Deduction.
+    pub fn latex_file(&self, filename: &str) -> std::io::Result<()> {
         let filename = format!("{}.tex",filename);
         let mut file = File::create(filename)?;
 
@@ -122,6 +126,7 @@ impl Deduction {
         Ok(())
     }
 
+    /// Convert the Deduction to a (very large) integer.
     pub fn arithmetize(&self) -> BigUint {
         let mut n: Vec<u8> = Vec::new();
         let mut th = self.all_theorems();
@@ -138,6 +143,7 @@ impl Deduction {
 
     
     // Logical methods
+    /// Push any axiom of the Deduction system into the theorems.
     pub fn add_axiom(&mut self, premise: Formula, comment: &str) {
         if self.axioms.contains(&premise) {
             self.push_new( premise, comment );
@@ -146,11 +152,13 @@ impl Deduction {
         }
     }
 
+    /// Push a new theorem which replaces var with the provided Term in theorem n.
     pub fn specification<T: Term>(&mut self, n: usize, var: &Variable, replacement: &T, comment: &str) {
         let t = specification(self.get_theorem(n), &var, replacement);
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that adds universal quantification of var in theorem n.
     pub fn generalization(&mut self, n: usize, var: &Variable, comment: &str) {
         if self.depth != 0 {
             let f = get_free_vars(&self.get_theorem(*self.tag_stack.last().unwrap()).to_string());
@@ -162,41 +170,49 @@ impl Deduction {
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that adds existence quantification of var in theorem n.
     pub fn existence<T: Term>(&mut self, n: usize, term: &T, var: &Variable, comment: &str) {
         let t = existence(&self.theorems[n].0.clone(), term, &var);
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that applies the successor to each side of a theorem n.
     pub fn successor(&mut self, n: usize, comment: &str) {
         let t = successor(self.get_theorem(n));
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that strips the successor to each side of a theorem n.
     pub fn predecessor(&mut self, n: usize, comment: &str) {
         let t = predecessor(self.get_theorem(n));
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that takes theorem n and changes the negated existential quantifier at the given position to a universal quantifer followed by a negation.
     pub fn interchange_ea(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) {
         let t = interchange_ea(self.get_theorem(n), v, pos);
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that takes theorem n and changes the universal quantifer followed by a negation at the given position with a negated existential quantifier.
     pub fn interchange_ae(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) {
         let t = interchange_ae(self.get_theorem(n), v, pos);
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that flips the left and right sides of theorem n.
     pub fn symmetry(&mut self, n: usize, comment: &str) {
         let t = symmetry(self.get_theorem(n));
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that is an equality of the left term and right term of formula n1 and n2.
     pub fn transitivity(&mut self, n1: usize, n2: usize, comment: &str) {
         let t = transitivity(self.get_theorem(n1), self.get_theorem(n2));
         self.push_new( t, comment );
     }
     
+    /// Begin a supposition taking an arbitrary Formula as the premise.
     pub fn supposition(&mut self, premise: Formula, comment: &str) {
         if self.depth == 1 {
             panic!("Nested supposition not currently supported")
@@ -206,6 +222,7 @@ impl Deduction {
         self.push_new( premise, comment );
     }
 
+    /// End a supposition and push a new theorem that the premise of the supposition implies the final theorem of the supposition.
     pub fn implication(&mut self, comment: &str) {
         self.depth -= 1;
         let first_premise = self.tag_stack.pop().unwrap();
@@ -213,6 +230,7 @@ impl Deduction {
         self.push_new( t, comment );
     }
 
+    /// Push a new theorem that is induction on given variable with base and general being the position of theorems that state the base case and general case.
     pub fn induction(&mut self, var: &Variable, base: usize, general: usize, comment: &str) {
         let t = induction(var,self.get_theorem(base),self.get_theorem(general));
         self.push_new( t, comment );
