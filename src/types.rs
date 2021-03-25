@@ -1,11 +1,11 @@
 use std::fmt;
 use num::bigint::BigUint;
-use onig::Regex;
+use fancy_regex::Regex;
 use std::ops::{Add,Mul,Shl};
 
 use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
 use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
-
+use crate::string_manip::replace_all_re;
 
 
 
@@ -13,7 +13,7 @@ use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
 /// A Formula is a well-formed formula, either Simple or Complex
 #[derive(Clone,Debug,PartialEq)]
 pub enum Formula {
-    /// Formula::Simple consists of an equality of two terms
+    /// Formula::Simple consists of precisely an equality of two terms
     Simple(String),
     /// Formula::Complex consists of any well-formed formula
     Complex(String),
@@ -31,12 +31,12 @@ impl Formula {
         }
     }
 
-    /// Fast creation of Formula::Simple with no checks
+    /// Fast creation of Formula::Simple with no checks, may be deprecated soon
     pub fn new_simple(input: &str) -> Formula {
         return Formula::Simple(input.to_owned())
     }
 
-    /// Fast creation of Formula::Complex with no checks
+    /// Fast creation of Formula::Complex with no checks, may be deprecated soon
     pub fn new_complex(input: &str) -> Formula {
         return Formula::Complex(input.to_owned())
     }
@@ -61,25 +61,27 @@ impl Formula {
         Formula::new(&dearithmetize(number))
     }
 
-    /// Replace every instance of a Variable with some Term
+    /// Replace every instance of a Variable in the Formula with some Term
     pub fn replace_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
-        Formula::new(&v.re.replace_all(&self.to_string(), &replacement.get_string()[..]))
+        let st = replace_all_re(&self.to_string(), &v.re, &replacement.get_string()[..]);
+        Formula::new(&st )
     }
 
-    /// Eliminate universal quantification of a Variable then replace every instance with some Term
+    /// Eliminate universal quantification of a Variable in the Formula then replace every instance with some Term
     pub fn specify_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
-        let out = self.to_string().replace(&format!("A{}:",v),"");
-        Formula::new(&v.re.replace_all(&out, &replacement.get_string()[..]))
+        let mut st = self.to_string().replace(&format!("A{}:",v),"");
+        st = replace_all_re(&st, &v.re, &replacement.get_string()[..]);
+        Formula::new(&st )
     }
 
     /// Does the Formula contain the Variable in question?
     pub fn contains_var(&self, v: &Variable) -> bool {
-        v.re.find(&self.to_string()).is_some()
+        v.re.find(&self.to_string()).unwrap().is_some()
     }
 
-    /// Does the Formula contain the Variable in within a quantification?
+    /// Does the Formula contain the Variable in a quantification?
     pub fn contains_var_bound(&self, v: &Variable) -> bool {
-        v.req.find(&self.to_string()).is_some()
+        v.req.find(&self.to_string()).unwrap().is_some()
     }
 }
 
@@ -95,7 +97,7 @@ impl fmt::Display for Formula {
 
 
 
-/// Term is implemented for Variable, Number, and Equation the structs that hold valid pieces of TNT formulas.
+/// Term is implemented the three structs that hold valid pieces of unquantified TNT formulas: Variable, Number, and Equation.
 pub trait Term {
     /// An &str is automatically converted to the correct variant, this requires potentially slow parsing of the &str
     fn new(input: &str) -> Self;
@@ -124,13 +126,13 @@ pub struct Variable {
     req: Regex,
 }
 
-/// Number represents any valid number of TNT, 0 preceeded by zero or more S.
+/// Number represents any valid number of TNT which is a 0 preceeded by zero or more S.
 #[derive(Debug)]
 pub struct Number {
     string: String,
 }
 
-/// Equation representd any valid equation of TNT, any addition, multiplication, or successor of Variable, Number, or Equation.
+/// Equation representd any valid equation of TNT which is any combination of Variables, Number, and Equations using addition, multiplication, and the successor operation.
 #[derive(Debug)]
 pub struct Equation {
     string: String,
@@ -154,17 +156,14 @@ impl Term for Variable {
         to_latex(self.string.clone())
     }
 
-    /// Translate the Term to relatively readable English
     fn english(&self) -> String {
-        to_english(self.string.clone())
+        self.string.clone()
     }
 
-    /// Return a BigUint that represents the Term
     fn arithmetize(&self) -> BigUint {
         arithmetize(self.string.clone())
     }
 
-    /// Create a Term from a BigUint
     fn dearithmetize(number: &BigUint) -> Variable {
         Variable::new(&dearithmetize(number))
     }
@@ -263,17 +262,14 @@ impl Term for Number {
         to_latex(self.string.clone())
     }
 
-    /// Translate the Term to relatively readable English
     fn english(&self) -> String {
         to_english(self.string.clone())
     }
 
-    /// Return a BigUint that represents the Term
     fn arithmetize(&self) -> BigUint {
         arithmetize(self.string.clone())
     }
 
-    /// Create a Term from a BigUint
     fn dearithmetize(number: &BigUint) -> Number {
         Number::new(&dearithmetize(number))
     }
@@ -381,17 +377,14 @@ impl Term for Equation {
         to_latex(self.string.clone())
     }
 
-    /// Translate the Term to relatively readable English
     fn english(&self) -> String {
         to_english(self.string.clone())
     }
 
-    /// Return a BigUint that represents the Term
     fn arithmetize(&self) -> BigUint {
         arithmetize(self.string.clone())
     }
 
-    /// Create a Term from a BigUint
     fn dearithmetize(number: &BigUint) -> Equation {
         Equation::new(&dearithmetize(number))
     }

@@ -18,6 +18,7 @@ fn main() {
     d.successor(4, "");
     d.transitivity(2,5,"");
 
+
     d.pretty_print();
     match d.latex_file("addition") {
         Ok(_) => println!("\nSuccessfully created .tex file!"),

@@ -1,7 +1,8 @@
-use onig::Regex;
-use num::{bigint::BigUint};
-use std::{str::from_utf8};
+use fancy_regex::Regex;
+use num::bigint::BigUint;
+use std::str::from_utf8;
 use lazy_static::lazy_static;
+use crate::string_manip::get_vars;
 
 lazy_static! {
     pub static ref QUANT: Regex = Regex::new("~?[AE][a-z]\'*:").unwrap();
@@ -14,14 +15,6 @@ lazy_static! {
     pub static ref NOT_FORALL_CHAIN: Regex = Regex::new("(~A[a-z]\'*:)+").unwrap();
     pub static ref EXISTS_CHAIN: Regex = Regex::new("((?<!~)E[a-z]\'*:)+").unwrap();
     pub static ref NOT_EXISTS_CHAIN: Regex = Regex::new("(~E[a-z]\'*:)+").unwrap();
-}
-
-pub fn get_vars(s: &str) ->  Vec<String> {
-    let mut out: Vec<String> = Vec::new();
-    for st in VAR.find_iter(s) {
-        out.push(s[st.0..st.1].to_owned());
-    }
-    out
 }
 
 
@@ -43,20 +36,12 @@ pub fn to_latex(text: String) -> String {
     latex
 }
 
-
-// ASCII ONLY
-// Currently unused
-fn _nth_char(text: &str, n: usize) -> &str {
-    &text[n..n+1]
-}
-
 pub fn english_quant_chains(text: String) -> String {
     let mut text = text;
-    let mut exists = EXISTS_CHAIN.find(&text);
+    let mut exists = EXISTS_CHAIN.find(&text).unwrap();
 
     while exists.is_some() {
-        let e = exists.unwrap();
-        let range = e.0..e.1;
+        let range = exists.unwrap().range();
         let vars = get_vars(&text[range.clone()]);
         if &text[range.clone()].matches('E').count() == &1 {
             let replacement = format!("there exists {}, such that ", vars.join(""));
@@ -65,40 +50,37 @@ pub fn english_quant_chains(text: String) -> String {
             let replacement = format!("there exist {}, such that ", vars.join(" and "));
             text.replace_range(range, &replacement);
         }
-        exists = EXISTS_CHAIN.find(&text);
+        exists = EXISTS_CHAIN.find(&text).unwrap();
     }
 
-    let mut forall = FORALL_CHAIN.find(&text);
+    let mut forall = FORALL_CHAIN.find(&text).unwrap();
 
     while forall.is_some() {
-        let e = forall.unwrap();
-        let range = e.0..e.1;
+        let range = forall.unwrap().range();
         let vars = get_vars(&text[range.clone()]);
         let replacement = format!("for all {}, ", vars.join(" and "));
         text.replace_range(range, &replacement);
-        forall = FORALL_CHAIN.find(&text);
+        forall = FORALL_CHAIN.find(&text).unwrap();
     }
 
-    let mut for_no = NOT_EXISTS_CHAIN.find(&text);
+    let mut for_no = NOT_EXISTS_CHAIN.find(&text).unwrap();
 
     while for_no.is_some() {
-        let e = for_no.unwrap();
-        let range = e.0..e.1;
+        let range = for_no.unwrap().range();
         let vars = get_vars(&text[range.clone()]);
         let replacement = format!("there is no {}, such that ", vars.join(" or "));
         text.replace_range(range, &replacement);
-        for_no = NOT_EXISTS_CHAIN.find(&text);
+        for_no = NOT_EXISTS_CHAIN.find(&text).unwrap();
     }
     
-    let mut not_all = NOT_FORALL_CHAIN.find(&text);
+    let mut not_all = NOT_FORALL_CHAIN.find(&text).unwrap();
 
     while not_all.is_some() {
-        let e = not_all.unwrap();
-        let range = e.0..e.1;
+        let range = not_all.unwrap().range();
         let vars = get_vars(&text[range.clone()]);
         let replacement = format!("it is not true that for all {}, ", vars.join(" and "));
         text.replace_range(range, &replacement);
-        not_all = NOT_FORALL_CHAIN.find(&text);
+        not_all = NOT_FORALL_CHAIN.find(&text).unwrap();
     }
 
     text
@@ -106,25 +88,27 @@ pub fn english_quant_chains(text: String) -> String {
 
 pub fn english_num(text: String) -> String {
     let mut text = text;
-    let mut n = NUM_GEQ_ONE.find(&text);
+    let mut n = NUM_GEQ_ONE.find(&text).unwrap();
     while n.is_some() {
-        let (lo,hi) = n.unwrap();
+        let lo = n.unwrap().start();
+        let hi = n.unwrap().end();
         text.replace_range(lo..hi, &format!("{}",hi-lo-1));
-        n = NUM_GEQ_ONE.find(&text);
+        n = NUM_GEQ_ONE.find(&text).unwrap();
     }
     text
 }
 
 pub fn english_successor(text: String) -> String {
     let mut text = text;
-    let mut n = SUCC_VAR_MIN_ONE.find(&text);
+    let mut n = SUCC_VAR_MIN_ONE.find(&text).unwrap();
     while n.is_some() {
-        let (lo,hi) = n.unwrap();
+        let lo = n.unwrap().start();
+        let hi = n.unwrap().end();
         let substr = &text.clone()[lo..hi];
         let addend = substr.matches("S").count();
         let var = &substr[addend..];
         text.replace_range(lo..hi, &format!("({} + {})",var,addend));
-        n = SUCC_VAR_MIN_ONE.find(&text);
+        n = SUCC_VAR_MIN_ONE.find(&text).unwrap();
     }
     text
 }
@@ -144,8 +128,7 @@ pub fn to_english(text: String) -> String {
     text
 }
 
-// Each symbol could be represented with 6 bits instead of eight but this is easier
-// Probably also faster and easier to compress id needed
+/// Each symbol could be represented with 6 bits instead of eight but this is much easier
 pub fn arithmetize(text: String) -> BigUint {
     BigUint::from_bytes_be(&text.into_bytes())
 }

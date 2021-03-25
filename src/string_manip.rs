@@ -1,5 +1,4 @@
-use onig::Regex;
-
+use fancy_regex::Regex;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -83,7 +82,7 @@ pub fn left_implies(s: &str) -> Option<&str> {
 pub fn get_vars(s: &str) ->  Vec<String> {
     let mut out: Vec<String> = Vec::new();
     for st in VAR.find_iter(s) {
-        out.push(s[st.0..st.1].to_owned());
+        out.push(st.unwrap().as_str().to_owned())
     }
     out
 }
@@ -92,7 +91,7 @@ pub fn get_vars(s: &str) ->  Vec<String> {
 pub fn get_unquant_vars(s: &str) ->  Vec<String> {
     let mut out: Vec<String> = Vec::new();
     for st in UN_QUANT_VAR.find_iter(s) {
-        out.push(s[st.0..st.1].to_owned());
+        out.push(st.unwrap().as_str().to_owned())
     }
     out
 }
@@ -102,7 +101,7 @@ pub fn get_unquant_vars(s: &str) ->  Vec<String> {
 pub fn _get_quants(s: &str) -> Vec<String> {
     let mut out: Vec<String> = Vec::new();
     for st in QUANT.find_iter(s) {
-        out.push(s[st.0..st.1].to_owned());
+        out.push(st.unwrap().as_str().to_owned())
     }
     out
 }
@@ -111,7 +110,7 @@ pub fn _get_quants(s: &str) -> Vec<String> {
 pub fn get_bound_vars(s: &str) -> Vec<String> {
     let mut out: Vec<String> = Vec::new();
     for st in QUANT_VAR.find_iter(s) {
-        out.push(s[st.0..st.1].to_owned());
+        out.push(st.unwrap().as_str().to_owned())
     }
     out
 }
@@ -139,12 +138,12 @@ pub fn strip_neg(s: &str) -> &str {
 // Remove the leading quantifiers and negations
 pub fn strip_quant(s: &str) -> &str {
     let mut s = strip_neg(s);
-    let mut m = HEAD_QUANT.find(s);
+    let mut m = HEAD_QUANT.find(s).unwrap();
     while m.is_some() {
-        let e = m.unwrap().1;
+        let e = m.unwrap().end();
         s = &s[e..];
         s = strip_neg(s);
-        m = HEAD_QUANT.find(s);
+        m = HEAD_QUANT.find(s).unwrap();
     }
     s
 }
@@ -156,19 +155,33 @@ pub fn _var_in_string(s: &str, v: &str) -> bool {
     // (?!') is the negative lookahead for an apostrophe so we match pattern only if it is NOT followed by an apostrophe
     let p = format!("{}(?!')",v);
     let re = Regex::new(&p).unwrap();
-    if re.find(s).is_some() {
+    if re.find(s).unwrap().is_some() {
         return true
     } else {
         return false
     }
 }
 
-
+/*
 pub fn _replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> String {
     let p = format!("{}(?!')",pattern);
     let re = Regex::new(&p).unwrap();
     let out = re.replace_all(s,replacement);
     out.to_string()
+}
+*/
+
+// Needed to get around lack of replacer in fancy_regex
+pub fn replace_all_re(s: &str, re: &Regex, replacement: &str) -> String {
+    let mut st = s.to_string();
+    let mut first = re.find(s).unwrap();
+    while first.is_some() {
+        println!("{:?}",first);
+        let r = first.unwrap().range();
+        st.replace_range(r, replacement);
+        first = re.find(&st).unwrap();
+    }
+    st
 }
 
 
@@ -195,8 +208,11 @@ fn test_get_bound_vars() {
 }
 
 #[test]
-fn test_replace_var_in_string() {
-    assert_eq!(_replace_var_in_string("Ea':Ab:(a'+a)=b","a","x"),"Ea':Ab:(a'+x)=b");
+fn test_replace_all_re() {
+    let re = Regex::new("a(?!')").unwrap();
+    let s = "Ea':Ab:(a'+a)=b";
+    let replacement = "x";
+    assert_eq!(replace_all_re(s,&re,replacement),"Ea':Ab:(a'+x)=b");
 }
 
 #[test]

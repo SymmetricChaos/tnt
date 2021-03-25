@@ -1,6 +1,6 @@
 [package]
 name = "tnt"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["SymmetricChaos <ajfraebel@gmail.com>"]
 edition = "2018"
 description = "Simple runtime validated proofs in number theory"
@@ -10,6 +10,6 @@ repository = "https://github.com/SymmetricChaos/tnt"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-onig = "6.1.1"
 lazy_static = "1.4.0"
-num = " 0.4.0"
+num = "0.4.0"
+fancy-regex = "0.5.0"

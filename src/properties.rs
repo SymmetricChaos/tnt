@@ -1,4 +1,4 @@
-use onig::Regex;
+use fancy_regex::Regex;
 use lazy_static::lazy_static;
 
 use crate::string_manip::{strip_succ_all, split_arithmetic, split_logical, get_unquant_vars, get_bound_vars, get_free_vars, strip_quant};
@@ -14,16 +14,15 @@ lazy_static! {
 }
 
 pub fn is_var(s: &str) -> bool {
-    return VAR.is_match(&s)
+    return VAR.is_match(&s).unwrap()
 }
 
 pub fn is_num(s: &str) -> bool {
-    return NUM.is_match(&s)
+    return NUM.is_match(&s).unwrap()
 }
 
+/// This will check if the given &str can form a Variable, Number, or Equation.
 pub fn is_equation(s: &str) -> bool {
-    // Any arithmetic combination of numbers and variable or successors of them is an equation
-    // This will match any Term
     let s = strip_succ_all(s);
     if is_var(s) || is_num(s) {
         return true
@@ -51,7 +50,7 @@ pub fn is_well_quantified(s: &str) -> bool {
     true
 }
 
-// A simple formula is precisely an equivalence of any two terms
+/// A simple formula is precisely an equivalence of any two terms.
 pub fn is_simple_formula(s: &str) -> bool {
     let eq = match s.find("=") {
         Some(num) => num,
@@ -62,8 +61,8 @@ pub fn is_simple_formula(s: &str) -> bool {
     is_equation(l) && is_equation(r)
 }
 
+/// Complex formula is any well formed formula that is not simple
 pub fn is_complex_formula(s: &str) -> bool {
-    // Complex formula is any well formed formula that is not simple
     if !is_well_quantified(s) {
         return false
     }
@@ -107,6 +106,7 @@ pub fn is_complex_formula(s: &str) -> bool {
     true
 }
 
+/// Matches any &str that can be accept by Formula::new().
 pub fn is_formula(s: &str) -> bool {
     if !is_well_quantified(s) {
         return false
