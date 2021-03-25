@@ -1,8 +1,8 @@
 pub mod deduction;
 pub mod types;
-pub mod properties;
+mod properties;
 pub mod ops_production;
 pub mod ops_construction;
-pub mod string_manip;
-pub mod translate;
+mod string_manip;
+mod translate;
 pub mod axioms;

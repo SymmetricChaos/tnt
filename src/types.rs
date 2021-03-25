@@ -492,12 +492,10 @@ impl TNT {
         }
     }
 
-    /// Translate the TNT to LaTeX representation
     pub fn latex(&self) -> String {
         to_latex(self.to_string())
     }
 
-    /// Translate the TNT to relatively readable English
     pub fn english(&self) -> String {
         to_english(self.to_string())
     }
