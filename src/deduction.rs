@@ -1,4 +1,4 @@
-use std::{fs::File, io::Write};
+use std::{fs::File, io::{Write,Error}};
 use num::BigUint;
 
 use crate::{string_manip::get_free_vars, types::{Formula,Term,Variable}};
@@ -85,7 +85,7 @@ impl Deduction {
     }
 
     /// Create a LaTeX file the given file name that displays the Deduction.
-    pub fn latex_file(&self, filename: &str) -> std::io::Result<()> {
+    pub fn latex_file(&self, filename: &str) -> Result<(), Error> {
         let filename = format!("{}.tex",filename);
         let mut file = File::create(filename)?;
 

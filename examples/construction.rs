@@ -10,7 +10,8 @@ fn main() {
     println!("    
 let a = &Variable::new(\"a\");
 let b = &Variable::new(\"b\");
-let zero = &Number::zero();");
+let zero = &Number::zero();
+");
     println!("a + b = {:?}",a + b);
     println!("&(a + b) + zero = {:?}",&(a+b)+zero);
 }
