@@ -4,6 +4,7 @@ use num::BigUint;
 use crate::{string_manip::get_free_vars, types::{Formula,Term,Variable}};
 use crate::ops_production::*;
 use crate::ops_construction::implies;
+use crate::errors::LogicError;
 
 /// The Deduction struct enforces valid use of deductive logic to produce proofs in Typographical Number Theory and output LaTeX formatted proofs.
 pub struct Deduction {
@@ -153,9 +154,10 @@ impl Deduction {
     }
 
     /// Push a new theorem which replaces var with the provided Term in theorem n.
-    pub fn specification<T: Term>(&mut self, n: usize, var: &Variable, replacement: &T, comment: &str) {
+    pub fn specification<T: Term>(&mut self, n: usize, var: &Variable, replacement: &T, comment: &str) -> Result<(),LogicError> {
         let t = specification(self.get_theorem(n), &var, replacement);
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
 
     /// Push a new theorem that adds universal quantification of var in theorem n.

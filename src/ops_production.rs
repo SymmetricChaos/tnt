@@ -1,21 +1,24 @@
 use crate::types::{Formula,Variable,Term,Expression,Number};
 use crate::ops_construction::*;
 use crate::string_manip::{split_eq, get_bound_vars, left_implies, get_vars};
+use crate::errors::LogicError;
 
 // Rules of production
 // These may check for additional internal contraints and will panic on failure
-pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Formula {
+pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Result<Formula,LogicError> {
     if x.to_string().contains(&format!("A{}:",v)) {
         let var_in_t = get_vars(&t.get_string());
         let bound_in_x = get_bound_vars(&x.to_string());
         for var in var_in_t {
             if bound_in_x.contains(&var) && t.get_string() != v.get_string() {
-                panic!("Specification Error: The Term {} contains the variable {} which is already bound in {}",t.get_string(),var,x)
+                let msg = format!("Specification Error: The Term {} contains the variable {} which is already bound in {}",t.get_string(),var,x);
+                return Err(LogicError::new(msg))
             }
         }
-        return x.specify_var(v, t)
+        return Ok(x.specify_var(v, t))
     } else {
-        panic!("Specification Error: {} is not univerally quantified in {}",v,x)
+        let msg = format!("Specification Error: {} is not univerally quantified in {}",v,x);
+        return Err(LogicError::new(msg))
     }
 }
 
@@ -170,24 +173,24 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
 // TODO: test panic modes for all of these
 
 #[test]
-fn test_specification() {
+fn test_specification() -> Result<(),LogicError> {
     use crate::types::Number;
     let a = &Variable::new("a");
     let one = &Number::new("S0");
     let formula1 = &Formula::new("Aa:a=a");
     let formula2 = &Formula::new("Ea':Aa:[a=a&a'=a']");
-    assert_eq!(specification(formula1,a,one).to_string(),"S0=S0");
-    assert_eq!(specification(formula2,a,one).to_string(),"Ea':[S0=S0&a'=a']");
+    assert_eq!(specification(formula1,a,one)?.to_string(),"S0=S0");
+    assert_eq!(specification(formula2,a,one)?.to_string(),"Ea':[S0=S0&a'=a']");
+    Ok(())
 }
 
 #[test]
-#[should_panic]
 fn test_specification_err1() {
     use crate::types::Number;
     let a = &Variable::new("b");
     let one = &Number::new("S0");
     let formula1 = &Formula::new("Aa:a=a");
-    specification(formula1,a,one);
+    println!("{:?}",specification(formula1,a,one).unwrap_err());
 }
 
 #[test]
