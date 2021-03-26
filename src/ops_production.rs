@@ -1,4 +1,4 @@
-use crate::types::{Formula,Variable,Term,Equation,Number};
+use crate::types::{Formula,Variable,Term,Expression,Number};
 use crate::ops_construction::*;
 use crate::string_manip::{split_eq, get_bound_vars, left_implies, get_vars};
 
@@ -95,8 +95,8 @@ pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Formula {
 pub fn successor(a: &Formula) -> Formula {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
-            let lt = Equation::new(&format!("S{}",l));
-            let rt = Equation::new(&format!("S{}",r));
+            let lt = Expression::new(&format!("S{}",l));
+            let rt = Expression::new(&format!("S{}",r));
             return eq(&lt,&rt)
         } else {
             unreachable!("Successor Error: unable to split {}",a)
@@ -110,8 +110,8 @@ pub fn predecessor(a: &Formula) -> Formula {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
             if l.starts_with("S") && r.starts_with("S") {
-                let lt = Equation::new(&l.strip_prefix("S").unwrap());
-                let rt = Equation::new(&r.strip_prefix("S").unwrap());
+                let lt = Expression::new(&l.strip_prefix("S").unwrap());
+                let rt = Expression::new(&r.strip_prefix("S").unwrap());
                 return eq(&lt,&rt)
             } else {
                 panic!("Predecessor Error: both terms of {} must begin with S",a)
@@ -126,8 +126,8 @@ pub fn predecessor(a: &Formula) -> Formula {
 pub fn symmetry(a: &Formula) -> Formula {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
-            let lt = Equation::new(&l);
-            let rt = Equation::new(&r);
+            let lt = Expression::new(&l);
+            let rt = Expression::new(&r);
             return eq(&rt,&lt)
         } else {
             unreachable!("Symmetry Error: unable to split {}",a)
@@ -145,8 +145,8 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
                     if r1 != l2 {
                         panic!("Transitivity Error: The right term of {} does not match the left term of {}",a1,a2)
                     }
-                    let lt = Equation::new(&l1);
-                    let rt = Equation::new(&r2);
+                    let lt = Expression::new(&l1);
+                    let rt = Expression::new(&r2);
                     return eq(&lt,&rt)
                 } else {
                     unreachable!("Transitivity Error: unable to split {}",a2)

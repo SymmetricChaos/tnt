@@ -134,7 +134,7 @@ pub struct Number {
 
 /// Equation representd any valid equation of TNT which is any combination of Variables, Number, and Equations using addition, multiplication, and the successor operation.
 #[derive(Debug)]
-pub struct Equation {
+pub struct Expression {
     string: String,
 }
 
@@ -181,66 +181,66 @@ impl fmt::Display for Variable {
 }
 
 impl<'a, 'b> Add<&'b Variable> for &'a Variable {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn add(self, other: &'b Variable) -> Equation {
+    fn add(self, other: &'b Variable) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
 impl<'a, 'b> Add<&'b Number> for &'a Variable {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn add(self, other: &'b Number) -> Equation {
+    fn add(self, other: &'b Number) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Add<&'b Equation> for &'a Variable {
-    type Output = Equation;
+impl<'a, 'b> Add<&'b Expression> for &'a Variable {
+    type Output = Expression;
 
-    fn add(self, other: &'b Equation) -> Equation {
+    fn add(self, other: &'b Expression) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
 impl<'a, 'b> Mul<&'b Variable> for &'a Variable {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn mul(self, other: &'b Variable) -> Equation {
+    fn mul(self, other: &'b Variable) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
 impl<'a, 'b> Mul<&'b Number> for &'a Variable {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn mul(self, other: &'b Number) -> Equation {
+    fn mul(self, other: &'b Number) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Mul<&'b Equation> for &'a Variable {
-    type Output = Equation;
+impl<'a, 'b> Mul<&'b Expression> for &'a Variable {
+    type Output = Expression;
 
-    fn mul(self, other: &'b Equation) -> Equation {
+    fn mul(self, other: &'b Expression) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
 impl<'a> Shl<usize> for &'a Variable {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn shl(self, other: usize) -> Equation {
+    fn shl(self, other: usize) -> Expression {
         let s = "S".repeat(other);
         let new = format!("{}{}", s, self.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
@@ -296,56 +296,56 @@ impl fmt::Display for Number {
 }
 
 impl<'a, 'b> Add<&'b Variable> for &'a Number {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn add(self, other: &'b Variable) -> Equation {
+    fn add(self, other: &'b Variable) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
 impl<'a, 'b> Add<&'b Number> for &'a Number {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn add(self, other: &'b Number) -> Equation {
+    fn add(self, other: &'b Number) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Add<&'b Equation> for &'a Number {
-    type Output = Equation;
+impl<'a, 'b> Add<&'b Expression> for &'a Number {
+    type Output = Expression;
 
-    fn add(self, other: &'b Equation) -> Equation {
+    fn add(self, other: &'b Expression) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
 impl<'a, 'b> Mul<&'b Variable> for &'a Number {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn mul(self, other: &'b Variable) -> Equation {
+    fn mul(self, other: &'b Variable) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
 impl<'a, 'b> Mul<&'b Number> for &'a Number {
-    type Output = Equation;
+    type Output = Expression;
 
-    fn mul(self, other: &'b Number) -> Equation {
+    fn mul(self, other: &'b Number) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Mul<&'b Equation> for &'a Number {
-    type Output = Equation;
+impl<'a, 'b> Mul<&'b Expression> for &'a Number {
+    type Output = Expression;
 
-    fn mul(self, other: &'b Equation) -> Equation {
+    fn mul(self, other: &'b Expression) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
@@ -363,11 +363,11 @@ impl<'a> Shl<usize> for &'a Number {
 
 
 
-impl Term for Equation {
-    fn new(input: &str) -> Equation {
+impl Term for Expression {
+    fn new(input: &str) -> Expression {
         if is_equation(input) {
             let string = input.to_owned();
-            return Equation{ string }
+            return Expression{ string }
         } else {
             panic!("{} is not a valid Term",input)
         }
@@ -385,8 +385,8 @@ impl Term for Equation {
         arithmetize(self.string.clone())
     }
 
-    fn dearithmetize(number: &BigUint) -> Equation {
-        Equation::new(&dearithmetize(number))
+    fn dearithmetize(number: &BigUint) -> Expression {
+        Expression::new(&dearithmetize(number))
     }
 
     fn get_string(&self) -> String {
@@ -394,73 +394,73 @@ impl Term for Equation {
     }
 }
 
-impl fmt::Display for Equation {
+impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.string)
     }
 }
 
-impl<'a, 'b> Add<&'b Variable> for &'a Equation {
-    type Output = Equation;
+impl<'a, 'b> Add<&'b Variable> for &'a Expression {
+    type Output = Expression;
 
-    fn add(self, other: &'b Variable) -> Equation {
+    fn add(self, other: &'b Variable) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Add<&'b Number> for &'a Equation {
-    type Output = Equation;
+impl<'a, 'b> Add<&'b Number> for &'a Expression {
+    type Output = Expression;
 
-    fn add(self, other: &'b Number) -> Equation {
+    fn add(self, other: &'b Number) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Add<&'b Equation> for &'a Equation {
-    type Output = Equation;
+impl<'a, 'b> Add<&'b Expression> for &'a Expression {
+    type Output = Expression;
 
-    fn add(self, other: &'b Equation) -> Equation {
+    fn add(self, other: &'b Expression) -> Expression {
         let new = format!("({}+{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Mul<&'b Variable> for &'a Equation {
-    type Output = Equation;
+impl<'a, 'b> Mul<&'b Variable> for &'a Expression {
+    type Output = Expression;
 
-    fn mul(self, other: &'b Variable) -> Equation {
+    fn mul(self, other: &'b Variable) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Mul<&'b Number> for &'a Equation {
-    type Output = Equation;
+impl<'a, 'b> Mul<&'b Number> for &'a Expression {
+    type Output = Expression;
 
-    fn mul(self, other: &'b Number) -> Equation {
+    fn mul(self, other: &'b Number) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a, 'b> Mul<&'b Equation> for &'a Equation {
-    type Output = Equation;
+impl<'a, 'b> Mul<&'b Expression> for &'a Expression {
+    type Output = Expression;
 
-    fn mul(self, other: &'b Equation) -> Equation {
+    fn mul(self, other: &'b Expression) -> Expression {
         let new = format!("({}*{})", self.get_string(), other.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
-impl<'a> Shl<usize> for &'a Equation {
-    type Output = Equation;
+impl<'a> Shl<usize> for &'a Expression {
+    type Output = Expression;
 
-    fn shl(self, other: usize) -> Equation {
+    fn shl(self, other: usize) -> Expression {
         let s = "S".repeat(other);
         let new = format!("{}{}", s, self.get_string());
-        Equation{ string: new }
+        Expression{ string: new }
     }
 }
 
@@ -474,7 +474,7 @@ pub enum TNT {
     Formula(Formula),
     Number(Number),
     Variable(Variable),
-    Equation(Equation),
+    Equation(Expression),
 }
 
 impl TNT {
@@ -484,7 +484,7 @@ impl TNT {
         } else if is_var(input) {
             return TNT::Variable(Variable::new(input))
         } else if is_equation(input) {
-            return TNT::Equation(Equation::new(input))
+            return TNT::Equation(Expression::new(input))
         } else if is_formula(input) {
             return TNT::Formula(Formula::new(input))
         } else {
@@ -521,7 +521,7 @@ fn test_variable() {
     let v1 = &Variable::new("a");
     let v2 = &Variable::new("b");
     let n1 = &Number::new("0");
-    let e1 = &Equation::new("(x'+SS0)");
+    let e1 = &Expression::new("(x'+SS0)");
 
     assert_eq!((v1 + v2).get_string(),"(a+b)");
     assert_eq!((v1 * v2).get_string(),"(a*b)");
@@ -537,7 +537,7 @@ fn test_number() {
     let v1 = &Variable::new("a");
     let n1 = &Number::new("0");
     let n2 = &Number::new("S0");
-    let e1 = &Equation::new("(x'+SS0)");
+    let e1 = &Expression::new("(x'+SS0)");
 
     assert_eq!((n1 + n2).get_string(),"(0+S0)");
     assert_eq!((n1 * n2).get_string(),"(0*S0)");
@@ -553,8 +553,8 @@ fn test_number() {
 fn test_equation() {
     let v1 = &Variable::new("a");
     let n1 = &Number::new("0");
-    let e1 = &Equation::new("(x'+SS0)");
-    let e2 = &Equation::new("S(u*v)");
+    let e1 = &Expression::new("(x'+SS0)");
+    let e2 = &Expression::new("S(u*v)");
 
     assert_eq!((e1 + e2).get_string(),"((x'+SS0)+S(u*v))");
     assert_eq!((e1 * e2).get_string(),"((x'+SS0)*S(u*v))");

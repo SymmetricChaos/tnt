@@ -46,12 +46,12 @@ pub fn forall(v: &Variable, x: &Formula) -> Formula {
 
 #[test]
 fn test_eq() {
-    use crate::types::{Number,Equation};
+    use crate::types::{Number,Expression};
     let a = &Variable::new("a");
     let x = &Variable::new("x''");
     let zero = &Number::new("0");
     let one = &Number::new("S0");
-    let equation = &Equation::new("((b*SSS0)+Sv')");
+    let equation = &Expression::new("((b*SSS0)+Sv')");
     assert_eq!(eq(a,x).to_string(),"a=x''");
     assert_eq!(eq(x,zero).to_string(),"x''=0");
     assert_eq!(eq(equation,one).to_string(),"((b*SSS0)+Sv')=S0");
