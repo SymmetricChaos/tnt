@@ -26,10 +26,10 @@ fn main() -> Result<(),LogicError> {
     e.successor(7, "successor of 7");
     e.transitivity(2, 8, "transitivity of 2 and 8");
     e.transitivity(9, 5, "transitivty of 9 and 5");
-    e.generalization(10, d, "generalization of 10");
+    e.generalization(10, d, "generalization of 10")?;
     e.implication("implication");
 
-    e.generalization(12, c, "generalization of 12");
+    e.generalization(12, c, "generalization of 12")?;
     e.specification(1, b, zero, "specification of 1, b replaced by 0")?;
     e.add_axiom(PEANO[1].clone(), "axiom");
     e.specification(15, a, d, "specification of 15, a replaced by d")?;
@@ -38,8 +38,8 @@ fn main() -> Result<(),LogicError> {
     e.specification(15,a, sd, "specification of 15, a replaced by Sd")?;
     e.symmetry(19, "symmetry of 19");
     e.transitivity(18, 20, "transitivity of 18 and 20");
-    e.generalization(21, d, "generalization of 21");
-    e.induction( c, 22, 13, "induction of c on 22 and 13");
+    e.generalization(21, d, "generalization of 21")?;
+    e.induction( c, 22, 13, "induction of c on 22 and 13")?;
     e.specification(0, a, c, "specification of 0, a replaced by c")?;
     e.specification( 24, b, d, "specification of 24, b replaced by d")?;
     e.specification(0, a, d, "specification of 0, a replaced by d")?;
@@ -54,10 +54,10 @@ fn main() -> Result<(),LogicError> {
     e.transitivity(25, 33, "transitivity of 25 and 33");
     e.transitivity(34, 28, "transitivity of 34 and 28");
     e.transitivity(35, 30, "transitivity of 35 and 30");
-    e.generalization(36, c, "generalization of 36");
+    e.generalization(36, c, "generalization of 36")?;
     e.implication("implication");
 
-    e.generalization(38, d, "generalization of 38");
+    e.generalization(38, d, "generalization of 38")?;
     e.specification(15,a, c, "specification of 15, a replaced by c")?;
     e.specification(0, a, zero, "specification of 0, a replaced by 0")?;
     e.specification(41, b,b, "specification of 41. b replaced by b")?;
@@ -67,14 +67,14 @@ fn main() -> Result<(),LogicError> {
     e.transitivity(42, 44, "transitivity of 42 and 44");
     e.implication("implication");
 
-    e.generalization(46, b, "generalization of  46");
+    e.generalization(46, b, "generalization of  46")?;
     e.specification(15, a, zero, "specification of 15, a replaced by 0")?;
-    e.induction( b, 48, 47, "induction of b on 48 and 47");
+    e.induction( b, 48, 47, "induction of b on 48 and 47")?;
     e.specification(49, b, c, "specification of 49, b replaced by c")?;
     e.symmetry(50, "symmetry of 50");
     e.transitivity(40, 51, "transitivity of 40 and 51");
-    e.generalization(52, c, "generalization of 52");
-    e.induction( d, 53, 39, "induction of d on 53 and 39");
+    e.generalization(52, c, "generalization of 52")?;
+    e.induction( d, 53, 39, "induction of d on 53 and 39")?;
 
     assert_eq!(e.last_theorem(),t);
 

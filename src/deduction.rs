@@ -179,7 +179,7 @@ impl Deduction {
     }
 
     /// Push a new theorem that adds universal quantification of var in theorem n.
-    pub fn generalization(&mut self, n: usize, var: &Variable, comment: &str) {
+    pub fn generalization(&mut self, n: usize, var: &Variable, comment: &str) -> Result<(),LogicError> {
         if self.depth != 0 {
             let f = get_free_vars(&self.get_theorem(*self.tag_stack.last().unwrap()).to_string());
             if f.contains(&var.to_string()) {
@@ -187,13 +187,15 @@ impl Deduction {
             }
         }
         let t = generalization(self.get_theorem(n), &var);
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
 
     /// Push a new theorem that adds existence quantification of var in theorem n.
-    pub fn existence<T: Term>(&mut self, n: usize, term: &T, var: &Variable, comment: &str) {
+    pub fn existence<T: Term>(&mut self, n: usize, term: &T, var: &Variable, comment: &str) -> Result<(),LogicError> {
         let t = existence(&self.theorems[n].formula.clone(), term, &var);
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
 
     /// Push a new theorem that applies the successor to each side of a theorem n.
@@ -209,15 +211,17 @@ impl Deduction {
     }
 
     /// Push a new theorem that takes theorem n and changes the negated existential quantifier at the given position to a universal quantifer followed by a negation.
-    pub fn interchange_ea(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) {
+    pub fn interchange_ea(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) -> Result<(),LogicError> {
         let t = interchange_ea(self.get_theorem(n), v, pos);
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
 
     /// Push a new theorem that takes theorem n and changes the universal quantifer followed by a negation at the given position with a negated existential quantifier.
-    pub fn interchange_ae(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) {
+    pub fn interchange_ae(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) -> Result<(),LogicError> {
         let t = interchange_ae(self.get_theorem(n), v, pos);
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
 
     /// Push a new theorem that flips the left and right sides of theorem n.
@@ -251,9 +255,9 @@ impl Deduction {
     }
 
     /// Push a new theorem that is induction on given variable with base and general being the position of theorems that state the base case and general case.
-    pub fn induction(&mut self, var: &Variable, base: usize, general: usize, comment: &str) {
+    pub fn induction(&mut self, var: &Variable, base: usize, general: usize, comment: &str) -> Result<(),LogicError> {
         let t = induction(var,self.get_theorem(base),self.get_theorem(general));
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
-    
 }
