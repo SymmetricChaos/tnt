@@ -6,13 +6,29 @@ use crate::ops_production::*;
 use crate::ops_construction::implies;
 use crate::errors::LogicError;
 
+#[derive(Clone)]
+pub struct TheoremFrame {
+    formula: Formula,
+    comment: String,
+    depth: usize,
+    scope: usize,
+    position: usize,
+}
+
+impl TheoremFrame {
+    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, position: usize) -> TheoremFrame {
+        TheoremFrame{ formula, comment, depth, scope, position }
+    }
+}
+
 /// The Deduction struct enforces valid use of deductive logic to produce proofs in Typographical Number Theory and output LaTeX formatted proofs.
 pub struct Deduction {
+    index: usize,
     depth: usize,
     tag_stack: Vec<usize>,
     title: String,
     axioms: Vec<Formula>,
-    theorems: Vec<(Formula,String,usize,usize)>, // Forumla, comment, current depth, start of current supposition
+    theorems: Vec<TheoremFrame>, // Forumla, comment, current depth, start of current supposition
 }
 
 // When 'true' forces the theorems to be printed every time they are added, helps with debugging
@@ -20,7 +36,7 @@ const NOISY: bool = false;
 
 impl Deduction {
     pub fn new(title: &str, axioms: Vec<Formula>) -> Deduction {
-        Deduction{ depth: 0, tag_stack: vec![0], title: title.to_string(), axioms, theorems: Vec::<(Formula,String,usize,usize)>::new()}
+        Deduction{ index: 0, depth: 0, tag_stack: vec![0], title: title.to_string(), axioms, theorems: Vec::<TheoremFrame>::new()}
     }
 
 
@@ -28,43 +44,45 @@ impl Deduction {
     // This is correct only because nested supposition is forbidden in the .supposition() method
     // To allow nested supposition we need to track scope somehow
     fn get_theorem(&self, n: usize) -> &Formula {
-        &self.theorems[n].0
+        &self.theorems[n].formula
     }
 
     fn get_last_theorem(&self) -> &Formula {
-        &self.theorems.last().unwrap().0
+        &self.theorems.last().unwrap().formula
     }
 
     fn push_new(&mut self, theorem: Formula, comment: &str) {
         if NOISY { 
             println!("{}",theorem)
         }
-        self.theorems.push( (theorem,comment.to_string(),self.depth,*self.tag_stack.last().unwrap()) );
+        self.index += 1;
+        let t = TheoremFrame{ formula: theorem, comment: comment.to_string(), depth: self.depth, scope: *self.tag_stack.last().unwrap(), position: self.index };
+        self.theorems.push( t );
     }
 
 
 
     /// Return the Formula at index n.
     pub fn theorem(&self, n: usize) -> &Formula {
-        &self.theorems[n].0
+        &self.theorems[n].formula
     }
 
     /// Return the last Formula.
     pub fn last_theorem(&self) -> &Formula {
-        &self.theorems.last().unwrap().0
+        &self.theorems.last().unwrap().formula
     }
 
     /// Return a vector of all the Formulas in the Deduction.
     pub fn all_theorems(&self) -> Vec<Formula> {
         let mut out: Vec<Formula> = Vec::new();
         for row in self.theorems.clone() {
-            out.push(row.0)
+            out.push(row.formula)
         }
         out
     }
 
     /// Dump the entire vector of tuples with all the attached information.
-    pub fn all_theorems_raw(&self) -> Vec<(Formula, String, usize, usize)> {
+    pub fn all_theorems_raw(&self) -> Vec<TheoremFrame> {
         self.theorems.clone()
     }
 
@@ -74,14 +92,14 @@ impl Deduction {
     pub fn pretty_print(&self) {
         let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
-            if t.2 > prev_depth {
+            if t.depth > prev_depth {
                 println!("{}begin supposition","   ".repeat(prev_depth));
-            } else if t.2 < prev_depth {
-                println!("{}end supposition","   ".repeat(t.2));
+            } else if t.depth < prev_depth {
+                println!("{}end supposition","   ".repeat(t.depth));
             } else {
             }
-            println!("{}{}) {}", "   ".repeat(t.2), pos, t.0.to_string());
-            prev_depth = t.2;
+            println!("{}{}) {}", "   ".repeat(t.depth), pos, t.formula.to_string());
+            prev_depth = t.depth;
         }
     }
 
@@ -103,23 +121,23 @@ impl Deduction {
         let mut prev_depth = 0;
         for (pos,t) in self.theorems.iter().enumerate() {
 
-            if t.2 > prev_depth {
+            if t.depth > prev_depth {
                 let line = format!("&{}\\text{{begin supposition}}&\\\\\n","   ".repeat(prev_depth)).into_bytes();
                 file.write(&line)?;
-            } else if t.2 < prev_depth {
-                let line = format!("&{}\\text{{end supposition}}&\\\\\n","   ".repeat(t.2)).into_bytes();
+            } else if t.depth < prev_depth {
+                let line = format!("&{}\\text{{end supposition}}&\\\\\n","   ".repeat(t.depth)).into_bytes();
                 file.write(&line)?;
             }
 
-            if t.1 != "" {
-                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.2*2,pos,t.0.latex(),t.1).into_bytes();
+            if t.comment != "" {
+                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.depth*2,pos,t.formula.latex(),t.comment).into_bytes();
                 file.write(&line)?;
             } else {
-                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\\\\n",t.2*2,pos,t.0.latex()).into_bytes();
+                let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\\\\n",t.depth*2,pos,t.formula.latex()).into_bytes();
                 file.write(&line)?;
             }
 
-            prev_depth = t.2;
+            prev_depth = t.depth;
         }
 
         file.write(b"\\end{flalign*}\n")?;
@@ -149,7 +167,7 @@ impl Deduction {
         if self.axioms.contains(&premise) {
             self.push_new( premise, comment );
         } else {
-            panic!("{} is not a known axiom", premise);
+            panic!("Error on line {}: {} is not a known axiom", self.index+1, premise);
         }
     }
 
@@ -174,7 +192,7 @@ impl Deduction {
 
     /// Push a new theorem that adds existence quantification of var in theorem n.
     pub fn existence<T: Term>(&mut self, n: usize, term: &T, var: &Variable, comment: &str) {
-        let t = existence(&self.theorems[n].0.clone(), term, &var);
+        let t = existence(&self.theorems[n].formula.clone(), term, &var);
         self.push_new( t, comment );
     }
 

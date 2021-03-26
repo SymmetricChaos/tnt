@@ -194,13 +194,12 @@ fn test_specification_err1() {
 }
 
 #[test]
-#[should_panic]
 fn test_specification_err2() {
     use crate::types::Number;
     let a = &Variable::new("a");
     let one = &Number::new("S0");
     let formula1 = &Formula::new("Aa:a=a");
-    specification(formula1,a,&(a+one));
+    println!("{:?}",specification(formula1,a,&(a+one)).unwrap_err());
 }
 
 
