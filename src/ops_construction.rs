@@ -51,10 +51,10 @@ fn test_eq() {
     let x = &Variable::new("x''");
     let zero = &Number::new("0");
     let one = &Number::new("S0");
-    let equation = &Expression::new("((b*SSS0)+Sv')");
+    let expression = &Expression::new("((b*SSS0)+Sv')");
     assert_eq!(eq(a,x).to_string(),"a=x''");
     assert_eq!(eq(x,zero).to_string(),"x''=0");
-    assert_eq!(eq(equation,one).to_string(),"((b*SSS0)+Sv')=S0");
+    assert_eq!(eq(expression,one).to_string(),"((b*SSS0)+Sv')=S0");
 }
 
 #[test]

@@ -3,7 +3,7 @@ use num::bigint::BigUint;
 use fancy_regex::Regex;
 use std::ops::{Add,Mul,Shl};
 
-use crate::properties::{is_equation,is_num,is_var,is_simple_formula,is_formula};
+use crate::properties::{is_expression,is_num,is_var,is_simple_formula,is_formula};
 use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
 use crate::string_manip::replace_all_re;
 
@@ -97,7 +97,7 @@ impl fmt::Display for Formula {
 
 
 
-/// Term is implemented the three structs that hold valid pieces of unquantified TNT formulas: Variable, Number, and Equation.
+/// Term is implemented the three structs that hold valid pieces of unquantified TNT formulas: Variable, Number, and Expression.
 pub trait Term {
     /// An &str is automatically converted to the correct variant, this requires potentially slow parsing of the &str
     fn new(input: &str) -> Self;
@@ -132,7 +132,7 @@ pub struct Number {
     string: String,
 }
 
-/// Equation representd any valid equation of TNT which is any combination of Variables, Number, and Equations using addition, multiplication, and the successor operation.
+/// Expression representd any valid Expression of TNT which is any combination of Variables, Number, and Expressions using addition, multiplication, and the successor operation.
 #[derive(Debug)]
 pub struct Expression {
     string: String,
@@ -365,7 +365,7 @@ impl<'a> Shl<usize> for &'a Number {
 
 impl Term for Expression {
     fn new(input: &str) -> Expression {
-        if is_equation(input) {
+        if is_expression(input) {
             let string = input.to_owned();
             return Expression{ string }
         } else {
@@ -474,7 +474,7 @@ pub enum TNT {
     Formula(Formula),
     Number(Number),
     Variable(Variable),
-    Equation(Expression),
+    Expression(Expression),
 }
 
 impl TNT {
@@ -483,8 +483,8 @@ impl TNT {
             return TNT::Number(Number::new(input))
         } else if is_var(input) {
             return TNT::Variable(Variable::new(input))
-        } else if is_equation(input) {
-            return TNT::Equation(Expression::new(input))
+        } else if is_expression(input) {
+            return TNT::Expression(Expression::new(input))
         } else if is_formula(input) {
             return TNT::Formula(Formula::new(input))
         } else {
@@ -506,7 +506,7 @@ impl fmt::Display for TNT {
         match &self {
             TNT::Number(term) => write!(f, "{}", term),
             TNT::Variable(term) => write!(f, "{}", term),
-            TNT::Equation(term) => write!(f, "{}", term),
+            TNT::Expression(term) => write!(f, "{}", term),
             TNT::Formula(term) => write!(f, "{}", term),
         }
     }
@@ -550,7 +550,7 @@ fn test_number() {
 }
 
 #[test]
-fn test_equation() {
+fn test_expression() {
     let v1 = &Variable::new("a");
     let n1 = &Number::new("0");
     let e1 = &Expression::new("(x'+SS0)");

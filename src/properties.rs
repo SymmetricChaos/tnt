@@ -21,8 +21,8 @@ pub fn is_num(s: &str) -> bool {
     return NUM.is_match(&s).unwrap()
 }
 
-/// This will check if the given &str can form a Variable, Number, or Equation.
-pub fn is_equation(s: &str) -> bool {
+/// This will check if the given &str can form a Variable, Number, or Expression.
+pub fn is_expression(s: &str) -> bool {
     let s = strip_succ_all(s);
     if is_var(s) || is_num(s) {
         return true
@@ -31,7 +31,7 @@ pub fn is_equation(s: &str) -> bool {
             Some(t) => t,
             None => return false
         };
-        return is_equation(l) && is_equation(r)
+        return is_expression(l) && is_expression(r)
     }
 }
 
@@ -58,7 +58,7 @@ pub fn is_simple_formula(s: &str) -> bool {
     };
     let l = &s[0..eq];
     let r = &s[eq+1..];
-    is_equation(l) && is_equation(r)
+    is_expression(l) && is_expression(r)
 }
 
 /// Complex formula is any well formed formula that is not simple
@@ -67,7 +67,7 @@ pub fn is_complex_formula(s: &str) -> bool {
         return false
     }
     let s = strip_quant(s);
-    if is_simple_formula(s) || is_equation(s) {
+    if is_simple_formula(s) || is_expression(s) {
         return false
     } else {
         let (l,r) = match split_logical(s) {
@@ -165,20 +165,20 @@ fn test_is_num() {
 
 #[test]
 fn test_is_equation() {
-    assert_eq!(is_equation("a"),true,"a is a term");
-    assert_eq!(is_equation("z'"),true,"z' is a term");
-    assert_eq!(is_equation("0"),true,"0 is a term");
-    assert_eq!(is_equation("S0"),true,"S0 is a term");
-    assert_eq!(is_equation("(Sa+Sb)"),true,"(Sa+Sb) is a term");
-    assert_eq!(is_equation("a=x"),false,"a=x is not a term");
-    assert_eq!(is_equation("S0=Sv"),false,"S0=Sv is not a term");
-    assert_eq!(is_equation("[~Eb:~a=b&Ac:~a=c]"),false,"[~Eb:~a=b&Ac:~a=c] is not a term");
-    assert_eq!(is_equation("[~(a+b)=0>[a=b|0=S0]]"),false,"[~(a+b)=0>[a=b|0=S0]] is not a term");
+    assert_eq!(is_expression("a"),true,"a is a term");
+    assert_eq!(is_expression("z'"),true,"z' is a term");
+    assert_eq!(is_expression("0"),true,"0 is a term");
+    assert_eq!(is_expression("S0"),true,"S0 is a term");
+    assert_eq!(is_expression("(Sa+Sb)"),true,"(Sa+Sb) is a term");
+    assert_eq!(is_expression("a=x"),false,"a=x is not a term");
+    assert_eq!(is_expression("S0=Sv"),false,"S0=Sv is not a term");
+    assert_eq!(is_expression("[~Eb:~a=b&Ac:~a=c]"),false,"[~Eb:~a=b&Ac:~a=c] is not a term");
+    assert_eq!(is_expression("[~(a+b)=0>[a=b|0=S0]]"),false,"[~(a+b)=0>[a=b|0=S0]] is not a term");
 
-    assert_eq!(is_equation("Ea':Aa:a=a"),false,"Ea':Aa:a=a should be rejected, it is malformed");
-    assert_eq!(is_equation("'k"),false,"'k should be rejected, it is malformed");
-    assert_eq!(is_equation("SS()"),false,"SS() should be rejected, it is malformed");
-    assert_eq!(is_equation("[~Eb:a=a&c=c]"),false,"[~Eb:a=a&c=c] should be rejected, it is malformed");
+    assert_eq!(is_expression("Ea':Aa:a=a"),false,"Ea':Aa:a=a should be rejected, it is malformed");
+    assert_eq!(is_expression("'k"),false,"'k should be rejected, it is malformed");
+    assert_eq!(is_expression("SS()"),false,"SS() should be rejected, it is malformed");
+    assert_eq!(is_expression("[~Eb:a=a&c=c]"),false,"[~Eb:a=a&c=c] should be rejected, it is malformed");
 }
 
 #[test]
