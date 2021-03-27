@@ -97,7 +97,7 @@ impl fmt::Display for Formula {
 
 
 
-/// Term is implemented the three structs that hold valid pieces of unquantified TNT formulas: Variable, Number, and Expression.
+/// Term is implemented for the three structs that hold valid pieces of unquantified TNT formulas: Variable, Number, and Expression.
 pub trait Term {
     /// An &str is automatically converted to the correct variant, this requires potentially slow parsing of the &str
     fn new(input: &str) -> Self;

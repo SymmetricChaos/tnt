@@ -60,6 +60,12 @@ Which renders as:
 
 ![one and one is two](https://github.com/SymmetricChaos/tnt/blob/master/examples/addition_snip.PNG?raw=true)
 
+Proofs may also be rendered as (extremely large) integers by using the .arithmetize() method which reads each theorem as bytes seperated by spaces into a BigUint.
+
+The previous theorem corresponds to the number: 1050341303275422378657768361784977847949672579265786753539438511912991722480303393035798790127074435266152493569318923916943104808524883160525578709392832871799037992734723295688338121067685795026664762465244602602804284806503763532291647776
+
+
+
 # Future Goals
 Allow the Deduction struct to return the entire proof rendered in "plain english". Currently this is supported only by the Variable, Number, and Equation structs as well as the Formula enum which will return a UTF-8 string that replaces all technical symbols with either nontechnical symbols or words.
 

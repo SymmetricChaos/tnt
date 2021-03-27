@@ -13,11 +13,12 @@ pub struct TheoremFrame {
     depth: usize,
     scope: usize,
     position: usize,
+    rule: String,
 }
 
 impl TheoremFrame {
-    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, position: usize) -> TheoremFrame {
-        TheoremFrame{ formula, comment, depth, scope, position }
+    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, position: usize, rule: String) -> TheoremFrame {
+        TheoremFrame{ formula, comment, depth, scope, position, rule }
     }
 }
 
@@ -51,12 +52,17 @@ impl Deduction {
         &self.theorems.last().unwrap().formula
     }
 
-    fn push_new(&mut self, theorem: Formula, comment: &str) {
+    fn push_new(&mut self, theorem: Formula, comment: &str, rule: String) {
         if NOISY { 
             println!("{}",theorem)
         }
         self.index += 1;
-        let t = TheoremFrame{ formula: theorem, comment: comment.to_string(), depth: self.depth, scope: *self.tag_stack.last().unwrap(), position: self.index };
+        let t = TheoremFrame{ formula: theorem, 
+                                          comment: comment.to_string(), 
+                                          depth: self.depth, 
+                                          scope: *self.tag_stack.last().unwrap(), 
+                                          position: self.index,
+                                          rule: rule };
         self.theorems.push( t );
     }
 
@@ -103,13 +109,47 @@ impl Deduction {
         }
     }
 
+    pub fn latex_file_annotated(&self, filename: &str) -> Result<(), Error> {
+        let filename = format!("{}.tex",filename);
+        let mut file = File::create(filename)?;
+
+        let section_title = format!("\\section*{{{}}}\n",self.title);
+
+        file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
+        file.write(b"\\usepackage{amsmath}\n")?;
+        file.write(b"\\allowdisplaybreaks\n")?;
+        file.write(b"\\begin{document}\n")?;
+        file.write(&section_title.into_bytes())?;
+        file.write(b"\\begin{flalign*}\n")?;
+
+        let mut prev_depth = 0;
+        for (pos,t) in self.theorems.iter().enumerate() {
+
+            if t.depth > prev_depth {
+                let line = format!("&{}\\text{{begin supposition}}&\\\\\n","   ".repeat(prev_depth)).into_bytes();
+                file.write(&line)?;
+            } else if t.depth < prev_depth {
+                let line = format!("&{}\\text{{end supposition}}&\\\\\n","   ".repeat(t.depth)).into_bytes();
+                file.write(&line)?;
+            }
+
+            let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.depth*2,pos,t.formula.latex(),t.rule).into_bytes();
+            file.write(&line)?;
+
+            prev_depth = t.depth;
+        }
+
+        file.write(b"\\end{flalign*}\n")?;
+        file.write(b"\\end{document}")?;
+        Ok(())
+    }
+
     /// Create a LaTeX file the given file name that displays the Deduction.
     pub fn latex_file(&self, filename: &str) -> Result<(), Error> {
         let filename = format!("{}.tex",filename);
         let mut file = File::create(filename)?;
 
         let section_title = format!("\\section*{{{}}}\n",self.title);
-        //let translate_last = format!("\\text{{{}}}",self.get_last_theorem().english());
 
         file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
         file.write(b"\\usepackage{amsmath}\n")?;
@@ -165,7 +205,7 @@ impl Deduction {
     /// Push any axiom of the Deduction system into the theorems.
     pub fn add_axiom(&mut self, premise: Formula, comment: &str) -> Result<(),LogicError> {
         if self.axioms.contains(&premise) {
-            self.push_new( premise, comment );
+            self.push_new( premise, comment, "axiom".to_string() );
         } else {
             let msg = format!("Axiom Error: {} is not a known axiom", premise);
             return Err(LogicError::new(msg))
@@ -176,7 +216,8 @@ impl Deduction {
     /// Push a new theorem which replaces var with the provided Term in theorem n.
     pub fn specification<T: Term>(&mut self, n: usize, var: &Variable, replacement: &T, comment: &str) -> Result<(),LogicError> {
         let t = specification(self.get_theorem(n), &var, replacement);
-        self.push_new( t?, comment );
+        let r = format!("specification of {} to {} in theorem {}",var,replacement.get_string(),n);
+        self.push_new( t?, comment, r );
         Ok(())
     }
 
@@ -190,56 +231,64 @@ impl Deduction {
             }
         }
         let t = generalization(self.get_theorem(n), &var);
-        self.push_new( t?, comment );
+        let r = format!("generalization of {} in theorem {}",var,n);
+        self.push_new( t?, comment, r );
         Ok(())
     }
 
     /// Push a new theorem that adds existence quantification of var in theorem n.
     pub fn existence<T: Term>(&mut self, n: usize, term: &T, var: &Variable, comment: &str) -> Result<(),LogicError> {
         let t = existence(&self.theorems[n].formula.clone(), term, &var);
-        self.push_new( t?, comment );
+        let r = format!("existence of {} in theorem {}",var,n);
+        self.push_new( t?, comment, r );
         Ok(())
     }
 
     /// Push a new theorem that applies the successor to each side of a theorem n.
     pub fn successor(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = successor(self.get_theorem(n));
-        self.push_new( t?, comment );
+        let r = format!("successor of theorem {}",n);
+        self.push_new( t?, comment, r );
         Ok(())
     }
 
     /// Push a new theorem that strips the successor to each side of a theorem n.
     pub fn predecessor(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = predecessor(self.get_theorem(n));
-        self.push_new( t?, comment );
+        let r = format!("predecessor of theorem {}",n);
+        self.push_new( t?, comment, r );
         Ok(())
     }
 
     /// Push a new theorem that takes theorem n and changes the negated existential quantifier at the given position to a universal quantifer followed by a negation.
     pub fn interchange_ea(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) -> Result<(),LogicError> {
         let t = interchange_ea(self.get_theorem(n), v, pos);
-        self.push_new( t?, comment );
+        let r = format!("interchange ~E{}: for A{}:~ in theorem {}",v,v,n);
+        self.push_new( t?, comment,r  );
         Ok(())
     }
 
     /// Push a new theorem that takes theorem n and changes the universal quantifer followed by a negation at the given position with a negated existential quantifier.
     pub fn interchange_ae(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) -> Result<(),LogicError> {
         let t = interchange_ae(self.get_theorem(n), v, pos);
-        self.push_new( t?, comment );
+        let r = format!("interchange A{}:~ for ~E{}: in theorem {}",v,v,n);
+        self.push_new( t?, comment,r  );
         Ok(())
     }
 
     /// Push a new theorem that flips the left and right sides of theorem n.
     pub fn symmetry(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = symmetry(self.get_theorem(n));
-        self.push_new( t?, comment );
+        let r = format!("symmetry of theorem {}",n);
+        self.push_new( t?, comment, r );
         Ok(())
     }
 
     /// Push a new theorem that is an equality of the left term and right term of formula n1 and n2.
     pub fn transitivity(&mut self, n1: usize, n2: usize, comment: &str) -> Result<(),LogicError> {
         let t = transitivity(self.get_theorem(n1), self.get_theorem(n2));
-        self.push_new( t?, comment );
+        let r = format!("transitivity of theorem {} and theorem {}",n1,n2);
+        self.push_new( t?, comment, r );
         Ok(())
     }
     
@@ -250,7 +299,7 @@ impl Deduction {
         }
         self.depth += 1;
         self.tag_stack.push(self.theorems.len());
-        self.push_new( premise, comment );
+        self.push_new( premise, comment, "supposition".to_string() );
         Ok(())
     }
 
@@ -259,13 +308,15 @@ impl Deduction {
         self.depth -= 1;
         let first_premise = self.tag_stack.pop().unwrap();
         let t = implies(self.get_theorem(first_premise), self.get_last_theorem());
-        self.push_new( t, comment );
+        let r = format!("implication of theorem {} and theorem {}",first_premise,self.index);
+        self.push_new( t, comment, r );
     }
 
     /// Push a new theorem that is induction on given variable with base and general being the position of theorems that state the base case and general case.
     pub fn induction(&mut self, var: &Variable, base: usize, general: usize, comment: &str) -> Result<(),LogicError> {
         let t = induction(var,self.get_theorem(base),self.get_theorem(general));
-        self.push_new( t?, comment );
+        let r = format!("induction of {} on theorems {} and {}",var,base,general);
+        self.push_new( t?, comment, r );
         Ok(())
     }
 }
