@@ -72,7 +72,6 @@ pub fn left_implies(s: &str) -> Option<&str> {
         Some(v) => v,
         None => return None
     };
-    println!("{:?}",leftmost);
     let l = &s[leftmost.0+1..leftmost.1];
     Some(l)
 }
@@ -173,15 +172,20 @@ pub fn _replace_var_in_string(s: &str, pattern: &str, replacement: &str) -> Stri
 
 // Needed to get around lack of replacer in fancy_regex
 pub fn replace_all_re(s: &str, re: &Regex, replacement: &str) -> String {
-    let mut st = s.to_string();
-    let mut first = re.find(s).unwrap();
+    let mut lhs = "".to_string();
+    let mut rhs = s.to_string();
+    let mut first = re.find(&rhs).unwrap();
     while first.is_some() {
-        println!("{:?}",first);
-        let r = first.unwrap().range();
-        st.replace_range(r, replacement);
-        first = re.find(&st).unwrap();
+        let lo = first.unwrap().start();
+        let hi = first.unwrap().end();
+        lhs.push_str(&rhs[..lo]);
+        lhs.push_str(replacement);
+        rhs.replace_range(0..hi,"");
+
+        first = re.find(&rhs).unwrap();
     }
-    st
+    lhs.push_str(&rhs[..]);
+    lhs
 }
 
 

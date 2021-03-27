@@ -92,13 +92,14 @@ pub fn interchange_ae(x: &Formula, v: &Variable, nth: usize) -> Result<Formula,L
 
 pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Formula,LogicError> {
     // The theorem we need to generalize is the outermost, leftmost implication of the general case
+    // Need to change this from causing a panic if malformed to causing a LogicError
     let theorem = Formula::new(left_implies(&general.to_string()).unwrap());
-
     if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
-        let msg = format!("Induction Error: The Variable `{}` is already bound in the Formula `{}`, which is the left side of the general case {}",v,theorem,general);
+        let msg = format!("Induction Error: The Variable `{}` is already bound in the Formula `{}`, which is the left side of the general case `{}`",v,theorem,general);
         return Err(LogicError::new(msg))
     } else {
-        let xs = theorem.replace_var(v, &(v << 1));
+        let vs = &(v << 1);
+        let xs = theorem.replace_var(v, vs);
         let x0 = theorem.replace_var(v, &Number::zero());
         if x0.to_string() != base.to_string() {
             let msg = format!("Induction Error: The base case must be the Formula `{}`",x0);
