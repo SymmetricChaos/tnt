@@ -95,77 +95,84 @@ pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Form
     let theorem = Formula::new(left_implies(&general.to_string()).unwrap());
 
     if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
-        let msg = format!("Induction Error: {} is already bound in {}",v,theorem);
+        let msg = format!("Induction Error: The Variable `{}` is already bound in the Formula `{}`, which is the left side of the general case {}",v,theorem,general);
         return Err(LogicError::new(msg))
     } else {
         let xs = theorem.replace_var(v, &(v << 1));
-        let x0 = theorem.replace_var(v, &Number::new("0"));
+        let x0 = theorem.replace_var(v, &Number::zero());
         if x0.to_string() != base.to_string() {
-            panic!("Induction Error: base case must be {}",x0)
+            let msg = format!("Induction Error: The base case must be the Formula `{}`",x0);
+            return Err(LogicError::new(msg))
         }
         if general.to_string() != format!("A{}:[{}>{}]",v,theorem,xs) {
-            panic!("Induction Error: general case must be A{}:[{}>{}]",v,theorem,xs)
+            let msg = format!("Induction Error: The general case must be the Formula `A{}:[{}>{}]`",v,theorem,xs);
+            return Err(LogicError::new(msg))
         }
         return Ok(forall(v,&theorem))
     }
 }
 
-pub fn successor(a: &Formula) -> Formula {
+pub fn successor(a: &Formula) -> Result<Formula,LogicError> {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
             let lt = Expression::new(&format!("S{}",l));
             let rt = Expression::new(&format!("S{}",r));
-            return eq(&lt,&rt)
+            return Ok(eq(&lt,&rt))
         } else {
             unreachable!("Successor Error: unable to split {}",a)
         }
     } else {
-        panic!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a)
+        let msg = format!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a);
+        return Err(LogicError::new(msg))
     }
 }
 
-pub fn predecessor(a: &Formula) -> Formula {
+pub fn predecessor(a: &Formula) -> Result<Formula,LogicError> {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
             if l.starts_with("S") && r.starts_with("S") {
                 let lt = Expression::new(&l.strip_prefix("S").unwrap());
                 let rt = Expression::new(&r.strip_prefix("S").unwrap());
-                return eq(&lt,&rt)
+                return Ok(eq(&lt,&rt))
             } else {
-                panic!("Predecessor Error: both terms of {} must begin with S",a)
+                let msg = format!("Predecessor Error: both terms the Formula `{}` must begin with S",a);
+                return Err(LogicError::new(msg))
             }
         }
         unreachable!("Predecessor Error: unable to split {}",a)
     } else {
-        panic!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a)
+        let msg = format!("Predecessor Error: {} is not a Formula::Simple which is required in order to split it",a);
+        return Err(LogicError::new(msg))
     }
 }
 
-pub fn symmetry(a: &Formula) -> Formula {
+pub fn symmetry(a: &Formula) -> Result<Formula,LogicError> {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
             let lt = Expression::new(&l);
             let rt = Expression::new(&r);
-            return eq(&rt,&lt)
+            return Ok(eq(&rt,&lt))
         } else {
             unreachable!("Symmetry Error: unable to split {}",a)
         }
     } else {
-        panic!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a)
+        let msg = format!("Successor Error: {} is not a Formula::Simple which is required in order to split it",a);
+        return Err(LogicError::new(msg))
     }
 }
 
-pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
+pub fn transitivity(a1: &Formula, a2: &Formula) -> Result<Formula,LogicError> {
     if let Formula::Simple(_) = a1 {
         if let Formula::Simple(_) = a2 {
             if let Some((l1,r1)) = split_eq(&a1.to_string()) {
                 if let Some((l2,r2)) = split_eq(&a2.to_string()) {
                     if r1 != l2 {
-                        panic!("Transitivity Error: The right term of {} does not match the left term of {}",a1,a2)
+                        let msg = format!("Transitivity Error: The right term of {} does not match the left term of {}",a1,a2);
+                        return Err(LogicError::new(msg))
                     }
                     let lt = Expression::new(&l1);
                     let rt = Expression::new(&r2);
-                    return eq(&lt,&rt)
+                    return Ok(eq(&lt,&rt))
                 } else {
                     unreachable!("Transitivity Error: unable to split {}",a2)
                 }
@@ -173,10 +180,12 @@ pub fn transitivity(a1: &Formula, a2: &Formula) -> Formula {
                 unreachable!("Transitivity Error: unable to split {}",a1)
             }
         } else {
-            panic!("Transitivity Error: {} is not a Formula::Simple which is required in order to split it",a2)
+            let msg = format!("Transitivity Error: {} is not a Formula::Simple which is required in order to split it",a2);
+            return Err(LogicError::new(msg))
         }
     } else {
-        panic!("Transitivity Error: {} is not a Formula::Simple which is required in order to split it",a1)
+        let msg = format!("Transitivity Error: {} is not a Formula::Simple which is required in order to split it",a1);
+        return Err(LogicError::new(msg))
     }
 }
 
@@ -240,88 +249,85 @@ fn test_generalization_err() {
 
 
 #[test]
-fn test_symmetry() {
+fn test_symmetry() -> Result<(),LogicError> {
     let simple1 = &Formula::new("a=b");
     let simple2 = &Formula::new("b=S(a+S0)");
-    assert_eq!(symmetry(simple1).to_string(),"b=a");
-    assert_eq!(symmetry(simple2).to_string(),"S(a+S0)=b");
+    assert_eq!(symmetry(simple1)?.to_string(),"b=a");
+    assert_eq!(symmetry(simple2)?.to_string(),"S(a+S0)=b");
+    Ok(())
 }
 
 #[test]
-#[should_panic]
 fn test_symmetry_err() {
     let complex = &Formula::new("Aa:a=b");
-    symmetry(complex);
+    assert!(symmetry(complex).is_err());
 }
 
 
 
 #[test]
-fn test_transitivity() {
+fn test_transitivity() -> Result<(),LogicError> {
     let atom1 = Formula::new("a=b");
     let atom2 = Formula::new("b=S(a+S0)");
-    assert_eq!(transitivity(&atom1,&atom2).to_string(),"a=S(a+S0)");
+    assert_eq!(transitivity(&atom1,&atom2)?.to_string(),"a=S(a+S0)");
+    Ok(())
 }
 
 #[test]
-#[should_panic]
 fn test_transitivity_err_1_left() {
     let complex1 = &Formula::new("Aa:a=b");
     let complex2 = &Formula::new("p=j''");
-    transitivity(complex1, complex2);
+    assert!(transitivity(complex1, complex2).is_err());
 }
 
 #[test]
-#[should_panic]
 fn test_transitivity_err_1_right() {
     let complex1 = &Formula::new("Aa:a=b");
     let complex2 = &Formula::new("p=j''");
-    transitivity(complex2, complex1);
+    assert!(transitivity(complex2, complex1).is_err());
 }
 
 #[test]
-#[should_panic]
 fn test_transitivity_err_2() {
     let complex1 = &Formula::new("p=j''");
     let complex2 = &Formula::new("q'=p");
-    transitivity(complex1, complex2);
+    assert!(transitivity(complex1, complex2).is_err());
 }
 
 
 
 #[test]
-fn test_predecessor() {
+fn test_predecessor() -> Result<(),LogicError>  {
     let simple = &Formula::new("Sm''=SSu");
-    assert_eq!(predecessor(simple).to_string(),"m''=Su");
+    assert_eq!(predecessor(simple)?.to_string(),"m''=Su");
+    Ok(())
 }
 
 #[test]
-#[should_panic]
 fn test_predecessor_err_1() {
     let complex = &Formula::new("~Ei:(i+SS0)=g");
-    predecessor(complex);
+    assert!(predecessor(complex).is_err());
 }
 
 #[test]
-#[should_panic]
 fn test_predecessor_err_2() {
     let simple = &Formula::new("SSb'=0");
-    predecessor(simple);
+    assert!(predecessor(simple).is_err());
 }
 
 
 
 #[test]
-fn test_successor() {
+fn test_successor() -> Result<(),LogicError>  {
     let simple = &Formula::new("Sm''=SSu");
-    assert_eq!(successor(simple).to_string(),"SSm''=SSSu");
+    assert_eq!(successor(simple)?.to_string(),"SSm''=SSSu");
+    Ok(())
 }
 
 #[test]
-#[should_panic]
 fn test_successor_err() {
     let complex = &Formula::new("~Ei:(i+SS0)=g");
-    successor(complex);
+    assert!(successor(complex).is_err());
 }
 
 

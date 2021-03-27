@@ -163,12 +163,14 @@ impl Deduction {
     
     // Logical methods
     /// Push any axiom of the Deduction system into the theorems.
-    pub fn add_axiom(&mut self, premise: Formula, comment: &str) {
+    pub fn add_axiom(&mut self, premise: Formula, comment: &str) -> Result<(),LogicError> {
         if self.axioms.contains(&premise) {
             self.push_new( premise, comment );
         } else {
-            panic!("Error on line {}: {} is not a known axiom", self.index+1, premise);
+            let msg = format!("Axiom Error: {} is not a known axiom", premise);
+            return Err(LogicError::new(msg))
         }
+        Ok(())
     }
 
     /// Push a new theorem which replaces var with the provided Term in theorem n.
@@ -183,7 +185,8 @@ impl Deduction {
         if self.depth != 0 {
             let f = get_free_vars(&self.get_theorem(*self.tag_stack.last().unwrap()).to_string());
             if f.contains(&var.to_string()) {
-                panic!("Generalization Error: the variable {} is free in the supposition {}",var,self.get_theorem(*self.tag_stack.last().unwrap()))
+                let msg = format!("Generalization Error: the variable {} is free in the supposition {}",var,self.get_theorem(*self.tag_stack.last().unwrap()));
+                return Err(LogicError::new(msg))
             }
         }
         let t = generalization(self.get_theorem(n), &var);
@@ -199,15 +202,17 @@ impl Deduction {
     }
 
     /// Push a new theorem that applies the successor to each side of a theorem n.
-    pub fn successor(&mut self, n: usize, comment: &str) {
+    pub fn successor(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = successor(self.get_theorem(n));
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
 
     /// Push a new theorem that strips the successor to each side of a theorem n.
-    pub fn predecessor(&mut self, n: usize, comment: &str) {
+    pub fn predecessor(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = predecessor(self.get_theorem(n));
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
 
     /// Push a new theorem that takes theorem n and changes the negated existential quantifier at the given position to a universal quantifer followed by a negation.
@@ -225,25 +230,28 @@ impl Deduction {
     }
 
     /// Push a new theorem that flips the left and right sides of theorem n.
-    pub fn symmetry(&mut self, n: usize, comment: &str) {
+    pub fn symmetry(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = symmetry(self.get_theorem(n));
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
 
     /// Push a new theorem that is an equality of the left term and right term of formula n1 and n2.
-    pub fn transitivity(&mut self, n1: usize, n2: usize, comment: &str) {
+    pub fn transitivity(&mut self, n1: usize, n2: usize, comment: &str) -> Result<(),LogicError> {
         let t = transitivity(self.get_theorem(n1), self.get_theorem(n2));
-        self.push_new( t, comment );
+        self.push_new( t?, comment );
+        Ok(())
     }
     
     /// Begin a supposition taking an arbitrary Formula as the premise.
-    pub fn supposition(&mut self, premise: Formula, comment: &str) {
+    pub fn supposition(&mut self, premise: Formula, comment: &str) -> Result<(),LogicError> {
         if self.depth == 1 {
-            panic!("Nested supposition not currently supported")
+            return Err(LogicError::new("Nested supposition not currently supported".to_string()))
         }
         self.depth += 1;
         self.tag_stack.push(self.theorems.len());
         self.push_new( premise, comment );
+        Ok(())
     }
 
     /// End a supposition and push a new theorem that the premise of the supposition implies the final theorem of the supposition.
