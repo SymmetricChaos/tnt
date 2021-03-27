@@ -1,7 +1,7 @@
 # tnt
 An implementation of Hofstader's "Typographical Number Theory" from the book Godel, Escher, and Bach. This is not a proof assistant, it does not check the validity of a proof, rather it enforces the rules of inference at runtime. Certain nonsensical constructions are also caught at compile time. Currently nested suppositions are not supported, this doesn't restrict what can be proved but may make proofs longer.
 
-The Deduction struct can output a proof in a few different ways. The .pretty_print() method produces an ASCII representation while the .latex() method produces a compete LaTeX document. The individual Formula enums that are stored in Deduction can also output themselves in ASCII, in LaTeX, and as an "plain english" sentence.
+The Deduction struct can output a proof in a few different ways. The .pretty_print() method produces an ASCII representation while the .latex() method produces a complete LaTeX document. The individual Formula enums that are stored in Deduction can also output themselves in ASCII, in LaTeX, and as an "plain english" sentence.
 
 Consider the following short proof that 1+1 = 2.
 
