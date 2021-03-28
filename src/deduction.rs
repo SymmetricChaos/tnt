@@ -109,41 +109,6 @@ impl Deduction {
         }
     }
 
-    pub fn latex_file_annotated(&self, filename: &str) -> Result<(), Error> {
-        let filename = format!("{}.tex",filename);
-        let mut file = File::create(filename)?;
-
-        let section_title = format!("\\section*{{{}}}\n",self.title);
-
-        file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
-        file.write(b"\\usepackage{amsmath}\n")?;
-        file.write(b"\\allowdisplaybreaks\n")?;
-        file.write(b"\\begin{document}\n")?;
-        file.write(&section_title.into_bytes())?;
-        file.write(b"\\begin{flalign*}\n")?;
-
-        let mut prev_depth = 0;
-        for (pos,t) in self.theorems.iter().enumerate() {
-
-            if t.depth > prev_depth {
-                let line = format!("&{}\\text{{begin supposition}}&\\\\\n","   ".repeat(prev_depth)).into_bytes();
-                file.write(&line)?;
-            } else if t.depth < prev_depth {
-                let line = format!("&{}\\text{{end supposition}}&\\\\\n","   ".repeat(t.depth)).into_bytes();
-                file.write(&line)?;
-            }
-
-            let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.depth*2,pos,t.formula.latex(),t.rule).into_bytes();
-            file.write(&line)?;
-
-            prev_depth = t.depth;
-        }
-
-        file.write(b"\\end{flalign*}\n")?;
-        file.write(b"\\end{document}")?;
-        Ok(())
-    }
-
     /// Create a LaTeX file the given file name that displays the Deduction.
     pub fn latex_file(&self, filename: &str) -> Result<(), Error> {
         let filename = format!("{}.tex",filename);
@@ -185,6 +150,48 @@ impl Deduction {
         Ok(())
     }
 
+    /// Create an annotated LaTeX file the given file name that displays the Deduction.
+    pub fn latex_file_annotated(&self, filename: &str) -> Result<(), Error> {
+        let filename = format!("{}.tex",filename);
+        let mut file = File::create(filename)?;
+
+        let section_title = format!("\\section*{{{}}}\n",self.title);
+
+        file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
+        file.write(b"\\usepackage{amsmath}\n")?;
+        file.write(b"\\allowdisplaybreaks\n")?;
+        file.write(b"\\begin{document}\n")?;
+        file.write(&section_title.into_bytes())?;
+        file.write(b"\\begin{flalign*}\n")?;
+
+        let mut prev_depth = 0;
+        for (pos,t) in self.theorems.iter().enumerate() {
+
+            if t.depth > prev_depth {
+                let line = format!("&{}\\text{{begin supposition}}&\\\\\n","   ".repeat(prev_depth)).into_bytes();
+                file.write(&line)?;
+            } else if t.depth < prev_depth {
+                let line = format!("&{}\\text{{end supposition}}&\\\\\n","   ".repeat(t.depth)).into_bytes();
+                file.write(&line)?;
+            }
+
+            let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.depth*2,pos,t.formula.latex(),t.rule).into_bytes();
+            file.write(&line)?;
+
+            prev_depth = t.depth;
+        }
+
+        file.write(b"\\end{flalign*}\n")?;
+        file.write(b"\\end{document}")?;
+        Ok(())
+    }
+
+    pub fn english(&self) {
+        for t in self.theorems.iter() {
+            println!("{}) {}  {}",t.position,t.formula.english(),t.rule);
+        }
+    }
+
     /// Convert the Deduction to a (very large) integer.
     pub fn arithmetize(&self) -> BigUint {
         let mut n: Vec<u8> = Vec::new();
@@ -196,8 +203,6 @@ impl Deduction {
         }
         BigUint::from_bytes_be(&n)
     }
-
-    // TODO: Dearithmetize? Probably needs to track more information
 
 
     

@@ -21,6 +21,8 @@ fn main() -> Result<(),LogicError> {
 
     d.pretty_print();
 
+    d.english();
+
     println!("{}",d.arithmetize());
 
     match d.latex_file("addition") {

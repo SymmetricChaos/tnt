@@ -41,8 +41,8 @@ pub fn forall(v: &Variable, x: &Formula) -> Formula {
 }
 
 
-// TODO: test pathalogical inputs for all of these
 
+// TODO: test pathalogical inputs for all of these
 
 #[test]
 fn test_eq() {

@@ -132,7 +132,7 @@ pub struct Number {
     string: String,
 }
 
-/// Expression representd any valid Expression of TNT which is any combination of Variables, Number, and Expressions using addition, multiplication, and the successor operation.
+/// Expression represents any valid expression of TNT which is any combination of Variables, Number, and Expressions using addition, multiplication, and the successor operation.
 #[derive(Debug)]
 pub struct Expression {
     string: String,

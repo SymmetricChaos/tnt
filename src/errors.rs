@@ -20,13 +20,7 @@ impl fmt::Display for LogicError {
 
 impl Error for LogicError {}
 
-/* 
-macro_rules! logic_error {
-    ($($arg:tt)*) => {
-        LogicError::new(format!($arg))
-    };
-}
-*/
+
 
 #[test]
 fn check_error() {
