@@ -8,17 +8,18 @@ use crate::logic_errors::LogicError;
 
 #[derive(Clone)]
 pub struct TheoremFrame {
-    formula: Formula,
-    comment: String,
-    depth: usize,
-    scope: usize,
-    position: usize,
-    rule: String,
+    pub formula: Formula,
+    pub comment: String,
+    pub depth: usize,
+    pub scope: usize,
+    pub position: usize,
+    pub rule: String,
+    pub rule_num: u8,
 }
 
 impl TheoremFrame {
-    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, position: usize, rule: String) -> TheoremFrame {
-        TheoremFrame{ formula, comment, depth, scope, position, rule }
+    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, position: usize, rule: String, rule_num: u8) -> TheoremFrame {
+        TheoremFrame{ formula, comment, depth, scope, position, rule, rule_num }
     }
 }
 
@@ -52,7 +53,7 @@ impl Deduction {
         &self.theorems.last().unwrap().formula
     }
 
-    fn push_new(&mut self, theorem: Formula, comment: &str, rule: String) {
+    fn push_new(&mut self, theorem: Formula, comment: &str, rule: String, rule_num: u8) {
         if NOISY { 
             println!("{}",theorem)
         }
@@ -62,7 +63,9 @@ impl Deduction {
                                           depth: self.depth, 
                                           scope: *self.tag_stack.last().unwrap(), 
                                           position: self.index,
-                                          rule: rule };
+                                          rule: rule,
+                                          rule_num: rule_num,
+                                        };
         self.theorems.push( t );
     }
 
@@ -210,7 +213,7 @@ impl Deduction {
     /// Push any axiom of the Deduction system into the theorems.
     pub fn add_axiom(&mut self, premise: Formula, comment: &str) -> Result<(),LogicError> {
         if self.axioms.contains(&premise) {
-            self.push_new( premise, comment, "axiom".to_string() );
+            self.push_new( premise, comment, "axiom".to_string(), 0 );
         } else {
             let msg = format!("Axiom Error: {} is not a known axiom", premise);
             return Err(LogicError::new(msg))
@@ -222,7 +225,7 @@ impl Deduction {
     pub fn specification<T: Term>(&mut self, n: usize, var: &Variable, replacement: &T, comment: &str) -> Result<(),LogicError> {
         let t = specification(self.get_theorem(n), &var, replacement);
         let r = format!("specification of {} to {} in theorem {}",var,replacement.get_string(),n);
-        self.push_new( t?, comment, r );
+        self.push_new( t?, comment, r, 1 );
         Ok(())
     }
 
@@ -237,7 +240,7 @@ impl Deduction {
         }
         let t = generalization(self.get_theorem(n), &var);
         let r = format!("generalization of {} in theorem {}",var,n);
-        self.push_new( t?, comment, r );
+        self.push_new( t?, comment, r, 2 );
         Ok(())
     }
 
@@ -245,7 +248,7 @@ impl Deduction {
     pub fn existence<T: Term>(&mut self, n: usize, term: &T, var: &Variable, comment: &str) -> Result<(),LogicError> {
         let t = existence(&self.theorems[n].formula.clone(), term, &var);
         let r = format!("existence of {} in theorem {}",var,n);
-        self.push_new( t?, comment, r );
+        self.push_new( t?, comment, r, 3 );
         Ok(())
     }
 
@@ -253,7 +256,7 @@ impl Deduction {
     pub fn successor(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = successor(self.get_theorem(n));
         let r = format!("successor of theorem {}",n);
-        self.push_new( t?, comment, r );
+        self.push_new( t?, comment, r, 4 );
         Ok(())
     }
 
@@ -261,7 +264,7 @@ impl Deduction {
     pub fn predecessor(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = predecessor(self.get_theorem(n));
         let r = format!("predecessor of theorem {}",n);
-        self.push_new( t?, comment, r );
+        self.push_new( t?, comment, r, 5 );
         Ok(())
     }
 
@@ -269,7 +272,7 @@ impl Deduction {
     pub fn interchange_ea(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) -> Result<(),LogicError> {
         let t = interchange_ea(self.get_theorem(n), v, pos);
         let r = format!("interchange ~E{}: for A{}:~ in theorem {}",v,v,n);
-        self.push_new( t?, comment,r  );
+        self.push_new( t?, comment, r, 6 );
         Ok(())
     }
 
@@ -277,7 +280,7 @@ impl Deduction {
     pub fn interchange_ae(&mut self, n: usize, v: &Variable, pos: usize, comment: &str) -> Result<(),LogicError> {
         let t = interchange_ae(self.get_theorem(n), v, pos);
         let r = format!("interchange A{}:~ for ~E{}: in theorem {}",v,v,n);
-        self.push_new( t?, comment,r  );
+        self.push_new( t?, comment, r, 7 );
         Ok(())
     }
 
@@ -285,7 +288,7 @@ impl Deduction {
     pub fn symmetry(&mut self, n: usize, comment: &str) -> Result<(),LogicError> {
         let t = symmetry(self.get_theorem(n));
         let r = format!("symmetry of theorem {}",n);
-        self.push_new( t?, comment, r );
+        self.push_new( t?, comment, r, 8 );
         Ok(())
     }
 
@@ -293,7 +296,7 @@ impl Deduction {
     pub fn transitivity(&mut self, n1: usize, n2: usize, comment: &str) -> Result<(),LogicError> {
         let t = transitivity(self.get_theorem(n1), self.get_theorem(n2));
         let r = format!("transitivity of theorem {} and theorem {}",n1,n2);
-        self.push_new( t?, comment, r );
+        self.push_new( t?, comment, r, 9 );
         Ok(())
     }
     
@@ -304,7 +307,7 @@ impl Deduction {
         }
         self.depth += 1;
         self.tag_stack.push(self.theorems.len());
-        self.push_new( premise, comment, "supposition".to_string() );
+        self.push_new( premise, comment, "supposition".to_string(), 10 );
         Ok(())
     }
 
@@ -314,14 +317,14 @@ impl Deduction {
         let first_premise = self.tag_stack.pop().unwrap();
         let t = implies(self.get_theorem(first_premise), self.get_last_theorem());
         let r = format!("implication of theorem {} and theorem {}",first_premise,self.index);
-        self.push_new( t, comment, r );
+        self.push_new( t, comment, r, 11 );
     }
 
     /// Push a new theorem that is induction on given variable with base and general being the position of theorems that state the base case and general case.
     pub fn induction(&mut self, var: &Variable, base: usize, general: usize, comment: &str) -> Result<(),LogicError> {
         let t = induction(var,self.get_theorem(base),self.get_theorem(general));
         let r = format!("induction of {} on theorems {} and {}",var,base,general);
-        self.push_new( t?, comment, r );
+        self.push_new( t?, comment, r, 12 );
         Ok(())
     }
 }

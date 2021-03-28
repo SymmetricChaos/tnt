@@ -7,3 +7,4 @@ mod string_manip;
 mod translate;
 pub mod axioms;
 pub mod logic_errors;
+pub mod translate_deduction;
