@@ -19,12 +19,3 @@ impl fmt::Display for LogicError {
 }
 
 impl Error for LogicError {}
-
-
-
-#[test]
-fn check_error() {
-    let msg = format!("Specification Error");
-    let err = LogicError::new(msg);
-    println!("{:?}",err)
-}

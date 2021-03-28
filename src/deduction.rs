@@ -4,7 +4,7 @@ use num::BigUint;
 use crate::{string_manip::get_free_vars, types::{Formula,Term,Variable}};
 use crate::ops_production::*;
 use crate::ops_construction::implies;
-use crate::errors::LogicError;
+use crate::logic_errors::LogicError;
 
 #[derive(Clone)]
 pub struct TheoremFrame {

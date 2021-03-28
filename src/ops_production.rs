@@ -1,7 +1,7 @@
 use crate::types::{Formula,Variable,Term,Expression,Number};
 use crate::ops_construction::*;
 use crate::string_manip::{split_eq, get_bound_vars, left_implies, get_vars};
-use crate::errors::LogicError;
+use crate::logic_errors::LogicError;
 
 // Rules of production
 // These may check for additional internal contraints and will panic on failure

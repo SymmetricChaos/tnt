@@ -6,4 +6,4 @@ pub mod ops_construction;
 mod string_manip;
 mod translate;
 pub mod axioms;
-pub mod errors;
+pub mod logic_errors;
