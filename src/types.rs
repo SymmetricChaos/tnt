@@ -564,12 +564,3 @@ fn test_expression() {
     assert_eq!((e1 + n1).get_string(),"((x'+SS0)+0)");
     assert_eq!((e1 * n1).get_string(),"((x'+SS0)*0)");
 }
-
-
-
-
-
-
-
-
-
