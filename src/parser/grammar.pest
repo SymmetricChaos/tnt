@@ -1,8 +1,8 @@
-num = { "S" ~ "0" }
-arith = { "+" | "*" }
-var = { 'a'..'z' ~ "'"* }
+num = _{ "S" ~ "0" }
+var = _{ 'a'..'z' ~ "'"* }
+arith = _{ "+" | "*" }
 expr = { num | var | "S" ~ expr | "(" ~ expr ~ arith ~ expr ~ ")" }
 quant = { "~"* ~ ("A" | "E") ~ var ~ ":" }
-logical = { "&" | "|" | ">" }
-simple = { expr ~ "=" ~ expr }
+logical = _{ "&" | "|" | ">" }
+simple = _{ expr ~ "=" ~ expr }
 formula = { simple | quant ~ formula | "[" ~ formula ~ logical ~ formula ~ "]" }

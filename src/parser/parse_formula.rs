@@ -6,15 +6,18 @@ use pest_derive::*;
 #[grammar = "parser/grammar.pest"]
 pub struct TNTParser;
 
-pub fn parse_formula(s: &str) -> Result<Pairs<Rule>,Error<Rule>> {
-    let p = TNTParser::parse(Rule::formula, s)?;
-    for pair in p.clone() {
-        println!("{}",pair);
+pub fn extract_tokens(pairs: Pairs<Rule>) {
+    for pair in pairs.flatten() {
+        println!("{}",pair.as_str());
+        extract_tokens(pair.into_inner());
     }
-    Ok(p)
 }
 
+
 #[test]
-fn test_parser() {
-    parse_formula("(S0+Sb)=S(S0+b)");
+fn test_parser() -> Result<(),Error<Rule>> {
+    let formula = "Ad:[Ac:(c+d)=(d+c)>Ac:(c+Sd)=(Sd+c)]";
+    let p = TNTParser::parse(Rule::formula, formula)?;
+    extract_tokens(p);
+    Ok(())
 }
