@@ -2,8 +2,8 @@ use std::{fs::File, io::{Write,Error}};
 use num::BigUint;
 
 use crate::{string_manip::get_free_vars, types::{Formula,Term,Variable}};
-use crate::ops_production::*;
-use crate::ops_construction::implies;
+use crate::operations::production::*;
+use crate::operations::construction::implies;
 use crate::logic_errors::LogicError;
 
 #[derive(Clone)]
@@ -57,7 +57,6 @@ impl Deduction {
         if NOISY { 
             println!("{}",theorem)
         }
-        self.index += 1;
         let t = TheoremFrame{ formula: theorem, 
                                           comment: comment.to_string(), 
                                           depth: self.depth, 
@@ -67,6 +66,7 @@ impl Deduction {
                                           rule_num: rule_num,
                                         };
         self.theorems.push( t );
+        self.index += 1;
     }
 
 
@@ -191,7 +191,7 @@ impl Deduction {
 
     pub fn english(&self) {
         for t in self.theorems.iter() {
-            println!("{}) {}  {}",t.position,t.formula.english(),t.rule);
+            println!("{}) {} [{}]",t.position,t.formula.english(),t.rule);
         }
     }
 

@@ -19,6 +19,8 @@ fn main() -> Result<(),LogicError> {
     d.successor(4, "")?;
     d.transitivity(2,5,"")?;
 
+    d.english();
+
     translate_deduction(&d);
 
     Ok(())

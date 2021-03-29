@@ -1,5 +1,5 @@
 use crate::types::{Formula,Variable,Term,Expression,Number};
-use crate::ops_construction::*;
+use crate::operations::construction::*;
 use crate::string_manip::{split_eq, get_bound_vars, left_implies, get_vars};
 use crate::logic_errors::LogicError;
 

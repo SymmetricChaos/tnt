@@ -9,10 +9,9 @@ pub fn translate_deduction(proof: &Deduction) {
     
     for p in proof.all_theorems_raw() {
         let start = match p.rule_num {
-            0 => "take as an axiom",
-            _ => ""
+            0 => "We take as an axiom that",
+            _ => &p.rule,
         };
-
-        println!("{}: {}",p.rule,p.formula.english())
+        println!("{}) {} {}",p.position,start,p.formula.english());
     }
 }
