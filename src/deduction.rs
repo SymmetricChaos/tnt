@@ -211,9 +211,9 @@ impl Deduction {
     
     // Logical methods
     /// Push any axiom of the Deduction system into the theorems.
-    pub fn add_axiom(&mut self, premise: Formula, comment: &str) -> Result<(),LogicError> {
+    pub fn add_axiom(&mut self, premise: &Formula, comment: &str) -> Result<(),LogicError> {
         if self.axioms.contains(&premise) {
-            self.push_new( premise, comment, "axiom".to_string(), 0 );
+            self.push_new( premise.clone(), comment, "axiom".to_string(), 0 );
         } else {
             let msg = format!("Axiom Error: {} is not a known axiom", premise);
             return Err(LogicError::new(msg))

@@ -14,7 +14,7 @@ fn main() -> Result<(),LogicError> {
 
     let t = &Formula::new("Ad:Ac:(c+d)=(d+c)");
     let mut e = Deduction::new("Prove That Addition Commutes", PEANO.clone());
-    e.add_axiom(PEANO[2].clone(), "")?;
+    e.add_axiom(&PEANO[2], "")?;
     e.specification(0, a, d, "")?;
     e.specification(1, b,sc, "")?;
     e.specification(0, a, sd, "")?;
@@ -31,7 +31,7 @@ fn main() -> Result<(),LogicError> {
 
     e.generalization(12, c, "")?;
     e.specification(1, b, zero, "")?;
-    e.add_axiom(PEANO[1].clone(), "")?;
+    e.add_axiom(&PEANO[1], "")?;
     e.specification(15, a, d, "")?;
     e.successor(16, "")?;
     e.transitivity(14, 17, "")?;
