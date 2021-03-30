@@ -5,4 +5,4 @@ expr = { num | var | "S" ~ expr | "(" ~ expr ~ arith ~ expr ~ ")" }
 quant = { "~"* ~ ("A" | "E") ~ var ~ ":" }
 logical = _{ "&" | "|" | ">" }
 simple = _{ expr ~ "=" ~ expr }
-formula = { simple | quant ~ formula | "[" ~ formula ~ logical ~ formula ~ "]" }
+formula = { simple | "[" ~ formula ~ logical ~ formula ~ "]" | quant ~ formula }

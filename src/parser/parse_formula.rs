@@ -16,7 +16,7 @@ pub fn extract_tokens(pairs: Pairs<Rule>) {
 
 #[test]
 fn test_parser() -> Result<(),Error<Rule>> {
-    let formula = "Ad:[Ac:(c+d)=(d+c)>Ac:(c+Sd)=(Sd+c)]";
+    let formula = "[~Ao':o'*SS0=0>Eb:Ec:(0*S(b+SSc'))=S0]";
     let p = TNTParser::parse(Rule::formula, formula)?;
     extract_tokens(p);
     Ok(())
