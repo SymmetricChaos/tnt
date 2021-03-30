@@ -1,10 +1,12 @@
+//! Create inferences from other statements of TNT, will return LogicError if constraints are not met.
+
 use crate::types::{Formula,Variable,Term,Expression,Number};
 use crate::operations::construction::*;
 use crate::string_manip::{split_eq, get_bound_vars, left_implies, get_vars};
 use crate::logic_errors::LogicError;
 
-// Rules of production
-// These may check for additional internal contraints and will panic on failure
+
+
 pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Result<Formula,LogicError> {
     if x.to_string().contains(&format!("A{}:",v)) {
         let var_in_t = get_vars(&t.get_string());

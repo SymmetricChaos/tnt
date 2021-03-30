@@ -1,7 +1,6 @@
 use tnt::{logic_errors::LogicError, types::{Term, Variable, Number}};
 use tnt::deduction::Deduction;
 use tnt::axioms::PEANO;
-use tnt::translate_deduction::translate_deduction;
 
 fn main() -> Result<(),LogicError> {
 
@@ -20,8 +19,6 @@ fn main() -> Result<(),LogicError> {
     d.transitivity(2,5,"")?;
 
     d.english();
-
-    translate_deduction(&d);
 
     Ok(())
 }

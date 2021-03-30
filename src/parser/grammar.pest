@@ -1,7 +1,7 @@
 num = _{ "S"* ~ "0" }
 var = _{ 'a'..'z' ~ "'"* }
 arith = _{ "+" | "*" }
-expr = { num | var | "S"* ~ var | "S"* ~ "(" ~ expr ~ arith ~ expr ~ ")" }
+expr = @{ num | var | "S"* ~ var | "S"* ~ "(" ~ expr ~ arith ~ expr ~ ")" }
 quant = { "~"* ~ ("A" | "E") ~ var ~ ":" }
 logical = _{ "&" | "|" | ">" }
 formula = { quant* ~ expr ~ "=" ~ expr | quant* ~ "[" ~ formula ~ logical ~ formula ~ "]" }

@@ -1,3 +1,5 @@
+//! Axioms for use with Deduction.
+
 use lazy_static::lazy_static;
 
 use crate::types::Formula;

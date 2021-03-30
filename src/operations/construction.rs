@@ -1,10 +1,8 @@
+//! Arbitrary logical combinations of the inputs, guaranteed to succeed.
+
 use crate::types::{Term,Formula,Variable};
 
-// Rules of construction. 
-// Arithmetic construction is handled by degining +, *, and << for Term types to represent
-// addition, multiplication, and successor respectively
 
-// Logical
 pub fn eq<A: Term, B: Term>(x: &A, y: &B) -> Formula {
     let new_s = format!("{}={}",x.get_string(),y.get_string());
     Formula::new_simple(&new_s)
@@ -30,8 +28,6 @@ pub fn implies(x: &Formula, y: &Formula) -> Formula {
     Formula::new_complex(&new_s)
 }
 
-
-// Quantification
 pub fn exists(v: &Variable, x: &Formula) -> Formula {
     Formula::new_complex(&format!("E{}:{}",v,x))
 }

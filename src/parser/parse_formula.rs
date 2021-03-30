@@ -24,37 +24,11 @@ fn test_parser() -> Result<(),Error<Rule>> {
 
     let f = "S0=a";
     let p = TNTParser::parse(Rule::formula, f)?;
-    println!("{:?}",p);
     extract_tokens(p);
-    /*
-    println!("");
-
-    let f = "Aa:[S0=a|0=a]";
-    let p = TNTParser::parse(Rule::formula, f)?;
-    println!("{:?}",p);
-    extract_tokens(p);
-
 
     println!("");
 
-    let f = "Aa:[S0=a|Sa=S0]";
-    let p = TNTParser::parse(Rule::formula, f)?;
-    println!("{:?}",p);
-    extract_tokens(p);
-
-
-    println!("");
-
-    let f = "Aa':[(S0*SS0)=a'|Sa'=S0]";
-    let p = TNTParser::parse(Rule::formula, f)?;
-    println!("{:?}",p);
-    extract_tokens(p);
-
-
-*/
-    println!("");
-
-    let f = "[Aa':[(S0*SS0)=a'|Sa'=S0]>Eb:(Sb+0)=((a'+b)*SSS0)]";
+    let f = "[Aa:[(S0*SS0)=a|Sa=S0]>Eb:(Sb+0)=((a+b)*SSS0)]";
     let p = TNTParser::parse(Rule::formula, f)?;
     extract_tokens(p);
     

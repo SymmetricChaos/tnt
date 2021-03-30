@@ -6,6 +6,7 @@ use crate::operations::production::*;
 use crate::operations::construction::implies;
 use crate::logic_errors::LogicError;
 
+/// Information tracked about each Formula
 #[derive(Clone)]
 pub struct TheoremFrame {
     pub formula: Formula,
@@ -13,17 +14,18 @@ pub struct TheoremFrame {
     pub depth: usize,
     pub scope: usize,
     pub position: usize,
-    pub rule: String,
+    pub annotation: String,
     pub rule_num: u8,
 }
 
+
 impl TheoremFrame {
-    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, position: usize, rule: String, rule_num: u8) -> TheoremFrame {
-        TheoremFrame{ formula, comment, depth, scope, position, rule, rule_num }
+    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, position: usize, annotation: String, rule_num: u8) -> TheoremFrame {
+        TheoremFrame{ formula, comment, depth, scope, position, annotation, rule_num }
     }
 }
 
-/// The Deduction struct enforces valid use of deductive logic to produce proofs in Typographical Number Theory and output LaTeX formatted proofs.
+/// Enforces valid use of deductive logic to produce proofs in Typographical Number Theory and outputs formatted results.
 pub struct Deduction {
     index: usize,
     depth: usize,
@@ -53,7 +55,7 @@ impl Deduction {
         &self.theorems.last().unwrap().formula
     }
 
-    fn push_new(&mut self, theorem: Formula, comment: &str, rule: String, rule_num: u8) {
+    fn push_new(&mut self, theorem: Formula, comment: &str, annotation: String, rule_num: u8) {
         if NOISY { 
             println!("{}",theorem)
         }
@@ -62,8 +64,8 @@ impl Deduction {
                                           depth: self.depth, 
                                           scope: *self.tag_stack.last().unwrap(), 
                                           position: self.index,
-                                          rule: rule,
-                                          rule_num: rule_num,
+                                          annotation,
+                                          rule_num,
                                         };
         self.theorems.push( t );
         self.index += 1;
@@ -178,7 +180,7 @@ impl Deduction {
                 file.write(&line)?;
             }
 
-            let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.depth*2,pos,t.formula.latex(),t.rule).into_bytes();
+            let line = format!("&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",t.depth*2,pos,t.formula.latex(),t.annotation).into_bytes();
             file.write(&line)?;
 
             prev_depth = t.depth;
@@ -191,7 +193,7 @@ impl Deduction {
 
     pub fn english(&self) {
         for t in self.theorems.iter() {
-            println!("{}) {} [{}]",t.position,t.formula.english(),t.rule);
+            println!("{}) {} [{}]",t.position,t.formula.english(),t.annotation);
         }
     }
 
