@@ -28,8 +28,9 @@ pub fn to_latex(text: String) -> String {
     text = text.replace(">","\\rightarrow ");
     text = text.replace("&","\\wedge ");
     text = text.replace("|","\\vee ");
-    text = text.replace("[","\\langle");
-    text = text.replace("]","\\rangle");
+    text = text.replace("[","\\langle ");
+    text = text.replace("]","\\rangle ");
+    text = text.replace("~", "\\neg ");
 
     latex.push_str(&text);
 
@@ -98,7 +99,7 @@ pub fn english_num(text: String) -> String {
     text
 }
 
-pub fn english_successor(text: String) -> String {
+pub fn english_var_successor(text: String) -> String {
     let mut text = text;
     let mut n = SUCC_VAR_MIN_ONE.find(&text).unwrap();
     while n.is_some() {
@@ -113,6 +114,10 @@ pub fn english_successor(text: String) -> String {
     text
 }
 
+pub fn english_expr_successor(text: String) -> String {
+    text
+}
+
 
 pub fn to_english(text: String) -> String {
     let mut text = text;
@@ -124,7 +129,7 @@ pub fn to_english(text: String) -> String {
     text = text.replace("|"," or ");
     text = english_quant_chains(text);
     text = english_num(text);
-    text = english_successor(text);
+    text = english_var_successor(text);
     text
 }
 
@@ -145,7 +150,7 @@ pub fn dearithmetize(number: &BigUint) -> String {
 #[test]
 fn test_to_english() {
     let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
-    let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*(b+SSc'))=S0]".to_string();
+    let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
     let s3 = "Aa:Ab:Ec:[(a+1)=c&(b+0)=c]".to_string();
     assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
     assert_eq!(to_english(s2.clone()),"[it is not true that for all o', o' × 2 = 0 implies that there exist b and c, such that (0 × (b + (c' + 2))) = 1]");
