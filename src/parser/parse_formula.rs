@@ -7,17 +7,56 @@ use pest_derive::*;
 pub struct TNTParser;
 
 pub fn extract_tokens(pairs: Pairs<Rule>) {
+    
     for pair in pairs.flatten() {
-        println!("{}",pair.as_str());
-        extract_tokens(pair.into_inner());
+        
+        println!("{:?}, {:?}",pair.as_str(),pair.as_rule());
+        let x = pair.into_inner();
+        if x.as_str() == "" {
+            extract_tokens(x);
+        }
     }
 }
 
 
 #[test]
 fn test_parser() -> Result<(),Error<Rule>> {
-    let formula = "[~Ao':o'*SS0=0>Eb:Ec:(0*S(b+SSc'))=S0]";
-    let p = TNTParser::parse(Rule::formula, formula)?;
+
+    let f = "S0=a";
+    let p = TNTParser::parse(Rule::formula, f)?;
+    println!("{:?}",p);
     extract_tokens(p);
+    /*
+    println!("");
+
+    let f = "Aa:[S0=a|0=a]";
+    let p = TNTParser::parse(Rule::formula, f)?;
+    println!("{:?}",p);
+    extract_tokens(p);
+
+
+    println!("");
+
+    let f = "Aa:[S0=a|Sa=S0]";
+    let p = TNTParser::parse(Rule::formula, f)?;
+    println!("{:?}",p);
+    extract_tokens(p);
+
+
+    println!("");
+
+    let f = "Aa':[(S0*SS0)=a'|Sa'=S0]";
+    let p = TNTParser::parse(Rule::formula, f)?;
+    println!("{:?}",p);
+    extract_tokens(p);
+
+
+*/
+    println!("");
+
+    let f = "[Aa':[(S0*SS0)=a'|Sa'=S0]>Eb:(Sb+0)=((a'+b)*SSS0)]";
+    let p = TNTParser::parse(Rule::formula, f)?;
+    extract_tokens(p);
+    
     Ok(())
 }
