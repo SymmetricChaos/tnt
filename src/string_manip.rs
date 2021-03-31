@@ -81,7 +81,10 @@ pub fn left_implies(s: &str) -> Option<&str> {
 pub fn get_vars(s: &str) ->  Vec<String> {
     let mut out: Vec<String> = Vec::new();
     for st in VAR.find_iter(s) {
-        out.push(st.unwrap().as_str().to_owned())
+        let v = st.unwrap().as_str().to_owned();
+        if !out.contains(&v) {
+            out.push(v)
+        }
     }
     out
 }
@@ -201,7 +204,7 @@ fn test_strip_quants() {
 
 #[test]
 fn test_get_vars() {
-    let v1 = vec!["a'","b","a","a'","b"];
+    let v1 = vec!["a'","b","a"];
     assert_eq!(get_vars("Ea':Ab:(a+a')=b"),v1);
 }
 
@@ -222,11 +225,14 @@ fn test_replace_all_re() {
 #[test]
 fn test_split_arithmetic() {
     assert_eq!(split_arithmetic("(a+Sb)"),Some(("a","Sb")));
+    assert_eq!(split_arithmetic("(a*Sb)"),Some(("a","Sb")));
 }
 
 #[test]
 fn test_split_logical() {
     assert_eq!(split_logical("[u=u>Su=Su]"),Some(("u=u","Su=Su")));
+    assert_eq!(split_logical("[u=u&Su=Su]"),Some(("u=u","Su=Su")));
+    assert_eq!(split_logical("[u=u|Su=Su]"),Some(("u=u","Su=Su")));
 }
 
 #[test]

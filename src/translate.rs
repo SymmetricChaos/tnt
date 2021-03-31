@@ -18,6 +18,7 @@ lazy_static! {
 }
 
 
+
 pub fn to_latex(text: String) -> String {
     let mut latex = "".to_string();
 
@@ -117,7 +118,6 @@ pub fn english_var_successor(text: String) -> String {
 pub fn english_expr_successor(text: String) -> String {
     text
 }
-
 
 pub fn to_english(text: String) -> String {
     let mut text = text;
