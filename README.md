@@ -75,7 +75,7 @@ The Deduction can also be crudely translated to English with automatic annotatio
 6) (1 + 1) = 2 [transitivity of theorem 2 and theorem 5]
 ```
 
-Finally a Deduction may be rendered as an (extremely large) integers by using the .arithmetize() method which reads each theorem as bytes seperated by spaces into a BigUint. This is of no practical use the author is aware of but is relevant to the production of Gödel statements.
+Finally a Deduction may be rendered as an (extremely large) integer by using the .arithmetize() method which reads each theorem as bytes seperated by spaces into a BigUint. This is of no practical use the author is aware of but is relevant to the production of Gödel statements.
 
 The previous theorem corresponds to the number: 1050341303275422378657768361784977847949672579265786753539438511912991722480303393035798790127074435266152493569318923916943104808524883160525578709392832871799037992734723295688338121067685795026664762465244602602804284806503763532291647776
 
