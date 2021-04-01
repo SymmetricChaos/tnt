@@ -157,13 +157,10 @@ pub fn to_austere(text: String) -> String {
         mask.remove(0);
     }
 
-    println!("{}",out);
-
     let mut a_var = "a".to_string();
     let mut mask = "#".repeat(len);
     for _ in 0..len {
-        let re = Regex::new(&mask).unwrap();
-        out = replace_all_re(&out, &re, &a_var);
+        out = out.replace(&mask, &a_var);
         a_var.push_str("'");
         mask.remove(0);
     }
