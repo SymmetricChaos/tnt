@@ -116,7 +116,7 @@ pub fn english_var_successor(text: String) -> String {
 }
 
 // Final implementation should consume from left to right finding all parenthesized expressions
-pub fn english_expr_successor(text: String) -> String {
+pub fn english_expr(text: String) -> String {
     if is_num(&text) {
         return format!("{}",text.len()-1)
     } else if is_var(&text) {
@@ -135,7 +135,7 @@ pub fn english_expr_successor(text: String) -> String {
 
         // Replace the left and right sides
         out = match split_arithmetic(&out) {
-            Some((lhs, rhs, op)) => format!("({} {} {})",english_expr_successor(lhs.to_string()),op,english_expr_successor(rhs.to_string())),
+            Some((lhs, rhs, op)) => format!("({} {} {})",english_expr(lhs.to_string()),op,english_expr(rhs.to_string())),
             None => out,
         };
 
@@ -150,11 +150,27 @@ pub fn english_expr_successor(text: String) -> String {
 
 }
 
+pub fn english_expressions(text: String) -> String {
+    let mut text = text;
+    let mut prev = "".to_string();
+    let mut m = left_match(&text, vec!['('], vec![')']);
+    while m.is_some() {
+        let (lo, hi) = m.unwrap();
+        prev.push_str(&text[..lo]);
+        prev.push_str(&english_expr(text[lo..hi+1].to_string()));
+        let sp = text.split_at(hi+1);
+        text = sp.1.to_string();
+        m = left_match(&text, vec!['('], vec![')']);
+    }
+    prev.push_str(&text);
+    prev
+}
+
 pub fn to_english(text: String) -> String {
     let mut text = text;
+    text = english_expressions(text);
     text = text.replace("="," = ");
-    text = text.replace("+"," + ");
-    text = text.replace("*"," × ");
+    text = text.replace("*","×");
     text = text.replace(">"," implies that ");
     text = text.replace("&"," and ");
     text = text.replace("|"," or ");
@@ -205,9 +221,9 @@ pub fn to_austere(text: String) -> String {
 fn test_to_english() {
     let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
     let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
-    let s3 = "Aa:Ab:Ec:[(a+1)=c&(b+0)=c]".to_string();
+    let s3 = "Aa:Ab:Ec:[(a+S0)=c&(b+0)=c]".to_string();
     assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
-    assert_eq!(to_english(s2.clone()),"[it is not true that for all o', o' × 2 = 0 implies that there exist b and c, such that (0 × (b + (c' + 2))) = 1]");
+    assert_eq!(to_english(s2.clone()),"[it is not true that for all o\', (o\' × 2) = 0 implies that there exist b and c, such that (0 × ((b + (c\' + 2)) + 1)) = 1]");
     assert_eq!(to_english(s3.clone()),"for all a and b, there exists c, such that [(a + 1) = c and (b + 0) = c]");
 }
 
@@ -225,9 +241,8 @@ fn test_to_austere() {
 #[test]
 fn test_english_expr_successor() {
     let s1 = "SS(S0*Sa')".to_string();
-    assert_eq!(english_expr_successor(s1),"((1 * (a' + 1)) + 2)");
+    assert_eq!(english_expr(s1),"((1 * (a' + 1)) + 2)");
 
-    let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]";
-    let (a,b) = left_match(s2,vec!['('],vec![')']).unwrap();
-    println!("{}",&s2[a..b+1]);
+    let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
+    println!("{}",english_expressions(s2));
 }
