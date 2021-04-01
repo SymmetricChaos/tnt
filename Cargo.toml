@@ -6,6 +6,7 @@ edition = "2018"
 description = "Simple runtime validated proofs in number theory"
 license = "MIT"
 repository = "https://github.com/SymmetricChaos/tnt"
+keywords = ["number-theory","math","logic"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

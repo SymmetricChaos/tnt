@@ -34,14 +34,15 @@ pub fn left_match(s: &str, leftb: Vec<char>, rightb: Vec<char>) -> Option<(usize
     None
 }
 
-pub fn split_arithmetic(s: &str) -> Option<(&str,&str)> {
+pub fn split_arithmetic(s: &str) -> Option<(&str,&str,&str)> {
     let leftmost = match left_match(s, vec!['('],vec!['*','+']) {
         Some(v) => v,
         None => return None
     };
     let l = &s[1..leftmost.1];
     let r = &s[leftmost.1+1..s.len()-1];
-    Some((l,r))
+    let o = &s[leftmost.1..leftmost.1+1];
+    Some((l,r,o))
 }
 
 // Partition a &str into two pieces at the outermost leftmost logical operation
@@ -224,8 +225,8 @@ fn test_replace_all_re() {
 
 #[test]
 fn test_split_arithmetic() {
-    assert_eq!(split_arithmetic("(a+Sb)"),Some(("a","Sb")));
-    assert_eq!(split_arithmetic("(a*Sb)"),Some(("a","Sb")));
+    assert_eq!(split_arithmetic("(a+Sb)"),Some(("a","Sb","+")));
+    assert_eq!(split_arithmetic("(a*Sb)"),Some(("a","Sb","*")));
 }
 
 #[test]

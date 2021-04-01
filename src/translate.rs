@@ -2,7 +2,7 @@ use fancy_regex::Regex;
 use num::bigint::BigUint;
 use std::str::from_utf8;
 use lazy_static::lazy_static;
-use crate::string_manip::{get_vars,replace_all_re};
+use crate::{properties::{is_expression, is_num, is_var}, string_manip::{get_vars,replace_all_re,split_arithmetic,left_match}};
 
 lazy_static! {
     pub static ref QUANT: Regex = Regex::new("~?[AE][a-z]\'*:").unwrap();
@@ -115,8 +115,39 @@ pub fn english_var_successor(text: String) -> String {
     text
 }
 
+// Final implementation should consume from left to right finding all parenthesized expressions
 pub fn english_expr_successor(text: String) -> String {
-    text
+    if is_num(&text) {
+        return format!("{}",text.len()-1)
+    } else if is_var(&text) {
+        let addend = text.matches("S").count();
+        if addend == 0 {
+            return text
+        } else {
+            return format!("({} + {})",&text[addend..],addend)
+        }
+    } else if is_expression(&text) {
+        // Calculate the addend for the whole expression
+        let mut out = text.clone();
+        let prelen = out.len();
+        out = out.trim_start_matches('S').to_string();
+        let addend = prelen-out.len();
+
+        // Replace the left and right sides
+        out = match split_arithmetic(&out) {
+            Some((lhs, rhs, op)) => format!("({} {} {})",english_expr_successor(lhs.to_string()),op,english_expr_successor(rhs.to_string())),
+            None => out,
+        };
+
+        // Use the addend if needed
+        if addend != 0 {
+            out = format!("({} + {})",out,addend);
+        }
+        return out
+    } else {
+        return text
+    }
+
 }
 
 pub fn to_english(text: String) -> String {
@@ -173,7 +204,7 @@ pub fn to_austere(text: String) -> String {
 #[test]
 fn test_to_english() {
     let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
-    let s2 = "[~Ao':o'*SS0=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
+    let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
     let s3 = "Aa:Ab:Ec:[(a+1)=c&(b+0)=c]".to_string();
     assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
     assert_eq!(to_english(s2.clone()),"[it is not true that for all o', o' × 2 = 0 implies that there exist b and c, such that (0 × (b + (c' + 2))) = 1]");
@@ -189,4 +220,14 @@ fn test_arithmetize() {
 fn test_to_austere() {
     let s1 = "Aa':Ez'':[(z+0)=a'|(a'*z'')=SSa]".to_string();
     assert_eq!(to_austere(s1.clone()),"Aa:Ea':[(a''+0)=a|(a*a')=SSa''']");
+}
+
+#[test]
+fn test_english_expr_successor() {
+    let s1 = "SS(S0*Sa')".to_string();
+    assert_eq!(english_expr_successor(s1),"((1 * (a' + 1)) + 2)");
+
+    let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]";
+    let (a,b) = left_match(s2,vec!['('],vec![')']).unwrap();
+    println!("{}",&s2[a..b+1]);
 }

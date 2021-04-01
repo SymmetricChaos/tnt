@@ -27,7 +27,7 @@ pub fn is_expression(s: &str) -> bool {
     if is_var(s) || is_num(s) {
         return true
     } else {
-        let (l,r) = match split_arithmetic(s) {
+        let (l,r,_) = match split_arithmetic(s) {
             Some(t) => t,
             None => return false
         };
