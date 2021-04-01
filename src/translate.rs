@@ -2,7 +2,7 @@ use fancy_regex::Regex;
 use num::bigint::BigUint;
 use std::str::from_utf8;
 use lazy_static::lazy_static;
-use crate::string_manip::get_vars;
+use crate::string_manip::{get_vars,replace_all_re};
 
 lazy_static! {
     pub static ref QUANT: Regex = Regex::new("~?[AE][a-z]\'*:").unwrap();
@@ -145,6 +145,32 @@ pub fn dearithmetize(number: &BigUint) -> String {
     }
 }
 
+pub fn to_austere(text: String) -> String {
+    let mut out = text.clone();
+    let vars = get_vars(&text);
+    let len = vars.len();
+    
+    let mut mask = "#".repeat(len);
+    for v in vars {
+        let re = Regex::new(&format!("{}(?!')",v)).unwrap();
+        out = replace_all_re(&out, &re, &mask);
+        mask.remove(0);
+    }
+
+    println!("{}",out);
+
+    let mut a_var = "a".to_string();
+    let mut mask = "#".repeat(len);
+    for _ in 0..len {
+        let re = Regex::new(&mask).unwrap();
+        out = replace_all_re(&out, &re, &a_var);
+        a_var.push_str("'");
+        mask.remove(0);
+    }
+
+    out
+}
+
 
 
 #[test]
@@ -155,4 +181,15 @@ fn test_to_english() {
     assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
     assert_eq!(to_english(s2.clone()),"[it is not true that for all o', o' × 2 = 0 implies that there exist b and c, such that (0 × (b + (c' + 2))) = 1]");
     assert_eq!(to_english(s3.clone()),"for all a and b, there exists c, such that [(a + 1) = c and (b + 0) = c]");
+}
+
+#[test]
+fn test_arithmetize() {
+
+}
+
+#[test]
+fn test_to_austere() {
+    let s1 = "Aa':Ez'':[(z+0)=a'|(a'*z'')=SSa]".to_string();
+    assert_eq!(to_austere(s1.clone()),"Aa:Ea':[(a''+0)=a|(a*a')=SSa''']");
 }

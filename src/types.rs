@@ -4,7 +4,7 @@ use fancy_regex::Regex;
 use std::ops::{Add,Mul,Shl};
 
 use crate::properties::{is_expression,is_num,is_var,is_simple_formula,is_formula};
-use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
+use crate::translate::{to_latex,to_english,arithmetize,dearithmetize,to_austere};
 use crate::string_manip::replace_all_re;
 
 
@@ -61,6 +61,11 @@ impl Formula {
         Formula::new(&dearithmetize(number))
     }
 
+    /// Return the Formula converted into its canonical austere form
+    pub fn austere(&self) -> Formula {
+            Formula::new(&to_austere(self.to_string()))
+        }
+
     /// Replace every instance of a Variable in the Formula with some Term
     pub fn replace_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
         let st = replace_all_re(&self.to_string(), &v.re, &replacement.get_string()[..]);
@@ -83,6 +88,7 @@ impl Formula {
     pub fn contains_var_bound(&self, v: &Variable) -> bool {
         v.req.find(&self.to_string()).unwrap().is_some()
     }
+
 }
 
 impl fmt::Display for Formula {
