@@ -318,7 +318,7 @@ dependencies = [
 
 [[package]]
 name = "tnt"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "fancy-regex",
  "lazy_static",
