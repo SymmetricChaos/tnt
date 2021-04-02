@@ -2,7 +2,7 @@ use fancy_regex::Regex;
 use num::bigint::BigUint;
 use std::str::from_utf8;
 use lazy_static::lazy_static;
-use crate::{properties::{is_expression, is_num, is_var}, string_manip::{get_vars,replace_all_re,split_arithmetic,left_match}};
+use crate::{properties::{is_expression, is_num, is_var}, string_manip::{get_vars,replace_all_re,split_arithmetic}};
 
 lazy_static! {
     pub static ref QUANT: Regex = Regex::new("~?[AE][a-z]\'*:").unwrap();
@@ -88,32 +88,6 @@ pub fn english_quant_chains(text: String) -> String {
     text
 }
 
-pub fn english_num(text: String) -> String {
-    let mut text = text;
-    let mut n = NUM_GEQ_ONE.find(&text).unwrap();
-    while n.is_some() {
-        let lo = n.unwrap().start();
-        let hi = n.unwrap().end();
-        text.replace_range(lo..hi, &format!("{}",hi-lo-1));
-        n = NUM_GEQ_ONE.find(&text).unwrap();
-    }
-    text
-}
-
-pub fn english_var_successor(text: String) -> String {
-    let mut text = text;
-    let mut n = SUCC_VAR_MIN_ONE.find(&text).unwrap();
-    while n.is_some() {
-        let lo = n.unwrap().start();
-        let hi = n.unwrap().end();
-        let substr = &text.clone()[lo..hi];
-        let addend = substr.matches("S").count();
-        let var = &substr[addend..];
-        text.replace_range(lo..hi, &format!("({} + {})",var,addend));
-        n = SUCC_VAR_MIN_ONE.find(&text).unwrap();
-    }
-    text
-}
 
 // Final implementation should consume from left to right finding all parenthesized expressions
 pub fn english_expr(text: String) -> String {
@@ -150,35 +124,82 @@ pub fn english_expr(text: String) -> String {
 
 }
 
-pub fn english_expressions(text: String) -> String {
-    let mut text = text;
-    let mut prev = "".to_string();
-    let mut m = left_match(&text, vec!['('], vec![')']);
-    while m.is_some() {
-        let (lo, hi) = m.unwrap();
-        prev.push_str(&text[..lo]);
-        prev.push_str(&english_expr(text[lo..hi+1].to_string()));
-        let sp = text.split_at(hi+1);
-        text = sp.1.to_string();
-        m = left_match(&text, vec!['('], vec![')']);
+fn left_quant(s: &str) -> Option<usize> {
+    let q_chars = "abcdefghijklmnopqrstuvwxyzAE':~";
+    let sym = s.char_indices();
+    for (pos,c) in sym {
+        if !q_chars.contains(c) {
+            return Some(pos)
+        }
     }
-    prev.push_str(&text);
-    prev
+    None
+}
+
+fn left_expr(s: &str) -> Option<usize> {
+    let e_chars = "abcdefghijklmnopqrstuvwxyz'+*S()0";
+    let sym = s.char_indices();
+    for (pos,c) in sym {
+        if !e_chars.contains(c) {
+            return Some(pos)
+        }
+    }
+    None
 }
 
 pub fn to_english(text: String) -> String {
-    let mut text = text;
-    text = english_expressions(text);
-    text = text.replace("="," = ");
-    text = text.replace("*","×");
-    text = text.replace(">"," implies that ");
-    text = text.replace("&"," and ");
-    text = text.replace("|"," or ");
-    text = english_quant_chains(text);
-    text = english_num(text);
-    text = english_var_successor(text);
-    text
+    let mut used = "".to_string();
+    let mut text = text.clone();
+
+    let q_start = "AE~";
+    let e_start = "S(0abcdefghijklmnopqrstuvwxyz";
+
+    loop {
+        let next_char = match text.chars().next() {
+            Some(char) => char,
+            None => return used
+        };
+    
+        if q_start.contains(next_char) {
+            let split = left_quant(&text);
+    
+            let (l,r) = match split {
+                Some(n) => (&text[..n],&text[n..]),
+                None => (&text[..],"")
+            };
+    
+            used.push_str(&english_quant_chains(l.to_string()));
+            text = r.to_string();
+        
+        } else if e_start.contains(next_char) {
+            let split = left_expr(&text);
+
+            let (l,r) = match split {
+                Some(n) => (&text[..n],&text[n..]),
+                None => (&text[..],"")
+            };
+    
+            used.push_str(&english_expr(l.to_string()));
+            text = r.to_string();
+        
+        } else {
+            match next_char {
+                '=' => used.push_str(" = "),
+                '[' => used.push('['),
+                ']' => used.push(']'),
+                '&' => used.push_str(" and "),
+                '|' => used.push_str(" or "),
+                '>' => used.push_str(" implies "),
+                _ => panic!("what is {}?",next_char)
+            }
+            text.remove(0);
+        }
+    }
 }
+
+
+
+
+
 
 /// Each symbol could be represented with 6 bits instead of eight but this is much easier
 pub fn arithmetize(text: String) -> BigUint {
@@ -238,13 +259,4 @@ fn test_arithmetize() {
 fn test_to_austere() {
     let s1 = "Aa':Ez'':[(z+0)=a'|(a'*z'')=SSa]".to_string();
     assert_eq!(to_austere(s1.clone()),"Aa:Ea':[(a''+0)=a|(a*a')=SSa''']");
-}
-
-#[test]
-fn test_english_expr_successor() {
-    let s1 = "SS(S0*Sa')".to_string();
-    assert_eq!(english_expr(s1),"((1 * (a' + 1)) + 2)");
-
-    let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
-    println!("{}",english_expressions(s2));
 }

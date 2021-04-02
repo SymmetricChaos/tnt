@@ -66,12 +66,12 @@ Which renders as:
 The Deduction can also be crudely translated to English with automatic annotations using the .english() method.
 
 ```
-0) for all a and b, (a + (b + 1)) = S(a + b) [axiom]
-1) for all b, (1 + (b + 1)) = S(1 + b) [specification of a to S0 in theorem 0]
-2) (1 + 1) = S(1 + 0) [specification of b to 0 in theorem 1]
+0) for all a and b, (a + (b + 1)) = ((a + b) + 1) [axiom]
+1) for all b, (1 + (b + 1)) = ((1 + b) + 1) [specification of a to S0 in theorem 0]
+2) (1 + 1) = ((1 + 0) + 1) [specification of b to 0 in theorem 1]
 3) for all a, (a + 0) = a [axiom]
 4) (1 + 0) = 1 [specification of a to S0 in theorem 3]
-5) S(1 + 0) = 2 [successor of theorem 4]
+5) ((1 + 0) + 1) = 2 [successor of theorem 4]
 6) (1 + 1) = 2 [transitivity of theorem 2 and theorem 5]
 ```
 
