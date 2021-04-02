@@ -7,3 +7,4 @@ mod translate;
 pub mod axioms;
 pub mod logic_errors;
 pub mod parser;
+mod scan;
