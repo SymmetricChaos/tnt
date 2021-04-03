@@ -20,5 +20,7 @@ fn main() -> Result<(),LogicError> {
 
     d.english();
 
+    println!("{}",d.arithmetize());
+
     Ok(())
 }

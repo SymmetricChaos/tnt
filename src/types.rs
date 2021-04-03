@@ -63,8 +63,8 @@ impl Formula {
 
     /// Return the Formula converted into its canonical austere form
     pub fn austere(&self) -> Formula {
-            Formula::new(&to_austere(self.to_string()))
-        }
+        Formula::new(&to_austere(self.to_string()))
+    }
 
     /// Replace every instance of a Variable in the Formula with some Term
     pub fn replace_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
