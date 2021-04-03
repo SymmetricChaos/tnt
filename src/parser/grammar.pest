@@ -1,7 +1,0 @@
-num = { "S"* ~ "0" }
-var = { 'a'..'z' ~ "'"* }
-arith = { "+" | "*" }
-expr = @{ num | var | "S"* ~ var | "S"* ~ "(" ~ expr ~ arith ~ expr ~ ")" }
-quant = @{ "~"* ~ ("A" | "E") ~ var ~ ":" }
-logical = { "&" | "|" | ">" }
-formula = _{ quant* ~ expr ~ "=" ~ expr | quant* ~ "[" ~ formula ~ logical ~ formula ~ "]" }

@@ -38,6 +38,8 @@ pub fn to_latex(text: String) -> String {
     latex
 }
 
+
+// Translate a chain of quantifications
 pub fn english_quant_chains(text: String) -> String {
     let mut text = text;
     let mut exists = EXISTS_CHAIN.find(&text).unwrap();
@@ -89,7 +91,7 @@ pub fn english_quant_chains(text: String) -> String {
 }
 
 
-// Final implementation should consume from left to right finding all parenthesized expressions
+// translate an expression
 pub fn english_expr(text: String) -> String {
     if is_num(&text) {
         return format!("{}",text.len()-1)
@@ -125,17 +127,56 @@ pub fn english_expr(text: String) -> String {
 }
 
 fn left_quant(s: &str) -> Option<usize> {
-    let q_chars = "abcdefghijklmnopqrstuvwxyzAE':~";
+    let mut head = s.chars();
+    let h1 = head.next()?;
+    let h2 = head.next()?;
+
+    if !"AE~".contains(h1) {
+        return None
+    }
+
+    if h1 == '~' && !"AE".contains(h2) {
+        return None
+    }
+
     let sym = s.char_indices();
     for (pos,c) in sym {
-        if !q_chars.contains(c) {
-            return Some(pos)
+        if c == ':' {
+            return Some(pos+1)
         }
     }
     None
 }
 
+fn left_quant_chain(s: &str) -> Option<usize> {
+    let mut out = 0;
+    let mut head = s.chars();
+    let h1 = head.next()?;
+    let h2 = head.next()?;
+
+    if !"AE~".contains(h1) {
+        return None
+    }
+
+    if h1 == '~' && !"AE".contains(h2) {
+        return None
+    }
+
+    let mut l = left_quant(&s[out..]);
+    while l.is_some() {
+        out += l?;
+        l = left_quant(&s[out..]);
+    }
+
+    Some(out)
+}
+
 fn left_expr(s: &str) -> Option<usize> {
+    let e_start = "abcdefghijklmnopqrstuvwxyzS(0";
+    if !e_start.contains(s.chars().next().unwrap()) {
+        return None
+    }
+
     let e_chars = "abcdefghijklmnopqrstuvwxyz'+*S()0";
     let sym = s.char_indices();
     for (pos,c) in sym {
@@ -143,15 +184,12 @@ fn left_expr(s: &str) -> Option<usize> {
             return Some(pos)
         }
     }
-    None
+    Some(s.len())
 }
 
 pub fn to_english(text: String) -> String {
     let mut used = "".to_string();
     let mut text = text.clone();
-
-    let q_start = "AE~";
-    let e_start = "S(0abcdefghijklmnopqrstuvwxyz";
 
     loop {
         let next_char = match text.chars().next() {
@@ -159,60 +197,41 @@ pub fn to_english(text: String) -> String {
             None => return used
         };
     
-        if q_start.contains(next_char) {
-            let split = left_quant(&text);
+        if let Some(split) = left_quant_chain(&text) {
     
-            let (l,r) = match split {
-                Some(n) => (&text[..n],&text[n..]),
-                None => (&text[..],"")
-            };
-    
+            let (l,r) = (&text[..split],&text[split..]);
             used.push_str(&english_quant_chains(l.to_string()));
             text = r.to_string();
         
-        } else if e_start.contains(next_char) {
-            let split = left_expr(&text);
+        } else if let Some(split) = left_expr(&text) {
 
-            let (l,r) = match split {
-                Some(n) => (&text[..n],&text[n..]),
-                None => (&text[..],"")
-            };
-    
+            let (l,r) = (&text[..split],&text[split..]);
             used.push_str(&english_expr(l.to_string()));
             text = r.to_string();
+            used = used.replace('*', "×");
         
         } else {
+
             match next_char {
                 '=' => used.push_str(" = "),
                 '[' => used.push('['),
                 ']' => used.push(']'),
                 '&' => used.push_str(" and "),
                 '|' => used.push_str(" or "),
-                '>' => used.push_str(" implies "),
-                _ => panic!("what is {}?",next_char)
+                '>' => used.push_str(" implies that "),
+                '~' => used.push_str("it is false that "),
+                '0' => used.push_str("0"),
+                _ => panic!("unkown symbol {}",next_char)
             }
             text.remove(0);
+
         }
     }
 }
 
 
 
-
-
-
-/// Each symbol could be represented with 6 bits instead of eight but this is much easier
-pub fn arithmetize(text: String) -> BigUint {
-    BigUint::from_bytes_be(&text.into_bytes())
-}
-
-pub fn dearithmetize(number: &BigUint) -> String {
-    match from_utf8(&number.to_bytes_be()) {
-        Ok(s) => s.to_string(),
-        Err(e) => panic!("{}",e), 
-    }
-}
-
+// Convert to the canonical form
 pub fn to_austere(text: String) -> String {
     let mut out = text.clone();
     let vars = get_vars(&text);
@@ -238,16 +257,34 @@ pub fn to_austere(text: String) -> String {
 
 
 
+// Each symbol could be represented with 6 bits instead of eight but this is much easier
+pub fn arithmetize(text: String) -> BigUint {
+    BigUint::from_bytes_be(&text.into_bytes())
+}
+
+pub fn dearithmetize(number: &BigUint) -> String {
+    match from_utf8(&number.to_bytes_be()) {
+        Ok(s) => s.to_string(),
+        Err(e) => panic!("{}",e), 
+    }
+}
+
+
+
 #[test]
 fn test_to_english() {
     let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
     let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
     let s3 = "Aa:Ab:Ec:[(a+S0)=c&(b+0)=c]".to_string();
     let s4 = "S(0+a)=(SS0*S(b+b))".to_string();
+    let s5 = "Au:u=SSS0".to_string();
+    let s6 = "As:~Ss=0".to_string();
     assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
     assert_eq!(to_english(s2.clone()),"[it is not true that for all o\', (o\' × 2) = 0 implies that there exist b and c, such that (0 × ((b + (c\' + 2)) + 1)) = 1]");
     assert_eq!(to_english(s3.clone()),"for all a and b, there exists c, such that [(a + 1) = c and (b + 0) = c]");
     assert_eq!(to_english(s4.clone()),"((0 + a) + 1) = (2 × ((b + b) + 1))");
+    assert_eq!(to_english(s5.clone()),"for all u, u = 3");
+    assert_eq!(to_english(s6.clone()),"for all s, it is false that (s + 1) = 0");
 }
 
 #[test]
