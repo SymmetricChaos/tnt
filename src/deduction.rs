@@ -32,7 +32,7 @@ pub struct Deduction {
     tag_stack: Vec<usize>,
     title: String,
     axioms: Vec<Formula>,
-    theorems: Vec<TheoremFrame>, // Forumla, comment, current depth, start of current supposition
+    theorems: Vec<TheoremFrame>,
 }
 
 // When 'true' forces the theorems to be printed every time they are added, helps with debugging

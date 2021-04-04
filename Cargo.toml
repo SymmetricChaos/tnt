@@ -1,6 +1,6 @@
 [package]
 name = "tnt"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["SymmetricChaos <ajfraebel@gmail.com>"]
 edition = "2018"
 description = "Simple runtime validated proofs in number theory"
