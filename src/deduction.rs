@@ -1,10 +1,31 @@
-use std::{fs::File, io::{Write,Error}};
+use std::{cell::RefCell, fs::File, io::{Write,Error}, rc::Rc};
 use num::BigUint;
 
 use crate::{string_manip::get_free_vars, types::{Formula,Term,Variable}};
 use crate::operations::production::*;
 use crate::operations::construction::implies;
 use crate::logic_errors::LogicError;
+
+
+struct Scope {
+    start: usize,
+    end: Option<usize>,
+    depth: u8,
+    parent: Rc<RefCell<Scope>>,
+}
+
+impl Scope {
+    pub fn inside(&self, n: usize) -> bool {
+        if n >= self.start {
+            match self.end {
+                Some(val) => return n <= val,
+                None => return true
+            }
+        } else {
+            return false
+        }
+    }
+}
 
 /// Information tracked about each Formula
 #[derive(Clone)]
@@ -13,6 +34,7 @@ pub struct TheoremFrame {
     pub comment: String,
     pub depth: usize,
     pub scope: usize,
+    pub parent_scope: Option<usize>,
     pub position: usize,
     pub annotation: String,
     pub rule_num: u8,
@@ -20,10 +42,12 @@ pub struct TheoremFrame {
 
 
 impl TheoremFrame {
-    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, position: usize, annotation: String, rule_num: u8) -> TheoremFrame {
-        TheoremFrame{ formula, comment, depth, scope, position, annotation, rule_num }
+    pub fn new(formula: Formula, comment: String, depth: usize, scope: usize, parent_scope: Option<usize>, position: usize, annotation: String, rule_num: u8) -> TheoremFrame {
+        TheoremFrame{ formula, comment, depth, scope, parent_scope, position, annotation, rule_num }
     }
 }
+
+
 
 /// Enforces valid use of deductive logic to produce proofs in Typographical Number Theory and outputs formatted results.
 pub struct Deduction {
