@@ -27,7 +27,7 @@ fn main() -> Result<(),LogicError> {
     e.transitivity(2, 8, "")?;
     e.transitivity(9, 5, "")?;
     e.generalization(10, d, "")?;
-    e.implication("");
+    e.implication("")?;
 
     e.generalization(12, c, "")?;
     e.specification(1, b, zero, "")?;
@@ -55,7 +55,7 @@ fn main() -> Result<(),LogicError> {
     e.transitivity(34, 28, "")?;
     e.transitivity(35, 30, "")?;
     e.generalization(36, c, "")?;
-    e.implication("");
+    e.implication("")?;
 
     e.generalization(38, d, "")?;
     e.specification(15,a, c, "")?;
@@ -65,7 +65,7 @@ fn main() -> Result<(),LogicError> {
     e.supposition(Formula::new("(0+b)=b"), "")?;
     e.successor(43, "")?;
     e.transitivity(42, 44, "")?;
-    e.implication("");
+    e.implication("")?;
 
     e.generalization(46, b, "")?;
     e.specification(15, a, zero, "")?;
