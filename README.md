@@ -84,6 +84,4 @@ The previous theorem corresponds to the number: 10503413032754223786577683617849
 # Future Goals
 Currently the .to_english() method uses a hand-made parser. This should be changed to a crate like pest or nom to avoid bugs.
 
-Currently nested suppositions are not supported, this doesn't restrict what can be proved but may make proofs longer.
-
 The documentation is currently extremely sparse and sould be reworked to include examples.
