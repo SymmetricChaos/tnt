@@ -48,24 +48,30 @@ impl Deduction {
 
 
     // Internal methods
-    // This is correct only because nested supposition is forbidden in the .supposition() method
-    // To allow nested supposition we need to track scope somehow
+    // Get a theorem if it is in an accessible scope
     fn get_theorem(&self, n: usize) -> Result<&Formula,LogicError> {
         // Check the scope
-        if self.theorems[n].scope != self.scope_cur && self.theorems[n].scope != *self.scope_stack.last().unwrap() {
-            let msg = format!("Scope Error: position {} not in the current scope or its parent scope", n);
-            return Err(LogicError::new(msg))
+        let tscope = self.theorems[n].scope;
+        if tscope == self.scope_cur || self.scope_stack.contains(&tscope) {
+            return Ok(&self.theorems[n].formula)
         }
-        Ok(&self.theorems[n].formula)
+        let msg = format!("Scope Error: position {} is not in an accessible scope", n);
+        Err(LogicError::new(msg))
     }
 
+    // The last theorem on the list is always in an accessible scope.
     fn get_last_theorem(&self) -> &Formula {
         &self.theorems.last().unwrap().formula
     }
 
     fn push_new(&mut self, theorem: Formula, comment: &str, annotation: String, rule_num: u8) {
-        if NOISY { 
-            println!("{} {} scope {}",self.index,theorem,self.scope_cur)
+        if NOISY {
+            if rule_num == 10 {
+                println!("{}begin supposition","   ".repeat(self.depth-1))
+            } else if rule_num == 11 {
+                println!("{}end supposition","   ".repeat(self.depth))
+            }
+            println!("{}{}) {} [{}]","   ".repeat(self.depth),self.index,theorem,annotation)
         }
         let t = TheoremFrame{ formula: theorem, 
                                           comment: comment.to_string(), 
