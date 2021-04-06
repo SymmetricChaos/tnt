@@ -145,3 +145,28 @@ impl fmt::Display for TNT {
         }
     }
 }
+
+
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn test_replace_var() {
+        let a = &Variable::new("a");
+        let b = &Variable::new("b");
+        let f1 = Formula::new("Aa:Ea':a=Sa'");
+        assert_eq!( f1.replace_var(a,b).to_string(), "Ab:Ea':b=Sa'".to_string() )
+    }
+
+    #[test]
+    fn test_specify_var() {
+        let a = &Variable::new("a");
+        let b = &Variable::new("b");
+        let f1 = Formula::new("Aa:Ea':a=Sa'");
+        assert_eq!( f1.specify_var(a,b).to_string(), "Ea':b=Sa'".to_string() )
+    }
+
+}
