@@ -1,4 +1,5 @@
-use tnt::{logic_errors::LogicError, types::{Term, Formula, Variable, Number}};
+use tnt::{logic_errors::LogicError, types::Formula};
+use tnt::terms::{Term,Variable,Number};
 use tnt::deduction::Deduction;
 use tnt::axioms::PEANO;
 
@@ -8,8 +9,8 @@ fn main() -> Result<(),LogicError> {
     let b = &Variable::new("b");
     let c = &Variable::new("c");
     let d = &Variable::new("d");
-    let sc = &(c << 1);
-    let sd = &(d << 1);
+    let sc = &c.succ();
+    let sd = &d.succ();
     let zero = &Number::new("0");
 
     let t = &Formula::new("Ad:Ac:(c+d)=(d+c)");

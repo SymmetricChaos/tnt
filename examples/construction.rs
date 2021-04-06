@@ -1,4 +1,4 @@
-use tnt::types::{Variable,Number,Term};
+use tnt::terms::{Variable,Number,Term};
 
 fn main() {
 

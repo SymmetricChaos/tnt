@@ -1,5 +1,6 @@
 pub mod deduction;
 pub mod types;
+pub mod terms;
 mod properties;
 pub mod operations;
 mod string_manip;

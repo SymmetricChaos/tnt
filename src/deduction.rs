@@ -1,7 +1,8 @@
 use std::{ fs::File, io::{Write,Error}};
 use num::BigUint;
 
-use crate::{string_manip::get_free_vars, types::{Formula,Term,Variable}};
+use crate::{string_manip::get_free_vars, types::Formula};
+use crate::terms::{Term,Variable};
 use crate::operations::production::*;
 use crate::operations::construction::implies;
 use crate::logic_errors::LogicError;
