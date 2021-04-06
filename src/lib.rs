@@ -1,5 +1,5 @@
 pub mod deduction;
-pub mod types;
+pub mod formula;
 pub mod terms;
 mod properties;
 pub mod operations;

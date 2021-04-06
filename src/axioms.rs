@@ -2,7 +2,7 @@
 
 use lazy_static::lazy_static;
 
-use crate::types::Formula;
+use crate::formula::Formula;
 
 lazy_static! {
     /**  

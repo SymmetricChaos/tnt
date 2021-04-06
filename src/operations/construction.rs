@@ -1,5 +1,5 @@
 //! Arbitrary logical combinations of the inputs.
-use crate::types::Formula;
+use crate::formula::Formula;
 use crate::terms::{Term,Variable};
 
 // These are guaranteed to produce well-formed formulas of TNT. However they may produce false statements.

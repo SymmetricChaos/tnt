@@ -1,4 +1,4 @@
-use tnt::{logic_errors::LogicError, types::Formula};
+use tnt::{logic_errors::LogicError, formula::Formula};
 use tnt::terms::{Variable,Number,Term};
 use tnt::deduction::Deduction;
 use tnt::axioms::PEANO;

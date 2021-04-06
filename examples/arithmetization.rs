@@ -1,4 +1,4 @@
-use tnt::types::Formula;
+use tnt::formula::Formula;
 use tnt::terms::{Number,Term};
 
 fn main() {

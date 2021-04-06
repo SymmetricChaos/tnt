@@ -1,6 +1,6 @@
 //! Create inferences from other statements of TNT, will return LogicError if constraints are not met.
 
-use crate::types::{Formula};
+use crate::formula::{Formula};
 use crate::terms::{Variable,Term,Expression,Number};
 use crate::operations::construction::*;
 use crate::string_manip::{split_eq, get_bound_vars, left_implies, get_vars};
