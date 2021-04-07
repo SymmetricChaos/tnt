@@ -7,7 +7,7 @@ use std::ops::{Add,Mul};
 use crate::properties::{is_expression,is_num,is_var};
 use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
 
-/// Term is implemented for the three structs that hold valid pieces of unquantified TNT formulas: Variable, Number, and Expression.
+/// Term is implemented for the three structs that hold valid pieces of unquantified TNT formulas: Variable, Number, and Expression. Besides the traits bound to Term the also implement the + and * operations.
 pub trait Term {
     /// An &str is automatically converted to the correct variant, this requires potentially slow parsing of the &str
     fn new(input: &str) -> Self;
@@ -84,11 +84,13 @@ impl Term for Variable {
 }
 
 impl Variable {
+    // Single successor
     pub fn succ(&self) -> Expression {
         let new = format!("S{}", self.get_string());
         Expression{ string: new }
     }
 
+    // Quick multiple successor
     pub fn succs(&self, n: usize) -> Expression {
         let s = "S".repeat(n);
         let new = format!("{}{}", s, self.get_string());
@@ -200,11 +202,13 @@ impl Number {
         Number{ string: "S0".to_string() }
     }
 
+    // Single successor
     pub fn succ(&self) -> Number {
         let new = format!("S{}", self.get_string());
         Number{ string: new }
     }
 
+    // Quick multiple successor
     pub fn succs(&self, n: usize) -> Number {
         let s = "S".repeat(n);
         let new = format!("{}{}", s, self.get_string());
@@ -308,18 +312,19 @@ impl Term for Expression {
 }
 
 impl Expression {
+    // Single successor
     pub fn succ(&self) -> Expression {
         let new = format!("S{}", self.get_string());
         Expression{ string: new }
     }
 
+    // Quick multiple successor
     pub fn succs(&self, n: usize) -> Expression {
         let s = "S".repeat(n);
         let new = format!("{}{}", s, self.get_string());
         Expression{ string: new }
     }
 }
-
 
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -109,10 +109,10 @@ pub fn interchange_ea(x: &Formula, v: &Variable, nth: usize) -> Result<Formula,L
 /// ```
 /// use tnt::terms::{Variable,Term};
 /// use tnt::formula::Formula;
-/// use tnt::operations::production::interchange_ea;
+/// use tnt::operations::production::interchange_ae;
 /// let b = &Variable::new("b");
 /// let f = &Formula::new("Ab:~[a=b|Sa=b]");
-/// interchange_ea(f,b,0); // ~Eb:[a=b|Sa=b]
+/// interchange_ae(f,b,0); // ~Eb:[a=b|Sa=b]
 /// ```
 pub fn interchange_ae(x: &Formula, v: &Variable, nth: usize) -> Result<Formula,LogicError> {
     let e = format!("~E{}:",v);
@@ -138,6 +138,15 @@ pub fn interchange_ae(x: &Formula, v: &Variable, nth: usize) -> Result<Formula,L
     Ok(Formula::new_complex(&new_s))
 }
 
+/// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
+/// ```
+/// use tnt::terms::{Variable,Term};
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::interchange_ae;
+/// let b = &Variable::new("b");
+/// let f = &Formula::new("Ab:~[a=b|Sa=b]");
+/// interchange_ae(f,b,0); // ~Eb:[a=b|Sa=b]
+/// ```
 pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Formula,LogicError> {
     // The theorem we need to generalize is the outermost, leftmost implication of the general case
     // Need to change this from causing a panic if malformed to causing a LogicError
@@ -161,6 +170,13 @@ pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Form
     }
 }
 
+/// Given a Formula::Simple return the successor of both sides
+/// ```
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::successor;
+/// let f = &Formula::new("a=b");
+/// successor(f); // Sa=Sb
+/// ```
 pub fn successor(a: &Formula) -> Result<Formula,LogicError> {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
@@ -176,6 +192,13 @@ pub fn successor(a: &Formula) -> Result<Formula,LogicError> {
     }
 }
 
+/// Given a Formula::Simple return the predecessor of both sides
+/// ```
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::predecessor;
+/// let f = &Formula::new("Sa=Sb");
+/// predecessor(f); // a=b
+/// ```
 pub fn predecessor(a: &Formula) -> Result<Formula,LogicError> {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
@@ -195,6 +218,13 @@ pub fn predecessor(a: &Formula) -> Result<Formula,LogicError> {
     }
 }
 
+/// Given a Formula::Simple flip the two sides of the equality
+/// ```
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::symmetry;
+/// let f = &Formula::new("SSa=Sb'");
+/// symmetry(f); // Sb'=SSa
+/// ```
 pub fn symmetry(a: &Formula) -> Result<Formula,LogicError> {
     if let Formula::Simple(_) = a {
         if let Some((l,r)) = split_eq(&a.to_string()) {
@@ -210,6 +240,14 @@ pub fn symmetry(a: &Formula) -> Result<Formula,LogicError> {
     }
 }
 
+/// Given two Formula::Simple where the right side of the first matches the left side of the second return the Formula that is the equality of their left and right
+/// ```
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::transitivity;
+/// let f1 = &Formula::new("SSa=Sb'");
+/// let f2 = &Formula::new("Sb'=(1+1)");
+/// transitivity(f1,f2); // SSa=(1+1)
+/// ```
 pub fn transitivity(a1: &Formula, a2: &Formula) -> Result<Formula,LogicError> {
     if let Formula::Simple(_) = a1 {
         if let Formula::Simple(_) = a2 {
