@@ -7,7 +7,16 @@ use crate::string_manip::{split_eq, get_bound_vars, left_implies, get_vars};
 use crate::logic_errors::LogicError;
 
 
-
+/// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
+/// ```
+/// use tnt::terms::{Variable,Number,Term};
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::specification;
+/// let a = &Variable::new("a");
+/// let n = &Number::new("SS0");
+/// let f = &Formula::new("Ea':Aa:[a=a&a'=a']");
+/// specification(f,a,n); // Ea':[SS0=SS0&a'=a']
+/// ```
 pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Result<Formula,LogicError> {
     if x.to_string().contains(&format!("A{}:",v)) {
         let var_in_t = get_vars(&t.get_string());
@@ -25,6 +34,15 @@ pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Result<Formul
     }
 }
 
+/// In a given Formula with some Variable not quantified, universally quantify that variable. This is additionally restricted within the Deduction struct.
+/// ```
+/// use tnt::terms::{Variable,Number,Term};
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::generalization;
+/// let a = &Variable::new("a");
+/// let f = &Formula::new("Ea':[a=a&a'=a']");
+/// generalization(f,a); // Ea':Aa:[a=a&a'=a']
+/// ```
 pub fn generalization(x: &Formula, v: &Variable) -> Result<Formula,LogicError> {
     if !x.contains_var_bound(&v) {
         return Ok(forall(v,x))
@@ -34,8 +52,17 @@ pub fn generalization(x: &Formula, v: &Variable) -> Result<Formula,LogicError> {
     }
 }
 
+/// In a given Formula with some Variable not quantified, existentially quantify that variable.
+/// ```
+/// use tnt::terms::{Variable,Number,Term};
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::existence;
+/// let a = &Variable::new("a");
+/// let f = &Formula::new("Ea':[a=a&a'=a']");
+/// existence(f,a); // Ea':Ea:[a=a&a'=a']
+/// ```
 pub fn existence<T: Term>(x: &Formula, t: &T, v: &Variable) -> Result<Formula,LogicError> {
-    if !get_bound_vars(&x.to_string()).contains(&v.to_string()) {
+    if !x.contains_var_bound(&v) {
         let out = exists(v,x);
         return Ok(Formula::new(&out.to_string().replace(&t.get_string(), &v.to_string())))
         
@@ -45,6 +72,15 @@ pub fn existence<T: Term>(x: &Formula, t: &T, v: &Variable) -> Result<Formula,Lo
     }
 }
 
+/// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
+/// ```
+/// use tnt::terms::{Variable,Term};
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::interchange_ea;
+/// let b = &Variable::new("b");
+/// let f = &Formula::new("~Eb:[a=b|Sa=b]");
+/// interchange_ea(f,b,0); // Ab:~[a=b&Sa=b]
+/// ```
 pub fn interchange_ea(x: &Formula, v: &Variable, nth: usize) -> Result<Formula,LogicError> {
     let e = format!("~E{}:",v);
     let a = format!("A{}:~",v);
@@ -69,6 +105,15 @@ pub fn interchange_ea(x: &Formula, v: &Variable, nth: usize) -> Result<Formula,L
     Ok(Formula::new_complex(&new_s))
 }
 
+/// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
+/// ```
+/// use tnt::terms::{Variable,Term};
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::interchange_ea;
+/// let b = &Variable::new("b");
+/// let f = &Formula::new("Ab:~[a=b|Sa=b]");
+/// interchange_ea(f,b,0); // ~Eb:[a=b|Sa=b]
+/// ```
 pub fn interchange_ae(x: &Formula, v: &Variable, nth: usize) -> Result<Formula,LogicError> {
     let e = format!("~E{}:",v);
     let a = format!("A{}:~",v);
@@ -384,4 +429,5 @@ mod test {
         assert_eq!(induction(v,base,gen)?.to_string(),"Av:v=v");
         Ok(())
     }
+
 }

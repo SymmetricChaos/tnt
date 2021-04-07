@@ -36,7 +36,6 @@ pub fn not(x: &Formula) -> Formula {
 /// let f2 = &Formula::new("Aa:Eb:a=Sb");
 /// or(f1,f2); // [Aa:a=0|Aa:Eb:a=Sb]:
 /// ```
-/// 
 pub fn or(x: &Formula, y: &Formula) -> Formula {
     let new_s = format!("[{}|{}]",x,y);
     Formula::new_complex(&new_s)
@@ -50,7 +49,6 @@ pub fn or(x: &Formula, y: &Formula) -> Formula {
 /// let f2 = &Formula::new("Aa:Eb:a=Sb");
 /// and(f1,f2); // [Aa:a=0&Aa:Eb:a=Sb]:
 /// ```
-/// 
 pub fn and(x: &Formula, y: &Formula) -> Formula {
     let new_s = format!("[{}&{}]",x,y);
     Formula::new_complex(&new_s)
@@ -64,7 +62,6 @@ pub fn and(x: &Formula, y: &Formula) -> Formula {
 /// let f2 = &Formula::new("Aa:Eb:a=Sb");
 /// implies(f1,f2); // [Aa:a=0>Aa:Eb:a=Sb]:
 /// ```
-/// 
 pub fn implies(x: &Formula, y: &Formula) -> Formula {
     let new_s = format!("[{}>{}]",x,y);
     Formula::new_complex(&new_s)
@@ -79,7 +76,6 @@ pub fn implies(x: &Formula, y: &Formula) -> Formula {
 /// let f = &Formula::new("(Sa*SS0)=Sb");
 /// exists(a,f); // Ea:(Sa*SS0)=Sb
 /// ```
-/// 
 pub fn exists(v: &Variable, x: &Formula) -> Formula {
     Formula::new_complex(&format!("E{}:{}",v,x))
 }
@@ -93,7 +89,6 @@ pub fn exists(v: &Variable, x: &Formula) -> Formula {
 /// let f = &Formula::new("(Sa*SS0)=Sb");
 /// forall(a,f); // Aa:(Sa*SS0)=Sb
 /// ```
-/// 
 pub fn forall(v: &Variable, x: &Formula) -> Formula {
     Formula::new_complex(&format!("A{}:{}",v,x))
 }
@@ -173,5 +168,5 @@ mod tests {
         assert_eq!(forall(a,f0).to_string(),"Aa:a=a");
         assert_eq!(forall(x,f1).to_string(),"Ax'':~Ab':[(b'+b')=S0|S0=b']");
     }
-}
 
+}

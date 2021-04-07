@@ -418,7 +418,6 @@ mod test {
         assert_eq!((n1 * v1).get_string(),"(0*a)");
         assert_eq!((n1 + e1).get_string(),"(0+(x'+SS0))");
         assert_eq!((n1 * e1).get_string(),"(0*(x'+SS0))");
-    
     }
     
     #[test]
@@ -435,4 +434,5 @@ mod test {
         assert_eq!((e1 + n1).get_string(),"((x'+SS0)+0)");
         assert_eq!((e1 * n1).get_string(),"((x'+SS0)*0)");
     }
+
 }

@@ -274,7 +274,7 @@ pub fn dearithmetize(number: &BigUint) -> String {
 mod test {
 
     use super::*;
-    
+
     #[test]
     fn test_to_english() {
         let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
@@ -301,4 +301,5 @@ mod test {
         let s1 = "Aa':Ez'':[(z+0)=a'|(a'*z'')=SSa]".to_string();
         assert_eq!(to_austere(s1.clone()),"Aa:Ea':[(a''+0)=a|(a*a')=SSa''']");
     }
+    
 }
