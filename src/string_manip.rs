@@ -192,51 +192,57 @@ pub fn replace_all_re(s: &str, re: &Regex, replacement: &str) -> String {
     lhs
 }
 
+#[cfg(test)]
+mod test {
 
-#[test]
-fn test_strip_succ_all() {
-    assert_eq!(strip_succ_all("SSSi'"),"i'");
-}
+    use super::*;
 
-#[test]
-fn test_strip_quants() {
-    assert_eq!(strip_quant("Ab:Ea:a=a"),"a=a");
-}
+    #[test]
+    fn test_strip_succ_all() {
+        assert_eq!(strip_succ_all("SSSi'"),"i'");
+    }
 
-#[test]
-fn test_get_vars() {
-    let v1 = vec!["a'","b","a"];
-    assert_eq!(get_vars("Ea':Ab:(a+a')=b"),v1);
-}
+    #[test]
+    fn test_strip_quants() {
+        assert_eq!(strip_quant("Ab:Ea:a=a"),"a=a");
+    }
 
-#[test]
-fn test_get_bound_vars() {
-    let v1 = vec!["a'","b"];
-    assert_eq!(get_bound_vars("Ea':Ab:(a+a')=b"),v1);
-}
+    #[test]
+    fn test_get_vars() {
+        let v1 = vec!["a'","b","a"];
+        assert_eq!(get_vars("Ea':Ab:(a+a')=b"),v1);
+    }
 
-#[test]
-fn test_replace_all_re() {
-    let re = Regex::new("a(?!')").unwrap();
-    let s = "Ea':Ab:(a'+a)=b";
-    let replacement = "x";
-    assert_eq!(replace_all_re(s,&re,replacement),"Ea':Ab:(a'+x)=b");
-}
+    #[test]
+    fn test_get_bound_vars() {
+        let v1 = vec!["a'","b"];
+        assert_eq!(get_bound_vars("Ea':Ab:(a+a')=b"),v1);
+    }
 
-#[test]
-fn test_split_arithmetic() {
-    assert_eq!(split_arithmetic("(a+Sb)"),Some(("a","Sb","+")));
-    assert_eq!(split_arithmetic("(a*Sb)"),Some(("a","Sb","*")));
-}
+    #[test]
+    fn test_replace_all_re() {
+        let re = Regex::new("a(?!')").unwrap();
+        let s = "Ea':Ab:(a'+a)=b";
+        let replacement = "x";
+        assert_eq!(replace_all_re(s,&re,replacement),"Ea':Ab:(a'+x)=b");
+    }
 
-#[test]
-fn test_split_logical() {
-    assert_eq!(split_logical("[u=u>Su=Su]"),Some(("u=u","Su=Su")));
-    assert_eq!(split_logical("[u=u&Su=Su]"),Some(("u=u","Su=Su")));
-    assert_eq!(split_logical("[u=u|Su=Su]"),Some(("u=u","Su=Su")));
-}
+    #[test]
+    fn test_split_arithmetic() {
+        assert_eq!(split_arithmetic("(a+Sb)"),Some(("a","Sb","+")));
+        assert_eq!(split_arithmetic("(a*Sb)"),Some(("a","Sb","*")));
+    }
 
-#[test]
-fn test_left_implies() {
-    assert_eq!(left_implies("Ad:[Ac:(c+d)=(d+c)>Ac:(c+Sd)=(Sd+c)]"),Some("Ac:(c+d)=(d+c)"));
+    #[test]
+    fn test_split_logical() {
+        assert_eq!(split_logical("[u=u>Su=Su]"),Some(("u=u","Su=Su")));
+        assert_eq!(split_logical("[u=u&Su=Su]"),Some(("u=u","Su=Su")));
+        assert_eq!(split_logical("[u=u|Su=Su]"),Some(("u=u","Su=Su")));
+    }
+
+    #[test]
+    fn test_left_implies() {
+        assert_eq!(left_implies("Ad:[Ac:(c+d)=(d+c)>Ac:(c+Sd)=(Sd+c)]"),Some("Ac:(c+d)=(d+c)"));
+    }
+    
 }

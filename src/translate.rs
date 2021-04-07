@@ -270,30 +270,35 @@ pub fn dearithmetize(number: &BigUint) -> String {
 }
 
 
+#[cfg(test)]
+mod test {
 
-#[test]
-fn test_to_english() {
-    let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
-    let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
-    let s3 = "Aa:Ab:Ec:[(a+S0)=c&(b+0)=c]".to_string();
-    let s4 = "S(0+a)=(SS0*S(b+b))".to_string();
-    let s5 = "Au:u=SSS0".to_string();
-    let s6 = "As:~Ss=0".to_string();
-    assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
-    assert_eq!(to_english(s2.clone()),"[it is not true that for all o\', (o\' × 2) = 0 implies that there exist b and c, such that (0 × ((b + (c\' + 2)) + 1)) = 1]");
-    assert_eq!(to_english(s3.clone()),"for all a and b, there exists c, such that [(a + 1) = c and (b + 0) = c]");
-    assert_eq!(to_english(s4.clone()),"((0 + a) + 1) = (2 × ((b + b) + 1))");
-    assert_eq!(to_english(s5.clone()),"for all u, u = 3");
-    assert_eq!(to_english(s6.clone()),"for all s, it is false that (s + 1) = 0");
-}
+    use super::*;
+    
+    #[test]
+    fn test_to_english() {
+        let s1 = "Az:~Eb:(z+b)=SSS0".to_string();
+        let s2 = "[~Ao':(o'*SS0)=0>Eb:Ec:(0*S(b+SSc'))=S0]".to_string();
+        let s3 = "Aa:Ab:Ec:[(a+S0)=c&(b+0)=c]".to_string();
+        let s4 = "S(0+a)=(SS0*S(b+b))".to_string();
+        let s5 = "Au:u=SSS0".to_string();
+        let s6 = "As:~Ss=0".to_string();
+        assert_eq!(to_english(s1.clone()),"for all z, there is no b, such that (z + b) = 3");
+        assert_eq!(to_english(s2.clone()),"[it is not true that for all o\', (o\' × 2) = 0 implies that there exist b and c, such that (0 × ((b + (c\' + 2)) + 1)) = 1]");
+        assert_eq!(to_english(s3.clone()),"for all a and b, there exists c, such that [(a + 1) = c and (b + 0) = c]");
+        assert_eq!(to_english(s4.clone()),"((0 + a) + 1) = (2 × ((b + b) + 1))");
+        assert_eq!(to_english(s5.clone()),"for all u, u = 3");
+        assert_eq!(to_english(s6.clone()),"for all s, it is false that (s + 1) = 0");
+    }
 
-#[test]
-fn test_arithmetize() {
+    #[test]
+    fn test_arithmetize() {
 
-}
+    }
 
-#[test]
-fn test_to_austere() {
-    let s1 = "Aa':Ez'':[(z+0)=a'|(a'*z'')=SSa]".to_string();
-    assert_eq!(to_austere(s1.clone()),"Aa:Ea':[(a''+0)=a|(a*a')=SSa''']");
+    #[test]
+    fn test_to_austere() {
+        let s1 = "Aa':Ez'':[(z+0)=a'|(a'*z'')=SSa]".to_string();
+        assert_eq!(to_austere(s1.clone()),"Aa:Ea':[(a''+0)=a|(a*a')=SSa''']");
+    }
 }
