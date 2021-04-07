@@ -9,15 +9,15 @@ fn main() -> Result<(),LogicError> {
     let zero = &Number::zero();
 
     let mut e = Deduction::new("Show Scope Error", PEANO.clone());
-    e.add_axiom(&PEANO[3], "")?;
-    e.specification(0, a, zero, "")?;
-    e.supposition(Formula::new("Aa:a=Sa"), "")?;
-    e.specification(2, a, zero, "")?;
-    e.symmetry(3, "")?;
-    e.implication("")?;
-    e.supposition(Formula::new("0=SSb"), "")?;
-    e.transitivity(1,6, "")?;
-    e.transitivity(4,6, "")?;
+    e.add_axiom(&PEANO[3])?;
+    e.specification(0, a, zero)?;
+    e.supposition(Formula::new("Aa:a=Sa"))?;
+    e.specification(2, a, zero)?;
+    e.symmetry(3)?;
+    e.implication()?;
+    e.supposition(Formula::new("0=SSb"))?;
+    e.transitivity(1,6)?;
+    e.transitivity(4,6)?;
 
     Ok(())
 }

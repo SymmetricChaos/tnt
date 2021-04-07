@@ -11,13 +11,13 @@ fn main() -> Result<(),LogicError> {
     let one = &Number::one();
 
     let mut d = Deduction::new("One Plus One Equals Two", PEANO.clone());
-    d.add_axiom(&PEANO[2], "")?;
-    d.specification(0, a, one, "")?;
-    d.specification(1, b, zero, "")?;
-    d.add_axiom(&PEANO[1], "")?;
-    d.specification(3, a, one, "")?;
-    d.successor(4, "")?;
-    d.transitivity(2,5,"")?;
+    d.add_axiom(&PEANO[2])?;
+    d.specification(0, a, one)?;
+    d.specification(1, b, zero)?;
+    d.add_axiom(&PEANO[1])?;
+    d.specification(3, a, one)?;
+    d.successor(4)?;
+    d.transitivity(2,5)?;
 
     d.pretty_print();
 
