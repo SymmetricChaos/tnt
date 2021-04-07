@@ -6,7 +6,7 @@ use crate::terms::{Term,Variable};
 
 /// Equality of two types that implement Term
 /// ```
-/// use tnt::types::{Variable,Term};
+/// use tnt::terms::{Variable,Term};
 /// use tnt::operations::construction::eq;
 /// let a = &Variable::new("a");
 /// eq(a,a); // a=a
@@ -18,7 +18,7 @@ pub fn eq<A: Term, B: Term>(x: &A, y: &B) -> Formula {
 
 /// Negation of a Formula
 /// ```
-/// use tnt::types::Formula;
+/// use tnt::formula::Formula;
 /// use tnt::operations::construction::not;
 /// let f = &Formula::new("Ea:Sa=SS0");
 /// not(f); // ~Ea:Sa=SS0:
@@ -30,7 +30,7 @@ pub fn not(x: &Formula) -> Formula {
 
 /// Logical OR of two Formulas
 /// ```
-/// use tnt::types::Formula;
+/// use tnt::formula::Formula;
 /// use tnt::operations::construction::or;
 /// let f1 = &Formula::new("Aa:a=0");
 /// let f2 = &Formula::new("Aa:Eb:a=Sb");
@@ -44,7 +44,7 @@ pub fn or(x: &Formula, y: &Formula) -> Formula {
 
 /// Logical AND of two Formulas
 /// ```
-/// use tnt::types::Formula;
+/// use tnt::formula::Formula;
 /// use tnt::operations::construction::and;
 /// let f1 = &Formula::new("Aa:a=0");
 /// let f2 = &Formula::new("Aa:Eb:a=Sb");
@@ -58,7 +58,7 @@ pub fn and(x: &Formula, y: &Formula) -> Formula {
 
 /// Left Formula implies Right Formula
 /// ```
-/// use tnt::types::Formula;
+/// use tnt::formula::Formula;
 /// use tnt::operations::construction::implies;
 /// let f1 = &Formula::new("Aa:a=0");
 /// let f2 = &Formula::new("Aa:Eb:a=Sb");
@@ -72,11 +72,12 @@ pub fn implies(x: &Formula, y: &Formula) -> Formula {
 
 /// Assert some value for a Variable makes the Forumla true
 /// ```
-/// use tnt::types::{Variable,Formula};
+/// use tnt::formula::Formula;
+/// use tnt::terms::{Variable,Term};
 /// use tnt::operations::construction::exists;
-/// let a = &Formula::new("a");
+/// let a = &Variable::new("a");
 /// let f = &Formula::new("(Sa*SS0)=Sb");
-/// implies(a,f); // Ea:(Sa*SS0)=Sb
+/// exists(a,f); // Ea:(Sa*SS0)=Sb
 /// ```
 /// 
 pub fn exists(v: &Variable, x: &Formula) -> Formula {
@@ -85,9 +86,10 @@ pub fn exists(v: &Variable, x: &Formula) -> Formula {
 
 /// Assert that all values of a Variable make the Formula true
 /// ```
-/// use tnt::types::{Variable,Formula};
+/// use tnt::formula::Formula;
+/// use tnt::terms::{Variable,Term};
 /// use tnt::operations::construction::forall;
-/// let a = &Formula::new("a");
+/// let a = &Variable::new("a");
 /// let f = &Formula::new("(Sa*SS0)=Sb");
 /// forall(a,f); // Aa:(Sa*SS0)=Sb
 /// ```
