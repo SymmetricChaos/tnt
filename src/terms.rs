@@ -402,6 +402,8 @@ mod test {
         let n1 = &Number::new("0");
         let e1 = &Expression::new("(x'+SS0)");
     
+        assert_eq!(v1.succ().get_string(),"Sa");
+        assert_eq!(v1.succs(2).get_string(),"SSa");
         assert_eq!((v1 + v2).get_string(),"(a+b)");
         assert_eq!((v1 * v2).get_string(),"(a*b)");
         assert_eq!((v1 + n1).get_string(),"(a+0)");
@@ -417,6 +419,8 @@ mod test {
         let n2 = &Number::new("S0");
         let e1 = &Expression::new("(x'+SS0)");
     
+        assert_eq!(n1.succ().get_string(),"S0");
+        assert_eq!(n1.succs(2).get_string(),"SS0");
         assert_eq!((n1 + n2).get_string(),"(0+S0)");
         assert_eq!((n1 * n2).get_string(),"(0*S0)");
         assert_eq!((n1 + v1).get_string(),"(0+a)");
@@ -432,6 +436,8 @@ mod test {
         let e1 = &Expression::new("(x'+SS0)");
         let e2 = &Expression::new("S(u*v)");
     
+        assert_eq!(e1.succ().get_string(),"S(x'+SS0)");
+        assert_eq!(e1.succs(2).get_string(),"SS(x'+SS0)");
         assert_eq!((e1 + e2).get_string(),"((x'+SS0)+S(u*v))");
         assert_eq!((e1 * e2).get_string(),"((x'+SS0)*S(u*v))");
         assert_eq!((e1 + v1).get_string(),"((x'+SS0)+a)");
