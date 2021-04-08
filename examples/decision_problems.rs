@@ -7,11 +7,17 @@ fn main() -> Result<(),LogicError> {
     let is_even = Formula::new("Eb:(b*SS0)=a");
     println!("\n{}\nwhich translates to\n{}\n",is_even,is_even.english());
 
-    println!("Not every decision problem has such an obvious form. Consider primality. To represent this we first need to capture what it means for one number to be divisible by another. This is not too hard.");
+    println!("Likewise to represent the idea that a is divisible by b we can use the following.");
     let is_factor = Formula::new("Ec:(b*c)=a");
     println!("\n{}\nwhich translates to\n{}\n",is_factor,is_factor.english());
 
-    
+    println!("We can slightly adapt this to represent primality.");
+    let is_prime = Formula::new("Ab:Ac:[(SSb*c)=a>c=S0]");
+    println!("\n{}\nwhich translates to\n{}\n",is_prime,is_prime.english());
+
+    println!("A few more statements equivalent to some property of the variable a:");
+    let is_pow_two = Formula::new("Ab:[Ec:(b*c)=a>Ed:(d*SS0)=b]");
+    println!("\n{}\nwhich translates to\n{}\n",is_pow_two,is_pow_two.english());
 
     Ok(())
 }
