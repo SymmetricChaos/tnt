@@ -17,7 +17,11 @@ fn main() -> Result<(),LogicError> {
 
     println!("A few more statements equivalent to some property of the variable a:");
     let is_pow_two = Formula::new("Ab:[Ec:(b*c)=a>Ed:(d*SS0)=b]");
-    println!("\n{}\nwhich translates to\n{}\n",is_pow_two,is_pow_two.english());
+    let is_square = Formula::new("Eb:(b*b)=a");
+    let is_factorial = Formula::new("Ab:[~Ec:(b+Sc)>Ed:(b*d)=a]");
+    println!("\n{}",is_pow_two);
+    println!("\n{}",is_square);
+    println!("\n{}",is_factorial);
 
     Ok(())
 }
