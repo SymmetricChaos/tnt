@@ -79,9 +79,11 @@ pub fn random_expression() -> Expression {
 
     while !is_expression(&s) {
         let n1 = rng.gen_range(0..6);
-        let n2 = rng.gen_range(0..4);
         s = s.replacen("#", &simple_expr(n1), 1);
-        s = s.replacen("$", &simple_succ(n2), 1);
+        while s.contains("$") {
+            let n2 = rng.gen_range(0..4);
+            s = s.replacen("$", &simple_succ(n2), 1);
+        }
     }
 
     Expression::new(&s)
