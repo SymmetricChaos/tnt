@@ -7,6 +7,7 @@ mod string_manip;
 mod translate;
 pub mod axioms;
 pub mod logic_errors;
+mod random;
 
 /*
 Backus-Naur Form for the TNT Language

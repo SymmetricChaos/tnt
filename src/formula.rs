@@ -9,7 +9,7 @@ use crate::terms::{Variable,Term};
 
 
 /// A Formula is a well-formed formula, either Simple or Complex
-#[derive(Clone,Debug,PartialEq)]
+#[derive(Clone,Debug)]
 pub enum Formula {
     /// Formula::Simple consists of precisely an equality of two terms
     Simple(String),
@@ -98,6 +98,12 @@ impl fmt::Display for Formula {
     }
 }
 
+/// Two formulas are considered equal if their austere versions are identical
+impl PartialEq for Formula {
+    fn eq(&self, other: &Self) -> bool {
+        self.austere().to_string() == other.austere().to_string()
+    }
+}
 
 
 
