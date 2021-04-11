@@ -1,5 +1,5 @@
 use std::str::from_utf8;
-use rand::{Rng, prelude::ThreadRng};
+use rand::Rng;
 
 use crate::formula::Formula;
 use crate::terms::{Term,Variable,Number,Expression};
@@ -32,6 +32,8 @@ pub fn random_variable() -> Variable {
     Variable::new(&random_variable_str())
 }
 
+
+
 pub fn random_number_str() -> String {
     let mut rng = rand::thread_rng();
     let mut s = "".to_string();
@@ -43,11 +45,12 @@ pub fn random_number_str() -> String {
 }
 
 pub fn random_number() -> Number {
-
     Number::new(&random_number_str())
 }
 
-pub fn random_expression() -> Expression {
+
+
+pub fn random_expression_str() -> String {
 
     fn simple_expr(n: i32) -> String {
         let mut out = "$".to_string();
@@ -76,8 +79,11 @@ pub fn random_expression() -> Expression {
     let mut rng = rand::thread_rng();
     let mut s = simple_expr(rng.gen_range(0..6));
 
-
-    while !is_expression(&s) {
+    while s.contains("$") {
+        let n2 = rng.gen_range(0..4);
+        s = s.replacen("$", &simple_succ(n2), 1);
+    }
+    while s.contains("#") {
         let n1 = rng.gen_range(0..6);
         s = s.replacen("#", &simple_expr(n1), 1);
         while s.contains("$") {
@@ -86,8 +92,44 @@ pub fn random_expression() -> Expression {
         }
     }
 
-    Expression::new(&s)
+    s
 }
+
+pub fn random_expression() -> Expression {
+    Expression::new(&random_expression_str())
+}
+
+
+
+pub fn random_simple_formula_str() -> String {
+    format!("{}={}",random_expression_str(),random_expression_str())
+}
+
+pub fn random_simple_formula() -> Formula {
+    Formula::new_simple(&random_simple_formula_str())
+}
+
+
+/*
+pub fn random_open_formula_str() -> String {
+    
+}
+
+pub fn random_open_formula() -> Formula {
+    
+}
+
+
+pub fn random_formula_str() -> String {
+    
+}
+
+pub fn random_formula_str() -> Formula {
+    
+}
+*/
+
+
 
 
 #[cfg(test)]
@@ -112,7 +154,14 @@ mod test {
     #[test]
     fn test_random_expression() {
         for _ in 0..10 {
-            println!("{}",random_expression());
+            random_expression();
+        }
+    }
+
+    #[test]
+    fn test_random_simple_formula() {
+        for _ in 0..10 {
+            random_simple_formula();
         }
     }
 
