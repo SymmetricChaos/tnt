@@ -3,7 +3,6 @@ use rand::Rng;
 
 use crate::formula::Formula;
 use crate::terms::{Term,Variable,Number,Expression};
-use crate::properties::is_expression;
 
 /*
 Backus-Naur Form for the TNT Language
@@ -110,16 +109,36 @@ pub fn random_simple_formula() -> Formula {
 }
 
 
-/*
+
 pub fn random_open_formula_str() -> String {
-    
+    fn gen_formula(n: i32) -> String {
+        if n == 0 {
+            return "[#|#]".to_string()
+        } else if n == 1 {
+            return "[#&#]".to_string()
+        } else if n == 2 {
+            return "[#>#]".to_string()
+        } else {
+            return random_simple_formula_str()
+        }
+    }
+
+    let mut rng = rand::thread_rng();
+    let mut s = "#".to_string();
+
+    while s.contains("#") {
+        let n = rng.gen_range(0..10);
+        s = s.replacen("#", &gen_formula(n), 1);
+    }
+
+    s
 }
 
 pub fn random_open_formula() -> Formula {
-    
+    Formula::new(&random_open_formula_str())
 }
 
-
+/*
 pub fn random_formula_str() -> String {
     
 }
@@ -162,6 +181,13 @@ mod test {
     fn test_random_simple_formula() {
         for _ in 0..10 {
             random_simple_formula();
+        }
+    }
+
+    #[test]
+    fn test_random_open_formula() {
+        for _ in 0..10 {
+            random_open_formula();
         }
     }
 
