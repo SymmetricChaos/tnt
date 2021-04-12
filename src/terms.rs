@@ -4,8 +4,9 @@ use num::bigint::BigUint;
 use fancy_regex::Regex;
 use std::ops::{Add,Mul};
 
-use crate::properties::{is_expression,is_num,is_var};
+use crate::{properties::{is_expression,is_num,is_var}};
 use crate::translate::{to_latex,to_english,arithmetize,dearithmetize};
+use crate::random::{random_variable,random_number,random_expression};
 
 /// Term is implemented for the three structs that hold valid pieces of unquantified TNT formulas: Variable, Number, and Expression. Besides the traits bound to Term the also implement the + and * operations.
 pub trait Term {
@@ -95,6 +96,10 @@ impl Variable {
         let s = "S".repeat(n);
         let new = format!("{}{}", s, self.get_string());
         Expression{ string: new }
+    }
+
+    pub fn random() -> Variable {
+        random_variable()
     }
 }
 
@@ -214,6 +219,10 @@ impl Number {
         let new = format!("{}{}", s, self.get_string());
         Number{ string: new }
     }
+
+    pub fn random() -> Number {
+        random_number()
+    }
 }
 
 impl fmt::Display for Number {
@@ -323,6 +332,10 @@ impl Expression {
         let s = "S".repeat(n);
         let new = format!("{}{}", s, self.get_string());
         Expression{ string: new }
+    }
+
+    pub fn random() -> Expression {
+        random_expression()
     }
 }
 

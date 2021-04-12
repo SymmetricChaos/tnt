@@ -21,7 +21,7 @@ pub fn random_variable_str() -> String {
     // Get a u8 corresponding to an ASCII lowercase letter and make it into a String
     let n: u8 = rng.gen_range(97..123);
     let mut s = from_utf8(&[n]).unwrap().to_string();
-    while rng.gen_range(0.0..1.0) > 0.75 {
+    while rng.gen_range(0.0..1.0) > 0.65 {
         s.push('\'')
     }
     s
