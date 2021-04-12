@@ -19,7 +19,7 @@ fn main() {
         print!("{}  ",v)
     }
 
-    println!("\n\n\nFinally there are Expressions, each representing a statement of arithmetic in TNT. Any Number or Variable is a valid Expression. Two Expressions seperated by `+` or `*` also form a valid Expression as does an Expression prepended by `S`.");
+    println!("\n\n\nFinally there are Expressions, each representing a statement of arithmetic in TNT. Any Number or Variable is a valid Expression. Two Expressions inside parentheses `()` and seperated by `+` or `*` form a valid Expression. Any Expression prepended by `S` is also an Expression.");
 
     println!("\nSome random Expressions:");
     for _ in 0..5 {

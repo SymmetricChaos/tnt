@@ -1,5 +1,6 @@
 use std::str::from_utf8;
 use rand::Rng;
+use rand::seq::SliceRandom;
 
 use crate::formula::Formula;
 use crate::terms::{Term,Variable,Number,Expression};
@@ -142,13 +143,29 @@ pub fn random_open_formula() -> Formula {
 
 
 pub fn random_quantification(s: &str) -> String {
-    "".to_string()
+    let mut out = s.to_string();
+    let mut vs = get_unquant_vars(s);
+    let mut rng = rand::thread_rng();
+    vs.shuffle(&mut rng);
+    for v in vs {
+        let n = rng.gen_range(0..4);
+        if n < 2 {
+            out = format!("E{}:",v) + &out;
+        } else if n < 4 {
+            out = format!("A{}:",v) + &out;
+        }
+        if n % 2 == 0 {
+            out = "~".to_string() + &out;
+        }
+    }
+    out
 }
 
 /*
 pub fn random_formula_str() -> String {
     
 }
+
 
 pub fn random_formula_str() -> Formula {
     
