@@ -3,6 +3,7 @@ use rand::Rng;
 
 use crate::formula::Formula;
 use crate::terms::{Term,Variable,Number,Expression};
+use crate::string_manip::get_unquant_vars;
 
 /*
 Backus-Naur Form for the TNT Language
@@ -136,6 +137,12 @@ pub fn random_open_formula_str() -> String {
 
 pub fn random_open_formula() -> Formula {
     Formula::new(&random_open_formula_str())
+}
+
+
+
+pub fn random_quantification(s: &str) -> String {
+    "".to_string()
 }
 
 /*

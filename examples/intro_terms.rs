@@ -27,6 +27,6 @@ fn main() {
         print!("{}  ",n)
     }
 
-    println!("\n\n\nThese Terms are the basis of TNT but they are not well-formed formulas. To see an explanation of well-formed formulas run: cargo exaple --formulas")
+    println!("The intro continues in: cargo example --into_formulas")
 
 }
