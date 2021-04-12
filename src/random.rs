@@ -161,16 +161,17 @@ pub fn random_quantification(s: &str) -> String {
     out
 }
 
+
 /*
 pub fn random_formula_str() -> String {
-    
-}
 
+}
 
 pub fn random_formula_str() -> Formula {
     
 }
 */
+
 
 
 
