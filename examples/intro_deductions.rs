@@ -1,5 +1,4 @@
-use tnt::terms::{Expression, Number, Variable, Term};
-use tnt::formula::Formula;
+use tnt::terms::{Number, Variable, Term};
 use tnt::deduction::Deduction;
 use tnt::axioms::PEANO;
 use tnt::logic_errors::LogicError;

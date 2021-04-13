@@ -1,10 +1,7 @@
 use std::str::from_utf8;
 use rand::Rng;
-use rand::seq::SliceRandom;
 
-use crate::formula::Formula;
 use crate::terms::{Term,Variable,Number,Expression};
-use crate::string_manip::get_unquant_vars;
 
 /*
 Backus-Naur Form for the TNT Language
@@ -101,7 +98,7 @@ pub fn random_expression() -> Expression {
 }
 
 
-
+/* 
 pub fn random_simple_formula_str() -> String {
     format!("{}={}",random_expression_str(),random_expression_str())
 }
@@ -148,7 +145,7 @@ pub fn random_quantification(s: &str) -> String {
     let mut rng = rand::thread_rng();
     vs.shuffle(&mut rng);
     for v in vs {
-        let n = rng.gen_range(0..4);
+        let n = rng.gen_range(0..6);
         if n < 2 {
             out = format!("E{}:",v) + &out;
         } else if n < 4 {
@@ -162,16 +159,25 @@ pub fn random_quantification(s: &str) -> String {
 }
 
 
-/*
-pub fn random_formula_str() -> String {
 
+pub fn random_formula_str() -> String {
+    let mut rng = rand::thread_rng();
+    let mut s = random_simple_formula_str();
+    s = random_quantification(&s);
+    let op = rng.gen_range(0..6);
+    if op >= 3 {
+        return s
+    } else if op == 1 {
+        return format!("[{}&{}]",s,random_formula_str())
+    }
+    println!("{}",s);
+    s
 }
 
-pub fn random_formula_str() -> Formula {
-    
+pub fn random_formula() -> Formula {
+    Formula::new(&random_formula_str())
 }
 */
-
 
 
 
@@ -202,6 +208,7 @@ mod test {
         }
     }
 
+    /* 
     #[test]
     fn test_random_simple_formula() {
         for _ in 0..10 {
@@ -216,4 +223,11 @@ mod test {
         }
     }
 
+    #[test]
+    fn test_random_formula() {
+        for _ in 0..10 {
+            random_formula();
+        }
+    }
+    */
 }

@@ -4,7 +4,6 @@ use num::bigint::BigUint;
 use crate::{properties::{is_simple_formula,is_formula}};
 use crate::translate::{to_latex,to_english,arithmetize,dearithmetize,to_austere};
 use crate::string_manip::replace_all_re;
-use crate::random::{random_simple_formula,random_open_formula};
 use crate::terms::{Variable,Term};
 
 
@@ -86,14 +85,6 @@ impl Formula {
     /// Does the Formula contain the Variable in a quantification?
     pub fn contains_var_bound(&self, v: &Variable) -> bool {
         v.req.find(&self.to_string()).unwrap().is_some()
-    }
-
-    pub fn random_simple() -> Formula {
-        random_simple_formula()
-    }
-
-    pub fn random_open() -> Formula {
-        random_open_formula()
     }
 
 }
