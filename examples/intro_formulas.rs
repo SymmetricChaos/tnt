@@ -1,4 +1,3 @@
-use tnt::terms::{Expression, Number, Variable};
 use tnt::formula::Formula;
 
 fn main() {
@@ -26,4 +25,5 @@ fn main() {
         print!("{}  ",f);
     }
 
+    println!("The intro continues in: cargo example --intro_deductions")
 }
