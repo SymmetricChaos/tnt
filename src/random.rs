@@ -98,6 +98,9 @@ pub fn random_expression() -> Expression {
 }
 
 
+// Creating random Formula is very hard because the restrictions on what kind of quantification is valid are more complex than a context free language.
+// Although the Backus-Naur Form and procedures for parsing ignore it quantifications can only include variables that exist elsewhere in the Formula and also have
+// restrictions on quantification on opposite sides of a logical operation
 /* 
 pub fn random_simple_formula_str() -> String {
     format!("{}={}",random_expression_str(),random_expression_str())
