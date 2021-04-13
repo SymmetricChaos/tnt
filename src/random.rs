@@ -1,7 +1,6 @@
 use std::str::from_utf8;
 use rand::Rng;
 
-use crate::terms::{Term,Variable,Number,Expression};
 
 /*
 Backus-Naur Form for the TNT Language
@@ -15,7 +14,7 @@ Backus-Naur Form for the TNT Language
 <formula> ::= {  <expr> "=" <expr> | "[" <formula> <logical_op> <formula> "]" | <quant> <formula> }
 */
 
-pub fn random_variable_str() -> String {
+pub fn random_variable() -> String {
     let mut rng = rand::thread_rng();
     // Get a u8 corresponding to an ASCII lowercase letter and make it into a String
     let n: u8 = rng.gen_range(97..123);
@@ -26,13 +25,9 @@ pub fn random_variable_str() -> String {
     s
 }
 
-pub fn random_variable() -> Variable {
-    Variable::new(&random_variable_str())
-}
 
 
-
-pub fn random_number_str() -> String {
+pub fn random_number() -> String {
     let mut rng = rand::thread_rng();
     let mut s = "".to_string();
     while rng.gen_range(0.0..1.0) > 0.6 {
@@ -42,20 +37,16 @@ pub fn random_number_str() -> String {
     s
 }
 
-pub fn random_number() -> Number {
-    Number::new(&random_number_str())
-}
 
 
-
-pub fn random_expression_str() -> String {
+pub fn random_expression() -> String {
 
     fn simple_expr(n: i32) -> String {
         let mut out = "$".to_string();
         if n < 2 {
-            out.push_str(&random_variable_str())
+            out.push_str(&random_variable())
         } else if n < 4 {
-            return random_number_str()
+            return random_number()
         } else if n == 4 {
             out.push_str("(#+#)")
         } else if n == 5 {
@@ -92,11 +83,6 @@ pub fn random_expression_str() -> String {
 
     s
 }
-
-pub fn random_expression() -> Expression {
-    Expression::new(&random_expression_str())
-}
-
 
 // Creating random Formula is very hard because the restrictions on what kind of quantification is valid are more complex than a context free language.
 // Although the Backus-Naur Form and procedures for parsing ignore it quantifications can only include variables that exist elsewhere in the Formula and also have
@@ -210,27 +196,4 @@ mod test {
             random_expression();
         }
     }
-
-    /* 
-    #[test]
-    fn test_random_simple_formula() {
-        for _ in 0..10 {
-            random_simple_formula();
-        }
-    }
-
-    #[test]
-    fn test_random_open_formula() {
-        for _ in 0..10 {
-            random_open_formula();
-        }
-    }
-
-    #[test]
-    fn test_random_formula() {
-        for _ in 0..10 {
-            random_formula();
-        }
-    }
-    */
 }

@@ -99,7 +99,7 @@ impl Variable {
     }
 
     pub fn random() -> Variable {
-        random_variable()
+        Variable::new(&random_variable())
     }
 }
 
@@ -221,7 +221,7 @@ impl Number {
     }
 
     pub fn random() -> Number {
-        random_number()
+        Number::new(&random_number())
     }
 }
 
@@ -335,7 +335,7 @@ impl Expression {
     }
 
     pub fn random() -> Expression {
-        random_expression()
+        Expression::new(&random_expression())
     }
 }
 
