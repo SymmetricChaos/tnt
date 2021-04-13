@@ -15,5 +15,5 @@ fn main() {
     println!("\nSome selected Formula::Complex");
     println!("{}",Formula::new("Aa:Ea':Sa=Sa'"));
 
-    println!("The intro continues in: cargo example --intro_deductions")
+    println!("The intro continues in:  cargo run --example intro_deductions")
 }

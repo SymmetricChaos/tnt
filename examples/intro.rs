@@ -4,6 +4,6 @@ fn main() {
 
     println!("There are three further parts to this introduction. They cover Terms (arthmetic statements), Formulas (logical statements), and Deductions (proofs).");
 
-    println!("The intro continues in: cargo example --intro_terms")
+    println!("The intro continues in: cargo run --example intro_terms")
 
 }

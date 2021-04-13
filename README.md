@@ -1,7 +1,7 @@
 # tnt
 An implementation of Hofstader's "Typographical Number Theory" from the book Gödel, Escher, and Bach. This crate allows the creation of simple proofs of number theory in propositional logic. It is not a proof assistant, it cannot create a proof or disproof of a given formula, rather the Deduction struct enforces the rules of inference at run time to prevent an invalid proof from being created. Certain nonsensical constructions are also caught at compile time.
 
-A brief walkthrough of the TNT grammar and the use of this crate can be found by running cargo example --intro.
+A brief walkthrough of the TNT grammar and the use of this crate can be found by running: cargo run --example intro.
 
 Once a Deduction is created it can be output in a variety of ways.
 

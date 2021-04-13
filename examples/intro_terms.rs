@@ -27,6 +27,6 @@ fn main() {
         print!("{}  ",n)
     }
 
-    println!("The intro continues in: cargo example --intro_formulas")
+    println!("The intro continues in:  cargo run --example intro_formulas")
 
 }
