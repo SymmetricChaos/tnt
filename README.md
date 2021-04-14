@@ -1,7 +1,7 @@
 # tnt
 An implementation of Hofstader's "Typographical Number Theory" from the book Gödel, Escher, and Bach. This crate allows the creation of simple proofs of number theory in propositional logic. It is not a proof assistant, it cannot create a proof or disproof of a given formula, rather the Deduction struct enforces the rules of inference at run time to prevent an invalid proof from being created. Certain nonsensical constructions are also caught at compile time.
 
-A short primer will be added soon.
+A brief explanation is available in [the primer](https://github.com/SymmetricChaos/tnt/blob/master/primer.pdf).
 
 Once a Deduction is created it can be output in a variety of ways.
 
@@ -18,13 +18,13 @@ let zero = &Number::zero();
 let one = &Number::one();
 
 let mut d = Deduction::new("One Plus One Equals Two", PEANO.clone());
-d.add_axiom(&PEANO[2]);
-d.specification(0, a, one);
-d.specification(1, b, zero);
-d.add_axiom(&PEANO[1]);
-d.specification(3, a, one);
-d.successor(4);
-d.transitivity(2, 5);
+d.add_axiom(&PEANO[2])?;
+d.specification(0, a, one)?;
+d.specification(1, b, zero)?;
+d.add_axiom(&PEANO[1])?;
+d.specification(3, a, one)?;
+d.successor(4)?;
+d.transitivity(2, 5)?;
 ```
 
 Using .pretty_print()
