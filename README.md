@@ -18,7 +18,7 @@ let zero = &Number::zero();
 let one = &Number::one();
 
 let mut d = Deduction::new("One Plus One Equals Two", PEANO.clone());
-d.add_axiom(&PEANO[2])?;
+d.add_axiom(&PEANO[2])?; // Aa:Ab:(a+Sb)=S(a+b)
 d.specification(0, a, one)?;
 d.specification(1, b, zero)?;
 d.add_axiom(&PEANO[1])?;
@@ -82,6 +82,6 @@ The previous theorem corresponds to the number: 10503413032754223786577683617849
 
 
 # Future Goals
-Currently the .to_english() method uses a hand-made parser. This should be changed to a crate like pest or nom to avoid bugs.
+Currently the .english() method relies a hand-made parser. This should be changed to a crate like pest or nom to avoid bugs.
 
-The documentation is currently sparse and sould be extended to include more complete examples of using Deduction.
+Better documentation for Deduction.
