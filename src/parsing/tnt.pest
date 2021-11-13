@@ -1,0 +1,13 @@
+formula = { equality | logical_formula | quantification }
+equality = { expr ~ "=" ~ expr }
+logical_formula = { "[" ~ formula ~ logical_op ~ formula ~ "]" }
+logical_op = { "&" | "|" | ">" }
+quantification = { quant ~ formula }
+quant = { "A" ~ var ~ ":" | "E" ~ var ~ ":" | "~" ~ quant }
+
+expr = { num | var | arithmetic_expr | successor_expr }
+num = { "S"* ~ "0" }
+var = { ASCII_ALPHA_LOWER ~ "'"* }
+arithmetic_expr = { "(" ~ expr ~ arith_op ~ expr ~ ")" }
+arith_op = { "+" | "*" }
+successor_expr = { "S" ~ expr }
