@@ -1,9 +1,15 @@
 formula = { equality | logical_formula | quantification }
+
 equality = { expr ~ "=" ~ expr }
+
 logical_formula = { "[" ~ formula ~ logical_op ~ formula ~ "]" }
 logical_op = { "&" | "|" | ">" }
-quantification = { quant ~ formula }
-quant = { "A" ~ var ~ ":" | "E" ~ var ~ ":" | "~" ~ quant }
+
+quantification = { quantifier ~ formula }
+quantifier = { negation ~ (existential | universal) }
+universal = { "A" ~ var ~ ":" }
+existential = { "E" ~ var ~ ":" }
+negation = { "~"* }
 
 expr = { num | var | arithmetic_expr | successor_expr }
 num = { "S"* ~ "0" }

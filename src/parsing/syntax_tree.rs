@@ -1,16 +1,16 @@
 use std::fmt::Display;
 
 #[derive(Debug)]
-pub enum Quant {
-    Existential(String),
-    Universal(String)
+pub enum Quantifier {
+    Existential(Box<TntNode>),
+    Universal(Box<TntNode>),
 }
 
-impl Display for Quant {
+impl Display for Quantifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Quant::Existential(v) => write!(f, "E{}:", v),
-            Quant::Universal(v) => write!(f, "A{}:", v),
+            Quantifier::Existential(v) => write!(f, "E{}:",v.to_string()),
+            Quantifier::Universal(v) => write!(f, "A{}:",v.to_string()),
         }
     }
 }
@@ -31,7 +31,6 @@ impl Display for LogicOp {
         }
     }
 }
-
 #[derive(Debug)]
 pub enum ArithmeticOp {
     Add,
@@ -53,7 +52,7 @@ pub enum TntNode {
     Arithmetic(ArithmeticOp, Box<TntNode>, Box<TntNode>),
     Logical(LogicOp, Box<TntNode>, Box<TntNode>),
     Successor(Box<TntNode>),
-    Quantification(Quant, Box<TntNode>),
+    Quantification(String, Quantifier, Box<TntNode>),
     Number(String),
     Variable(String),
 }
@@ -64,8 +63,8 @@ impl Display for TntNode {
             TntNode::Equality(lhs, rhs) => write!(f, "{}={}", lhs, rhs),
             TntNode::Arithmetic(op, lhs, rhs) => write!(f, "({}{}{})", lhs, op, rhs),
             TntNode::Logical(op, lhs, rhs) => write!(f, "[{}{}{}]", lhs, op, rhs),
-            TntNode::Successor(contents) => write!(f, "S{}", contents),
-            TntNode::Quantification(q, contents) => write!(f, "{}{}", q, contents),
+            TntNode::Successor(expression) => write!(f, "S{}", expression),
+            TntNode::Quantification(neg, q, formula) => write!(f, "{}{}{}", neg, q, formula),
             TntNode::Number(n) => write!(f, "{}", n),
             TntNode::Variable(v) => write!(f, "{}", v),
         }

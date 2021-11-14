@@ -1,8 +1,5 @@
 //! Parse strings of TNT and build an Abstract Syntax Tree
 
-
-
-
 /*
 Backus-Naur Form for the TNT Language
 
@@ -14,5 +11,6 @@ Backus-Naur Form for the TNT Language
 <logical_op> ::= { "&" | "|" | ">" }
 <formula> ::= {  <expr> "=" <expr> | "[" <formula> <logical_op> <formula> "]" | <quant> <formula> }
 */
+
 pub mod syntax_tree;
 pub mod parser;
