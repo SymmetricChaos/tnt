@@ -62,8 +62,8 @@ impl Display for TntNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             TntNode::Equality(lhs, rhs) => write!(f, "{}={}", lhs, rhs),
-            TntNode::Arithmetic(op, lhs, rhs) => write!(f, "{}{}{}", lhs, op, rhs),
-            TntNode::Logical(op, lhs, rhs) => write!(f, "{}{}{}", lhs, op, rhs),
+            TntNode::Arithmetic(op, lhs, rhs) => write!(f, "({}{}{})", lhs, op, rhs),
+            TntNode::Logical(op, lhs, rhs) => write!(f, "[{}{}{}]", lhs, op, rhs),
             TntNode::Successor(contents) => write!(f, "S{}", contents),
             TntNode::Quantification(q, contents) => write!(f, "{}{}", q, contents),
             TntNode::Number(n) => write!(f, "{}", n),
