@@ -15,11 +15,30 @@ impl Display for Quantifier {
     }
 }
 
+impl Quantifier {
+    pub fn pretty_print(&self) -> String {
+        match self {
+            Quantifier::Existential(v) => format!("∃{}:",v.to_string()),
+            Quantifier::Universal(v) => format!("∀{}:",v.to_string()),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum LogicOp {
     And,
     Or,
     Implies
+}
+
+impl LogicOp {
+    pub fn pretty_print(&self) -> String {
+        match self {
+            LogicOp::And => format!("∧"),
+            LogicOp::Or => format!("∨"),
+            LogicOp::Implies => format!("⇒"),
+        }
+    }
 }
 
 impl Display for LogicOp {
@@ -31,11 +50,22 @@ impl Display for LogicOp {
         }
     }
 }
+
 #[derive(Debug)]
 pub enum ArithmeticOp {
     Add,
     Mul
 }
+
+impl ArithmeticOp {
+    pub fn pretty_print(&self) -> String {
+        match self {
+            ArithmeticOp::Add => format!("+"),
+            ArithmeticOp::Mul => format!("×"),
+        }
+    }
+}
+
 
 impl Display for ArithmeticOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -55,6 +85,20 @@ pub enum TntNode {
     Quantification(String, Quantifier, Box<TntNode>),
     Number(String),
     Variable(String),
+}
+
+impl TntNode {
+    pub fn pretty_print(&self) -> String {
+        match self {
+            TntNode::Equality(lhs, rhs) => format!("{}={}", lhs.pretty_print(), rhs.pretty_print()),
+            TntNode::Arithmetic(op, lhs, rhs) => format!("({}{}{})", lhs.pretty_print(), op.pretty_print(), rhs.pretty_print()),
+            TntNode::Logical(op, lhs, rhs) => format!("[{}{}{}]", lhs.pretty_print(), op.pretty_print(), rhs.pretty_print()),
+            TntNode::Successor(expression) => format!("S{}",expression.pretty_print()),
+            TntNode::Quantification(neg, q, formula) => format!("{}{}{}", neg, q.pretty_print(), formula.pretty_print()),
+            TntNode::Number(n) => format!("{}",n),
+            TntNode::Variable(v) => format!("{}",v),
+        }
+    }
 }
 
 impl Display for TntNode {

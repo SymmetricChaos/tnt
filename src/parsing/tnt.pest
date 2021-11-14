@@ -1,4 +1,4 @@
-formula = { equality | logical_formula | quantification }
+formula = { (equality | logical_formula | quantification) ~ "\n"? }
 
 equality = { expr ~ "=" ~ expr }
 

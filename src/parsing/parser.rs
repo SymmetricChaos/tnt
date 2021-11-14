@@ -10,6 +10,16 @@ use super::syntax_tree::{ArithmeticOp, Quantifier, TntNode};
 pub struct TntParser;
 
 
+pub fn parse_proof(proof: &str) -> Result<Vec<TntNode>,pest::error::Error<Rule>> {
+    let lines = proof.split("\n");
+    let mut vec = Vec::new();
+    for line in lines {
+        let ast = formula_str_to_ast(line)?;
+        vec.push(ast)
+    }
+    Ok(vec)
+}
+
 pub fn str_to_ast(text: &str, rule: Rule) -> Result<TntNode,pest::error::Error<Rule>> {
     let mut tree = TntParser::parse(rule, text)?;
     Ok(build_ast(tree.next().unwrap()))
@@ -118,22 +128,30 @@ fn expand_quantification(pair: Pair<Rule>) -> TntNode {
 #[test]
 fn test_simple_equality() {
     let tnt = "S0=a''";
-    let ast = formula_str_to_ast(tnt);
-    assert_eq!(tnt,format!("{}",ast.unwrap()));
+    let ast = formula_str_to_ast(tnt).unwrap();
+    assert_eq!(tnt,format!("{}",&ast));
 }
 
 #[test]
 fn test_compound_equality() {
     let tnt = "S0=(b+b)";
-    let ast = formula_str_to_ast(tnt);
-    assert_eq!(tnt,format!("{}",ast.unwrap()));
+    let ast = formula_str_to_ast(tnt).unwrap();
+    assert_eq!(tnt,format!("{}",&ast));
 }
 
 #[test]
 fn test_quantification() {
     let tnt = "~~Ea:a=a";
-    let ast = formula_str_to_ast(tnt);
-    assert_eq!(tnt,format!("{}",ast.unwrap()));
+    let ast = formula_str_to_ast(tnt).unwrap();
+    assert_eq!(tnt,format!("{}",&ast));
+}
+
+#[test]
+fn test_complex_formula() {
+    let tnt = "Aa:Ab:(a*Sb)=((a*b)+a)";
+    let ast = formula_str_to_ast(tnt).unwrap();
+    assert_eq!(tnt,format!("{}",&ast));
+    println!("{}",ast.pretty_print());
 }
 
 
@@ -143,20 +161,20 @@ fn test_quantification() {
 #[test]
 fn test_addition() {
     let tnt = "(0+Sa'')";
-    let ast = expression_str_to_ast(tnt);
-    assert_eq!(tnt,format!("{}",ast.unwrap()));
+    let ast = expression_str_to_ast(tnt).unwrap();
+    assert_eq!(tnt,format!("{}",&ast));
 }
 
 #[test]
 fn test_multiplication() {
     let tnt = "(x''*SSSSSS0)";
-    let ast = expression_str_to_ast(tnt);
-    assert_eq!(tnt,format!("{}",ast.unwrap()));
+    let ast = expression_str_to_ast(tnt).unwrap();
+    assert_eq!(tnt,format!("{}",&ast));
 }
 
 #[test]
 fn test_complex_arithmetic() {
     let tnt = "SS((b+S0)*Sa'')";
-    let ast = expression_str_to_ast(tnt);
-    assert_eq!(tnt,format!("{}",ast.unwrap()));
+    let ast = expression_str_to_ast(tnt).unwrap();
+    assert_eq!(tnt,format!("{}",&ast));
 }
