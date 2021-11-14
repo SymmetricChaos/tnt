@@ -151,7 +151,6 @@ fn test_complex_formula() {
     let tnt = "Aa:Ab:(a*Sb)=((a*b)+a)";
     let ast = formula_str_to_ast(tnt).unwrap();
     assert_eq!(tnt,format!("{}",&ast));
-    println!("{}",ast.pretty_print());
 }
 
 
