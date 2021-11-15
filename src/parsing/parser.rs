@@ -65,6 +65,9 @@ fn match_logical_op(s: &str) -> LogicOp {
         "&" => LogicOp::And,
         "|" => LogicOp::Or,
         ">" => LogicOp::Implies,
+        "∧" => LogicOp::And,
+        "∨" => LogicOp::Or,
+        "⇒" => LogicOp::Implies,
         _ => unreachable!()
     }
 }
@@ -73,6 +76,7 @@ fn match_arithmetic_op(s: &str) -> ArithmeticOp {
     match s {
         "+" => ArithmeticOp::Add,
         "*" => ArithmeticOp::Mul,
+        "×" => ArithmeticOp::Mul,
         _ => unreachable!()
     }
 }
