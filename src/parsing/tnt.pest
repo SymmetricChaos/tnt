@@ -1,19 +1,19 @@
 formula = { (equality | logical_formula | quantification) }
 
-equality = { expr ~ "=" ~ expr }
+equality = { expression ~ "=" ~ expression }
 
 logical_formula = { "[" ~ formula ~ logical_op ~ formula ~ "]" }
 logical_op = { "&" | "|" | ">" | "∧" | "∨" | "⇒" }
 
-quantification = { quantifier ~ formula }
-quantifier = { negation ~ (existential | universal) }
-universal = { ("A"|"∀") ~ var ~ ":" }
-existential = { ("E"|"∃") ~ var ~ ":" }
-negation = { ("~"|"¬" )* }
+quantification = { quantifier ~ formula | negated_quantifier ~ formula }
+quantifier = { existential | universal  }
+negated_quantifier = { ( "~"|"¬" ) ~ quantifier }
+universal = { ("A"|"∀") ~ variable ~ ":" }
+existential = { ("E"|"∃") ~ variable ~ ":" }
 
-expr = { num | var | arithmetic_expr | successor_expr }
-num = { "S"* ~ "0" }
-var = { ASCII_ALPHA_LOWER ~ "'"* }
-arithmetic_expr = { "(" ~ expr ~ arith_op ~ expr ~ ")" }
+expression = { number | variable | arithmetic_expr | successor_expr }
+number = { "S"* ~ "0" }
+variable = { ASCII_ALPHA_LOWER ~ "'"* }
+arithmetic_expr = { "(" ~ expression ~ arith_op ~ expression ~ ")" }
 arith_op = { "+" | "*" | "×" }
-successor_expr = { "S" ~ expr }
+successor_expr = { "S" ~ expression }

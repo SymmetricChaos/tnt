@@ -31,7 +31,7 @@ pub fn formula_str_to_ast(text: &str) -> Result<TntNode,pest::error::Error<Rule>
 }
 
 pub fn expression_str_to_ast(text: &str) -> Result<TntNode,pest::error::Error<Rule>> {
-    let mut tree = TntParser::parse(Rule::expr, text)?;
+    let mut tree = TntParser::parse(Rule::expression, text)?;
     Ok(build_ast(tree.next().unwrap()))
 }
 
@@ -39,11 +39,11 @@ pub fn build_ast(pair: Pair<Rule>) -> TntNode {
     match pair.as_rule() {
         // Expressions and formulas just mask more specific rules that we want to use
         Rule::formula => build_ast(pair.into_inner().next().unwrap()),
-        Rule::expr => build_ast(pair.into_inner().next().unwrap()),
+        Rule::expression => build_ast(pair.into_inner().next().unwrap()),
 
         // Numbers are variables are terminal symbols that we immediately capture
-        Rule::num => TntNode::Number(pair.as_str().to_string()),
-        Rule::var => TntNode::Variable(pair.as_str().to_string()),
+        Rule::number => TntNode::Number(pair.as_str().to_string()),
+        Rule::variable => TntNode::Variable(pair.as_str().to_string()),
 
         Rule::equality => {
             let mut t = pair.into_inner();
