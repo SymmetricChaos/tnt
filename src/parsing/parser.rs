@@ -20,6 +20,12 @@ pub fn parse_proof(proof: &str) -> Result<Vec<TntNode>,pest::error::Error<Rule>>
     Ok(vec)
 }
 
+pub fn print_parse_tree(text: &str, rule: Rule) -> Result<(),pest::error::Error<Rule>> {
+    let tree = TntParser::parse(rule, text)?;
+    println!("{:#?}",tree);
+    Ok(())
+}
+
 pub fn str_to_ast(text: &str, rule: Rule) -> Result<TntNode,pest::error::Error<Rule>> {
     let mut tree = TntParser::parse(rule, text)?;
     Ok(build_ast(tree.next().unwrap()))
@@ -55,6 +61,9 @@ pub fn build_ast(pair: Pair<Rule>) -> TntNode {
         Rule::quantification => expand_quantification(pair),
 
         Rule::arithmetic_expr => expand_arithmetic_expr(pair),
+
+        // Unary nodes
+        Rule::negated_quantification => TntNode::Negation( Box::new( build_ast(pair.into_inner().next().unwrap())) ),
         Rule::successor_expr => TntNode::Successor( Box::new( build_ast(pair.into_inner().next().unwrap())) ),
         _ => unreachable!()
     }
@@ -97,9 +106,8 @@ fn expand_arithmetic_expr(pair: Pair<Rule>) -> TntNode {
     TntNode::Arithmetic(op, Box::new(build_ast(lhs)), Box::new(build_ast(rhs)))
 }
 
-fn expand_quantifier(pair: Pair<Rule>) -> (String,Quantifier) {
+fn expand_quantifier(pair: Pair<Rule>) -> Quantifier {
     let mut t = pair.into_inner();
-    let negation = t.next().unwrap().as_str().to_string();
     let quant = {
         let q = t.next().unwrap();
         match q.as_rule() {
@@ -114,14 +122,26 @@ fn expand_quantifier(pair: Pair<Rule>) -> (String,Quantifier) {
             _ => unreachable!()
         }
     };
-    (negation,quant)
+    quant
 }
 
 fn expand_quantification(pair: Pair<Rule>) -> TntNode {
-    let mut t = pair.into_inner();
-    let (negation, quant) = expand_quantifier(t.next().unwrap());
-    let contents =  Box::new(build_ast(t.next().unwrap()));
-    TntNode::Quantification(negation, quant, contents)
+    let t = pair.into_inner().next().unwrap();
+    match t.as_rule() {
+        Rule::quantified_formula => {
+            let mut q = t.into_inner();
+            let quant = expand_quantifier(q.next().unwrap());
+            let formula =  Box::new(build_ast(q.next().unwrap()));
+            TntNode::Quantification(quant, formula)
+        },
+        Rule::negated_quantification => {
+            let mut q = t.into_inner();
+            let quantification =  Box::new(build_ast(q.next().unwrap()));
+            TntNode::Negation(quantification)
+        },
+        _ => unreachable!()
+    }
+
 }
 
 
@@ -146,6 +166,7 @@ fn test_compound_equality() {
 #[test]
 fn test_quantification() {
     let tnt = "~~Ea:a=a";
+    //print_parse_tree(tnt,Rule::quantification);
     let ast = formula_str_to_ast(tnt).unwrap();
     assert_eq!(tnt,format!("{}",&ast));
 }

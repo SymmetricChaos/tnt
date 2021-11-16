@@ -83,7 +83,7 @@ pub enum TntNode {
     Logical(LogicOp, Box<TntNode>, Box<TntNode>),
     Successor(Box<TntNode>),
     Negation(Box<TntNode>),
-    Quantification(String, Quantifier, Box<TntNode>),
+    Quantification(Quantifier, Box<TntNode>),
     Number(String),
     Variable(String),
 }
@@ -96,7 +96,7 @@ impl TntNode {
             TntNode::Logical(op, lhs, rhs) => format!("[{}{}{}]", lhs.pretty_print(), op.pretty_print(), rhs.pretty_print()),
             TntNode::Successor(expression) => format!("S{}",expression.pretty_print()),
             TntNode::Negation(quantification) => format!("¬{}",quantification.pretty_print()),
-            TntNode::Quantification(neg, q, formula) => format!("{}{}{}", neg, q.pretty_print(), formula.pretty_print()),
+            TntNode::Quantification(q, formula) => format!("{}{}", q.pretty_print(), formula.pretty_print()),
             TntNode::Number(n) => format!("{}",n),
             TntNode::Variable(v) => format!("{}",v),
         }
@@ -111,7 +111,7 @@ impl Display for TntNode {
             TntNode::Logical(op, lhs, rhs) => write!(f, "[{}{}{}]", lhs, op, rhs),
             TntNode::Successor(expression) => write!(f, "S{}", expression),
             TntNode::Negation(quantification) => write!(f, "~{}",quantification),
-            TntNode::Quantification(neg, q, formula) => write!(f, "{}{}{}", neg, q, formula),
+            TntNode::Quantification(q, formula) => write!(f, "{}{}", q, formula),
             TntNode::Number(n) => write!(f, "{}", n),
             TntNode::Variable(v) => write!(f, "{}", v),
         }

@@ -1,13 +1,18 @@
+// Valid formulas are only equalities, logical expressions, or quantifications of valid formulas
 formula = { (equality | logical_formula | quantification) }
 
+// Note that equality is between *expressions* not formulas
 equality = { expression ~ "=" ~ expression }
 
+// A logical assertion about two formulas: and, or, implies
 logical_formula = { "[" ~ formula ~ logical_op ~ formula ~ "]" }
-logical_op = { "&" | "|" | ">" | "∧" | "∨" | "⇒" }
+logical_op = { ("&" | "|" | ">") | ("∧" | "∨" | "⇒") }
 
-quantification = { quantifier ~ formula | negated_quantifier ~ formula }
-quantifier = { existential | universal  }
-negated_quantifier = { ( "~"|"¬" ) ~ quantifier }
+// Valid uantifications are either a universal or existential assertion followed by a formula or 
+// a valid quantification preceeded by a negation symbol
+quantification = { quantified_formula | negated_quantification }
+quantified_formula = { (existential | universal) ~ formula  }
+negated_quantification = { ( "~"|"¬" ) ~ quantification }
 universal = { ("A"|"∀") ~ variable ~ ":" }
 existential = { ("E"|"∃") ~ variable ~ ":" }
 
