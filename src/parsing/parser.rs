@@ -107,22 +107,17 @@ fn expand_arithmetic_expr(pair: Pair<Rule>) -> TntNode {
 }
 
 fn expand_quantifier(pair: Pair<Rule>) -> Quantifier {
-    let mut t = pair.into_inner();
-    let quant = {
-        let q = t.next().unwrap();
-        match q.as_rule() {
-            Rule::existential => {
-                let var = build_ast(q.into_inner().next().unwrap());
-                Quantifier::Existential(Box::new(var))
-            },
-            Rule::universal => {
-                let var = build_ast(q.into_inner().next().unwrap());
-                Quantifier::Universal(Box::new(var))
-            },
-            _ => unreachable!()
-        }
-    };
-    quant
+    match pair.as_rule() {
+        Rule::existential => {
+            let var = build_ast(pair.into_inner().next().unwrap());
+            Quantifier::Existential(Box::new(var))
+        },
+        Rule::universal => {
+            let var = build_ast(pair.into_inner().next().unwrap());
+            Quantifier::Universal(Box::new(var))
+        },
+        _ => unreachable!("not universal of existential")
+    }
 }
 
 fn expand_quantification(pair: Pair<Rule>) -> TntNode {
@@ -136,7 +131,7 @@ fn expand_quantification(pair: Pair<Rule>) -> TntNode {
         },
         Rule::negated_quantification => {
             let mut q = t.into_inner();
-            let quantification =  Box::new(build_ast(q.next().unwrap()));
+            let quantification =  Box::new(expand_quantification(q.next().unwrap()));
             TntNode::Negation(quantification)
         },
         _ => unreachable!()
@@ -165,8 +160,7 @@ fn test_compound_equality() {
 
 #[test]
 fn test_quantification() {
-    let tnt = "~~Ea:a=a";
-    //print_parse_tree(tnt,Rule::quantification);
+    let tnt = "~~Ea':z=a";
     let ast = formula_str_to_ast(tnt).unwrap();
     assert_eq!(tnt,format!("{}",&ast));
 }
