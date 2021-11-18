@@ -143,64 +143,71 @@ fn expand_quantification(pair: Pair<Rule>) -> TntNode {
 
 
 
-// Formulas
-#[test]
-fn test_simple_equality() {
-    let tnt = "S0=a''";
-    let ast = formula_str_to_ast(tnt).unwrap();
-    assert_eq!(tnt,format!("{}",&ast));
+#[cfg(test)]
+mod test_formulas {
+
+    use super::*;
+
+    #[test]
+    fn test_simple_equality() {
+        let tnt = "S0=a''";
+        let ast = formula_str_to_ast(tnt).unwrap();
+        assert_eq!(tnt,format!("{}",&ast));
+    }
+
+    #[test]
+    fn test_compound_equality() {
+        let tnt = "S0=(b+b)";
+        let ast = formula_str_to_ast(tnt).unwrap();
+        assert_eq!(tnt,format!("{}",&ast));
+    }
+
+    #[test]
+    fn test_quantification() {
+        let tnt = "~~Ea':z=a";
+        let ast = formula_str_to_ast(tnt).unwrap();
+        assert_eq!(tnt,format!("{}",&ast));
+    }
+
+    #[test]
+    fn test_complex_formula() {
+        let tnt = "Aa:Ab:(a*Sb)=((a*b)+a)";
+        let ast = formula_str_to_ast(tnt).unwrap();
+        assert_eq!(tnt,format!("{}",&ast));
+    }
+
+    #[test]
+    fn test_very_complex_formula() {
+        let tnt = "Aa:[Ec:(a*c)=b>Ed:(d*SS0)=a]";
+        let ast = formula_str_to_ast(tnt).unwrap();
+        println!("{}",&ast.pretty_print());
+    }
 }
 
-#[test]
-fn test_compound_equality() {
-    let tnt = "S0=(b+b)";
-    let ast = formula_str_to_ast(tnt).unwrap();
-    assert_eq!(tnt,format!("{}",&ast));
-}
 
-#[test]
-fn test_quantification() {
-    let tnt = "~~Ea':z=a";
-    let ast = formula_str_to_ast(tnt).unwrap();
-    assert_eq!(tnt,format!("{}",&ast));
-}
+#[cfg(test)]
+mod test_expressions {
 
-#[test]
-fn test_complex_formula() {
-    let tnt = "Aa:Ab:(a*Sb)=((a*b)+a)";
-    let ast = formula_str_to_ast(tnt).unwrap();
-    assert_eq!(tnt,format!("{}",&ast));
-}
+    use super::*;
 
-#[test]
-fn test_very_complex_formula() {
-    let tnt = "Aa:[Ec:(a*c)=b>Ed:(d*SS0)=a]";
-    let ast = formula_str_to_ast(tnt).unwrap();
-    assert_eq!(tnt,format!("{}",&ast));
-    println!("{}",&ast.pretty_print());
-}
+    #[test]
+    fn test_addition() {
+        let tnt = "(0+Sa)";
+        let ast = expression_str_to_ast(tnt).unwrap();
+        assert_eq!(tnt,format!("{}",&ast));
+    }
 
+    #[test]
+    fn test_multiplication() {
+        let tnt = "(x''*SSSSSS0)";
+        let ast = expression_str_to_ast(tnt).unwrap();
+        assert_eq!(tnt,format!("{}",&ast));
+    }
 
-
-
-// Expressions
-#[test]
-fn test_addition() {
-    let tnt = "(0+Sa'')";
-    let ast = expression_str_to_ast(tnt).unwrap();
-    assert_eq!(tnt,format!("{}",&ast));
-}
-
-#[test]
-fn test_multiplication() {
-    let tnt = "(x''*SSSSSS0)";
-    let ast = expression_str_to_ast(tnt).unwrap();
-    assert_eq!(tnt,format!("{}",&ast));
-}
-
-#[test]
-fn test_complex_arithmetic() {
-    let tnt = "SS((b+S0)*Sa'')";
-    let ast = expression_str_to_ast(tnt).unwrap();
-    assert_eq!(tnt,format!("{}",&ast));
+    #[test]
+    fn test_complex_arithmetic() {
+        let tnt = "SS((b+S0)*Sa'')";
+        let ast = expression_str_to_ast(tnt).unwrap();
+        assert_eq!(tnt,format!("{}",&ast));
+    }
 }

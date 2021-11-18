@@ -97,8 +97,21 @@ impl TntNode {
             TntNode::Successor(expression) => format!("S{}",expression.pretty_print()),
             TntNode::Negation(quantification) => format!("¬{}",quantification.pretty_print()),
             TntNode::Quantification(q, formula) => format!("{}{}", q.pretty_print(), formula.pretty_print()),
-            TntNode::Number(n) => format!("{}",n),
-            TntNode::Variable(v) => format!("{}",v),
+            TntNode::Number(n) => n.clone(),
+            TntNode::Variable(v) => v.clone(),
+        }
+    }
+
+    pub fn validate(&self) -> bool {
+        match self {
+            TntNode::Equality(lhs, rhs) => todo!(),
+            TntNode::Arithmetic(_, lhs, rhs) => todo!(),
+            TntNode::Logical(_, lhs, rhs) => todo!(),
+            TntNode::Successor(_) => todo!(),
+            TntNode::Negation(_) => todo!(),
+            TntNode::Quantification(_, _) => todo!(),
+            TntNode::Number(_) => true,
+            TntNode::Variable(_) => true,
         }
     }
 }
