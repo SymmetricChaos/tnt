@@ -24,6 +24,8 @@ impl Quantifier {
     }
 }
 
+
+
 #[derive(Debug)]
 pub enum LogicOp {
     And,
@@ -51,6 +53,8 @@ impl Display for LogicOp {
     }
 }
 
+
+
 #[derive(Debug)]
 pub enum ArithmeticOp {
     Add,
@@ -75,6 +79,8 @@ impl Display for ArithmeticOp {
         }
     }
 }
+
+
 
 #[derive(Debug)]
 pub enum TntNode {
