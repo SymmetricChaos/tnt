@@ -1,5 +1,17 @@
 use std::fmt;
 
+use num::BigUint;
+
+use crate::translate::{arithmetize, to_english, to_latex};
+
+use regex::Regex;
+use lazy_static::lazy_static;
+
+
+lazy_static! {
+    pub static ref VAR: Regex = Regex::new("[a-z]\'*").unwrap();
+}
+
 
 #[derive(Clone,Debug,PartialEq, Eq)]
 pub struct Variable {
@@ -7,8 +19,22 @@ pub struct Variable {
 }
 
 impl Variable {
+    pub fn new(name: &str) -> Variable {
+        if VAR.is_match(name) {
+            Variable{name: name.to_string()}
+        } else {
+            panic!("invalid variable name: `{}`", name)
+        }
+    }
+
     pub fn replace_var(replacement: Term) -> Term {
         replacement
+    }
+}
+
+impl fmt::Display for Variable {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.name)
     }
 }
 
@@ -48,6 +74,21 @@ impl Term {
 
         }
     }
+
+    pub fn contains_var(&self, v: &Variable) -> bool {
+        match self {
+            Term::Zero => false,
+            Term::Variable(var) => var == v,
+            Term::Add(lhs, rhs) => {
+                lhs.contains_var(v) || rhs.contains_var(v)
+            }
+            Term::Mul(lhs, rhs) => {
+                lhs.contains_var(v) || rhs.contains_var(v)
+            }
+            Term::Successor(t) => t.contains_var(v)
+        }
+    }
+
 }
 
 impl fmt::Display for Term {
@@ -148,13 +189,13 @@ impl Formula {
             Formula::Negation(f) => Formula::Negation(
                 Box::new(f.replace_var(v,replacement))
             ),
-            
+
         }
     }
 
-    // Translation of the Formula to a different representation
-/*     
 
+
+    // Translation of the Formula to a different representation
     pub fn english(&self) -> String {
         to_english(self.to_string())
     }
@@ -165,7 +206,34 @@ impl Formula {
 
     pub fn arithmetize(&self) -> BigUint {
         arithmetize(self.to_string())
-    } */
+    }
+
+
+
+    /// Does the Formula contain the Variable in question?
+    pub fn contains_var(&self, v: &Variable) -> bool {
+        match self {
+            Formula::Equality(lhs, rhs) => {
+                lhs.contains_var(v) || rhs.contains_var(v)
+            }
+            Formula::And(lhs, rhs) => {
+                lhs.contains_var(v) || rhs.contains_var(v)
+            }
+            Formula::Or(lhs, rhs) => {
+                lhs.contains_var(v) || rhs.contains_var(v)
+            }
+            Formula::Implies(lhs, rhs) => {
+                lhs.contains_var(v) || rhs.contains_var(v)
+            }
+            Formula::Exists(var, f) => {
+                var == v || f.contains_var(v)
+            }
+            Formula::ForAll(var, f) => {
+                var == v || f.contains_var(v)
+            }
+            Formula::Negation(f) => f.contains_var(v)
+        }
+    }
 
 /*
     pub fn dearithmetize(number: &BigUint) -> Formula {
@@ -187,10 +255,7 @@ impl Formula {
         Formula::new(&st )
     }
 
-    /// Does the Formula contain the Variable in question?
-    pub fn contains_var(&self, v: &Variable) -> bool {
-        v.re.find(&self.to_string()).unwrap().is_some()
-    }
+
 
     /// Does the Formula contain the Variable in a quantification?
     pub fn contains_var_bound(&self, v: &Variable) -> bool {
@@ -199,14 +264,19 @@ impl Formula {
 
 }
 
-/* impl fmt::Display for Formula {
+impl fmt::Display for Formula {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self {
-            Formula::Equality(t1, t2) => write!(f, "{}={}", t1,t2),
-            Formula::Complex(form) => write!(f, "{}", form),
+            Formula::Equality(t1, t2) => write!(f, "{}={}", t1, t2),
+            Formula::And(f1, f2) => write!(f, "[{}&{}]", f1, f2),
+            Formula::Or(f1, f2) => write!(f, "[{}|{}]", f1, f2),
+            Formula::Implies(f1, f2) => write!(f, "[{}>{}]", f1, f2),
+            Formula::Exists(v, form) => write!(f, "E{}:{}", v, form),
+            Formula::ForAll(v, form) => write!(f, "A{}:{}", v, form),
+            Formula::Negation(form) => write!(f, "~{}", form),
         }
     }
-} */
+}
 /* 
 /// Two formulas are considered equal if their austere versions are identical
 impl PartialEq for Formula {
@@ -218,25 +288,19 @@ impl PartialEq for Formula {
 
 
 
-/* #[cfg(test)]
+#[cfg(test)]
 mod test {
 
     use super::*;
 
     #[test]
-    fn test_replace_var() {
-        let a = &Variable::new("a");
-        let b = &Variable::new("b");
-        let f1 = Formula::new("Aa:Ea':a=Sa'");
-        assert_eq!( f1.replace_var(a,b).to_string(), "Ab:Ea':b=Sa'".to_string() )
+    fn create_variable() {
+        let a = &Variable::new("A");
+        let b = &Variable::new("b''");
+        println!("{}",a);
+        println!("{}",b);
     }
 
-    #[test]
-    fn test_specify_var() {
-        let a = &Variable::new("a");
-        let b = &Variable::new("b");
-        let f1 = Formula::new("Aa:Ea':a=Sa'");
-        assert_eq!( f1.specify_var(a,b).to_string(), "Ea':b=Sa'".to_string() )
-    }
 
-} */
+
+}
