@@ -1,6 +1,5 @@
 //! Parse strings of TNT and build an Abstract Syntax Tree
 
-pub mod syntax_tree;
 //pub mod parser;
 pub mod formula_tree;
-pub mod parser_alt;
+pub mod parser;
