@@ -15,12 +15,12 @@ quantification = _{ universal | existential }
 universal = { ("A"|"∀") ~ variable ~ ":" ~ formula }
 existential = { ("E"|"∃") ~ variable ~ ":" ~ formula }
 
-// A negation is a negation symbol followed by a universal or existential formula
-negation = { ( "~"|"¬" ) ~ ( universal | existential ) }
+// A negation is a negation symbol followed by a formula
+negation = { ( "~"|"¬" ) ~ formula }
 
 // Terms are arithmetic expressions
 term = _{ zero | variable | addition | multiplication | successor }
-zero = {"0" }
+zero = { "0" }
 variable = { ASCII_ALPHA_LOWER ~ "'"* }
 addition = { "(" ~ term ~ "+" ~ term ~ ")" }
 multiplication = { "(" ~ term ~ ("*"|"×") ~ term ~ ")" }
