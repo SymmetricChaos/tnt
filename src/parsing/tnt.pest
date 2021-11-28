@@ -1,24 +1,27 @@
 // Valid formulas are only equalities, logical expressions, or quantifications of valid formulas
-formula = { (equality | logical_formula | quantification) }
+formula = _{ equality | logical_formula | quantification | negation }
 
 // Note that equality is between *expressions* not formulas
-equality = { expression ~ "=" ~ expression }
+equality = { term ~ "=" ~ term }
 
 // A logical assertion about two formulas: and, or, implies
-logical_formula = { "[" ~ formula ~ logical_op ~ formula ~ "]" }
-logical_op = { ("&" | "|" | ">") | ("∧" | "∨" | "⇒") }
+logical_formula = _{ and | or | implies }
+and = { "[" ~ formula ~ ("&"|"∧") ~ formula ~ "]" }
+or = { "[" ~ formula ~ ("|"| "∨") ~ formula ~ "]" }
+implies = { "[" ~ formula ~ (">"|"⇒") ~ formula ~ "]" }
 
-// Valid uantifications are either a universal or existential assertion followed by a formula or 
-// a valid quantification preceeded by a negation symbol
-quantification = { quantified_formula | negated_quantification }
-quantified_formula = { (existential | universal) ~ formula  }
-negated_quantification = { ( "~"|"¬" ) ~ quantification }
-universal = { ("A"|"∀") ~ variable ~ ":" }
-existential = { ("E"|"∃") ~ variable ~ ":" }
+// Valid uantifications are a universal or existential assertion followed by a formula
+quantification = _{ universal | existential }
+universal = { ("A"|"∀") ~ variable ~ ":" ~ formula }
+existential = { ("E"|"∃") ~ variable ~ ":" ~ formula }
 
-expression = { number | variable | arithmetic_expr | successor_expr }
-number = { "S"* ~ "0" }
+// A negation is a negation symbol followed by a universal or existential formula
+negation = { ( "~"|"¬" ) ~ ( universal | existential ) }
+
+// Terms are arithmetic expressions
+term = _{ zero | variable | addition | multiplication | successor }
+zero = {"0" }
 variable = { ASCII_ALPHA_LOWER ~ "'"* }
-arithmetic_expr = { "(" ~ expression ~ arith_op ~ expression ~ ")" }
-arith_op = { "+" | "*" | "×" }
-successor_expr = { "S" ~ expression }
+addition = { "(" ~ term ~ "+" ~ term ~ ")" }
+multiplication = { "(" ~ term ~ ("*"|"×") ~ term ~ ")" }
+successor = { "S" ~ term }

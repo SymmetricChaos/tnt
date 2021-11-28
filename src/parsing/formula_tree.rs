@@ -96,8 +96,8 @@ impl fmt::Display for Term {
         match &self {
             Term::Zero => write!(f, "0"),
             Term::Variable(v) => write!(f, "{}", v.name),
-            Term::Add(t1, t2) => write!(f, "{}+{}", t1, t2),
-            Term::Mul(t1, t2) =>  write!(f, "{}*{}", t1, t2),
+            Term::Add(t1, t2) => write!(f, "({}+{})", t1, t2),
+            Term::Mul(t1, t2) =>  write!(f, "({}*{})", t1, t2),
             Term::Successor(t) => write!(f, "S{}", t),
         }
     }
