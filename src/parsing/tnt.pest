@@ -1,4 +1,4 @@
-// Valid formulas are only equalities, logical expressions, or quantifications of valid formulas
+// Well-formed formulas are only equalities, logical statements, quantifications, and negations
 formula = _{ equality | logical_formula | quantification | negation }
 
 // Note that equality is between *expressions* not formulas

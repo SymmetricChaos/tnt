@@ -13,7 +13,7 @@ lazy_static! {
 }
 
 
-#[derive(Clone,Debug,PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Variable {
     name: String
 }
@@ -87,6 +87,28 @@ impl Term {
             }
             Term::Successor(t) => t.contains_var(v)
         }
+    }
+
+    pub fn get_vars(&self) -> Vec<Variable> {
+        let mut vec = Vec::new();
+        match self {
+            Term::Zero => {},
+            Term::Variable(v) => vec.push(v.clone()),
+            Term::Add(lhs, rhs) => {
+                vec.extend(lhs.get_vars());
+                vec.extend(rhs.get_vars());
+            },
+            Term::Mul(lhs, rhs) => {
+                vec.extend(lhs.get_vars());
+                vec.extend(rhs.get_vars());
+            },
+            Term::Successor(term) => {
+                vec.extend(term.get_vars());;
+            },
+        }
+        vec.sort();
+        vec.dedup();
+        vec
     }
 
 }
@@ -233,6 +255,43 @@ impl Formula {
             }
             Formula::Negation(f) => f.contains_var(v)
         }
+    }
+
+    // All variables in the Formula
+    pub fn get_vars(&self) -> Vec<Variable> {
+        let mut vec = Vec::new();
+        match self {
+            Formula::Equality(lhs, rhs) => {
+                vec.extend(lhs.get_vars());
+                vec.extend(rhs.get_vars());
+            },
+            Formula::And(lhs, rhs) => {
+                vec.extend(lhs.get_vars());
+                vec.extend(rhs.get_vars());
+            },
+            Formula::Or(lhs, rhs) => {
+                vec.extend(lhs.get_vars());
+                vec.extend(rhs.get_vars());
+            },
+            Formula::Implies(lhs, rhs) => {
+                vec.extend(lhs.get_vars());
+                vec.extend(rhs.get_vars());
+            },
+            Formula::Exists(v, form) => {
+                vec.push(v.clone());
+                vec.extend(form.get_vars());
+            },
+            Formula::ForAll(v, form) => {
+                vec.push(v.clone());
+                vec.extend(form.get_vars());
+            },
+            Formula::Negation(form) => {
+                vec.extend(form.get_vars());
+            },
+        }
+        vec.sort();
+        vec.dedup();
+        vec
     }
 
 /*
