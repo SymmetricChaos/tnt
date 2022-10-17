@@ -77,7 +77,7 @@ fn main() -> Result<(),LogicError> {
     e.generalization(52, c)?;
     e.induction( d, 53, 39)?;
 
-    assert_eq!(e.last_theorem(),t);
+    assert_eq!(e.last_theorem().formula,*t);
 
     e.pretty_print();
 

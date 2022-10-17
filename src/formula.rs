@@ -1,132 +1,177 @@
-use std::fmt;
-use num::bigint::BigUint;
+use std::fmt::{self, Display, Formatter};
 
-use crate::{properties::{is_simple_formula,is_formula}};
-use crate::translate::{to_latex,to_english,arithmetize,dearithmetize,to_austere};
-use crate::string_manip::replace_all_re;
-use crate::terms::{Variable,Term};
+use crate::terms::{succ, Term, ONE, ZERO};
 
+use lazy_static::lazy_static;
+lazy_static! {
+    /**
+    * These are the axiomatic statements of the TNT formal system, they don't align strictly with the Peano Axioms but they define the same arithmetic properties for addition and multiplication. The axioms are as follows:
+    *
+    * Aa:~Sa=0                for all a, it is false that (a + 1) is 0
+    *
+    * Aa:(a+0)=a              for all a, (a + 0) = a
+    *
+    * Aa:Ab:(a+Sb)=S(a+b)     for all a and b, (a + (b + 1)) = ((a + b) + 1)
+    *
+    * Aa:(a\*0) = 0            for all a, (a × 0) = 0
+    *
+    * Aa:Ab:(a\*Sb)=((a\*b)+a)  for all a and b, (a × (b + 1)) = ((a × b) + a)
+    */
 
+    pub static ref PEANO: Vec<Formula> = {
 
-/// A Formula is a well-formed formula, either Simple or Complex
-#[derive(Clone,Debug)]
+        let a = &Term::var("a");
+        let b = &Term::var("b");
+
+        let mut m = Vec::new();
+        m.push(
+            forall("a",&not(&eq(&succ(a),ZERO)))
+        );
+
+        m.push(
+            forall("a",eq(a + ZERO, a))
+        );
+
+        m.push(
+            forall("a",forall("b", &eq(a + &succ(b), &succ(a + b))))
+        );
+
+        m.push(
+            forall("a",eq(a * ZERO, ZERO))
+        );
+
+        m.push(
+            forall("a",forall("b",
+                &eq(
+                    &(a * &(b + ONE)),
+                    &((a * b) + a))
+                ))
+        );
+
+        m
+    };
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Formula {
-    /// Formula::Simple consists of precisely an equality of two terms
-    Simple(String),
-    /// Formula::Complex consists of any well-formed formula
-    Complex(String),
+    Equality(Term, Term),
+    Universal(&'static str, Box<Formula>),
+    Existential(&'static str, Box<Formula>),
+    Negation(Box<Formula>),
+    And(Box<Formula>, Box<Formula>),
+    Or(Box<Formula>, Box<Formula>),
+    Implies(Box<Formula>, Box<Formula>),
 }
 
 impl Formula {
-    /// An &str is automatically converted to the correct variant, this requires potentially slow parsing of the &str
-    pub fn new(input: &str) -> Formula {
-        if is_simple_formula(input) {
-            return Formula::Simple(input.to_owned())
-        } else if is_formula(input) {
-            return Formula::Complex(input.to_owned()) 
-        } else {
-            panic!("{} is not a well formed formula",input)
+    // Eliminate all universal quantification of some Variable and then replace all instances of that variable with the provided Term
+    pub fn specify(&mut self, name: &str, term: &Term) {
+        match self {
+            Self::Equality(left, right) => {
+                left.replace(name, term);
+                right.replace(name, term);
+            }
+            Self::Universal(v, formula) => {
+                if *v == name {
+                    *self = *formula.clone();
+                    self.specify(name, term);
+                }
+            }
+            Self::Existential(_, formula) => formula.specify(name, term),
+            Self::Negation(formula) => formula.specify(name, term),
+            Self::And(left, right) => {
+                left.specify(name, term);
+                right.specify(name, term);
+            }
+            Self::Or(left, right) => {
+                left.specify(name, term);
+                right.specify(name, term);
+            }
+            Self::Implies(left, right) => {
+                left.specify(name, term);
+                right.specify(name, term);
+            }
         }
     }
 
-    /// Fast creation of Formula::Simple with no checks, may be deprecated soon
-    pub fn new_simple(input: &str) -> Formula {
-        return Formula::Simple(input.to_owned())
+    pub fn contains_var(&mut self, name: &str) -> bool {
+        match self {
+            Self::Equality(left, right) => left.contains_var(name) || right.contains_var(name),
+            Self::Universal(v, formula) => *v == name || formula.contains_var(name),
+            Self::Existential(v, formula) => *v == name || formula.contains_var(name),
+            Self::Negation(formula) => formula.contains_var(name),
+            Self::And(left, right) => left.contains_var(name) || right.contains_var(name),
+            Self::Or(left, right) => left.contains_var(name) || right.contains_var(name),
+            Self::Implies(left, right) => left.contains_var(name) || right.contains_var(name),
+        }
     }
 
-    /// Fast creation of Formula::Complex with no checks, may be deprecated soon
-    pub fn new_complex(input: &str) -> Formula {
-        return Formula::Complex(input.to_owned())
-    }
-
-    /// Translate the Formula to LaTeX representation
-    pub fn latex(&self) -> String {
-        to_latex(self.to_string())
-    }
-
-    /// Translate the Formula to relatively readable English
-    pub fn english(&self) -> String {
-        to_english(self.to_string())
-    }
-
-    /// Return a BigUint that represents the Formula
-    pub fn arithmetize(&self) -> BigUint {
-        arithmetize(self.to_string())
-    }
-
-    /// Create a formula from a BigUint
-    pub fn dearithmetize(number: &BigUint) -> Formula {
-        Formula::new(&dearithmetize(number))
-    }
-
-    /// Return the Formula converted into its canonical austere form
-    pub fn austere(&self) -> Formula {
-        Formula::new(&to_austere(self.to_string()))
-    }
-
-    /// Replace every instance of a Variable in the Formula with some Term
-    pub fn replace_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
-        let st = replace_all_re(&self.to_string(), &v.re, &replacement.get_string()[..]);
-        Formula::new(&st )
-    }
-
-    /// Eliminate universal quantification of a Variable in the Formula then replace every instance with some Term
-    pub fn specify_var<T: Term>(&self, v: &Variable, replacement: &T) -> Formula {
-        let mut st = self.to_string().replace(&format!("A{}:",v),"");
-        st = replace_all_re(&st, &v.re, &replacement.get_string()[..]);
-        Formula::new(&st )
-    }
-
-    /// Does the Formula contain the Variable in question?
-    pub fn contains_var(&self, v: &Variable) -> bool {
-        v.re.find(&self.to_string()).unwrap().is_some()
-    }
-
-    /// Does the Formula contain the Variable in a quantification?
-    pub fn contains_var_bound(&self, v: &Variable) -> bool {
-        v.req.find(&self.to_string()).unwrap().is_some()
-    }
-
-}
-
-impl fmt::Display for Formula {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self {
-            Formula::Simple(form) => write!(f, "{}", form),
-            Formula::Complex(form) => write!(f, "{}", form),
+    pub fn contains_var_bound(&mut self, name: &str) -> bool {
+        match self {
+            Self::Equality(_, _) => false,
+            Self::Universal(v, formula) => *v == name || formula.contains_var_bound(name),
+            Self::Existential(v, formula) => *v == name || formula.contains_var_bound(name),
+            Self::Negation(formula) => formula.contains_var_bound(name),
+            Self::And(left, right) => {
+                left.contains_var_bound(name) || right.contains_var_bound(name)
+            }
+            Self::Or(left, right) => {
+                left.contains_var_bound(name) || right.contains_var_bound(name)
+            }
+            Self::Implies(left, right) => {
+                left.contains_var_bound(name) || right.contains_var_bound(name)
+            }
         }
     }
 }
 
-/// Two formulas are considered equal if their austere versions are identical
-impl PartialEq for Formula {
-    fn eq(&self, other: &Self) -> bool {
-        self.austere().to_string() == other.austere().to_string()
+impl Display for Formula {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match self {
+            Self::Equality(left, right) => write!(f, "{left}={right}"),
+            Self::Universal(name, formula) => write!(f, "A{name}:{formula}"),
+            Self::Existential(name, formula) => write!(f, "E{name}:{formula}"),
+            Self::Negation(formula) => write!(f, "~{formula}"),
+            Self::And(left, right) => write!(f, "[{left}&{right}]"),
+            Self::Or(left, right) => write!(f, "[{left}|{right}]"),
+            Self::Implies(left, right) => write!(f, "[{left}>{right}]"),
+        }
     }
 }
 
+// These are guaranteed to produce well-formed formulas of TNT. However they may produce false statements.
 
+/// Equality of two Terms
+pub fn eq(left: &Term, right: &Term) -> Formula {
+    Formula::Equality(left.clone(), right.clone())
+}
 
+/// Negation of a Formula
+pub fn not(formula: &Formula) -> Formula {
+    Formula::Negation(Box::new(formula.clone()))
+}
 
-#[cfg(test)]
-mod test {
+/// Logical OR of two Formulas
+pub fn or(left: &Formula, right: &Formula) -> Formula {
+    Formula::Or(Box::new(left.clone()), Box::new(right.clone()))
+}
 
-    use super::*;
+/// Logical AND of two Formulas
+pub fn and(left: &Formula, right: &Formula) -> Formula {
+    Formula::And(Box::new(left.clone()), Box::new(right.clone()))
+}
 
-    #[test]
-    fn test_replace_var() {
-        let a = &Variable::new("a");
-        let b = &Variable::new("b");
-        let f1 = Formula::new("Aa:Ea':a=Sa'");
-        assert_eq!( f1.replace_var(a,b).to_string(), "Ab:Ea':b=Sa'".to_string() )
-    }
+/// Left Formula implies right Formula
+pub fn implies(left: &Formula, right: &Formula) -> Formula {
+    Formula::Implies(Box::new(left.clone()), Box::new(right.clone()))
+}
 
-    #[test]
-    fn test_specify_var() {
-        let a = &Variable::new("a");
-        let b = &Variable::new("b");
-        let f1 = Formula::new("Aa:Ea':a=Sa'");
-        assert_eq!( f1.specify_var(a,b).to_string(), "Ea':b=Sa'".to_string() )
-    }
+/// Assert some values for a Variable with the given name makes the Forumla true
+pub fn exists(v: &'static str, formula: &Formula) -> Formula {
+    Formula::Existential(v, Box::new(formula.clone()))
+}
 
+/// Assert that all values of a Variable with the given name make the Formula true
+pub fn forall(v: &'static str, formula: &Formula) -> Formula {
+    Formula::Universal(v, Box::new(formula.clone()))
 }
