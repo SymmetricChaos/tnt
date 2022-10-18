@@ -1,4 +1,7 @@
-use std::fmt::{self, Display, Formatter};
+use std::{
+    fmt::{self, Display, Formatter},
+    ops::{BitAnd, BitOr},
+};
 
 use crate::terms::{succ, Term, ONE, ZERO};
 
@@ -7,13 +10,13 @@ lazy_static! {
     /**
     * These are the axiomatic statements of the TNT formal system, they don't align strictly with the Peano Axioms but they define the same arithmetic properties for addition and multiplication. The axioms are as follows:
     *
-    * Aa:~Sa=0                for all a, it is false that (a + 1) is 0
+    * Aa:~Sa=0                  for all a, it is false that (a + 1) is 0
     *
-    * Aa:(a+0)=a              for all a, (a + 0) = a
+    * Aa:(a+0)=a                for all a, (a + 0) = a
     *
-    * Aa:Ab:(a+Sb)=S(a+b)     for all a and b, (a + (b + 1)) = ((a + b) + 1)
+    * Aa:Ab:(a+Sb)=S(a+b)       for all a and b, (a + (b + 1)) = ((a + b) + 1)
     *
-    * Aa:(a\*0) = 0            for all a, (a × 0) = 0
+    * Aa:(a\*0) = 0             for all a, (a × 0) = 0
     *
     * Aa:Ab:(a\*Sb)=((a\*b)+a)  for all a and b, (a × (b + 1)) = ((a × b) + a)
     */
@@ -174,4 +177,20 @@ pub fn exists(v: &'static str, formula: &Formula) -> Formula {
 /// Assert that all values of a Variable with the given name make the Formula true
 pub fn forall(v: &'static str, formula: &Formula) -> Formula {
     Formula::Universal(v, Box::new(formula.clone()))
+}
+
+impl<'a, 'b> BitAnd<&'b Term> for &'a Formula {
+    type Output = Formula;
+
+    fn bitand(self, other: &'b Formula) -> Formula {
+        and(self, other)
+    }
+}
+
+impl<'a, 'b> BitOr<&'b Formula> for &'a Formula {
+    type Output = Formula;
+
+    fn bitor(self, other: &'b Formula) -> Formula {
+        or(self, other)
+    }
 }
