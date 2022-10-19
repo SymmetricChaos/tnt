@@ -92,18 +92,34 @@ impl Display for Term {
     }
 }
 
-impl<'a, 'b> Add<&'b Term> for &'a Term {
+impl Add<Term> for Term {
     type Output = Term;
 
-    fn add(self, other: &'b Term) -> Term {
-        sum(self, other)
+    fn add(self, other: Term) -> Term {
+        sum(&self, &other)
+    }
+}
+
+impl Mul<Term> for Term {
+    type Output = Term;
+
+    fn mul(self, other: Term) -> Term {
+        prod(&self, &other)
+    }
+}
+
+impl<'a, 'b> Add<&'b Term> for &'a Term {
+    type Output = &'a Term;
+
+    fn add(self, other: &'b Term) -> &'a Term {
+        &sum(self, other)
     }
 }
 
 impl<'a, 'b> Mul<&'b Term> for &'a Term {
-    type Output = Term;
+    type Output = &'a Term;
 
-    fn mul(self, other: &'b Term) -> Term {
-        prod(self, other)
+    fn mul(self, other: &'b Term) -> &'a Term {
+        &prod(self, other)
     }
 }

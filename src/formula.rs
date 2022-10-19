@@ -28,26 +28,30 @@ lazy_static! {
 
         let mut m = Vec::new();
         m.push(
-            forall("a",&not(&eq(&succ(a),ZERO)))
+            forall("a", &not( &eq( &succ(a), &ZERO)))
         );
 
         m.push(
-            forall("a",eq(a + ZERO, a))
+            forall("a",&eq( a + &ZERO, a))
         );
 
         m.push(
-            forall("a",forall("b", &eq(a + &succ(b), &succ(a + b))))
-        );
-
-        m.push(
-            forall("a",eq(a * ZERO, ZERO))
-        );
-
-        m.push(
-            forall("a",forall("b",
+            forall("a",&forall("b",
                 &eq(
-                    &(a * &(b + ONE)),
-                    &((a * b) + a))
+                    a + &succ(b) ,
+                    &succ( a + b )
+                )))
+        );
+
+        m.push(
+            forall("a", &eq( a * &ZERO, &ZERO))
+        );
+
+        m.push(
+            forall("a", &forall("b",
+                &eq(
+                    a * (b + &ONE),
+                    (a * b) + a)
                 ))
         );
 
@@ -179,7 +183,7 @@ pub fn forall(v: &'static str, formula: &Formula) -> Formula {
     Formula::Universal(v, Box::new(formula.clone()))
 }
 
-impl<'a, 'b> BitAnd<&'b Term> for &'a Formula {
+impl<'a, 'b> BitAnd<&'b Formula> for &'a Formula {
     type Output = Formula;
 
     fn bitand(self, other: &'b Formula) -> Formula {
