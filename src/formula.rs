@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     fmt::{self, Display, Formatter},
     ops::{BitAnd, BitOr},
 };
@@ -101,6 +102,36 @@ impl Formula {
         }
     }
 
+    pub fn get_vars(&mut self, var_names: &mut HashSet<&'static str>) {
+        match self {
+            Self::Equality(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names);
+            }
+            Self::Universal(v, formula) => {
+                var_names.insert(v);
+                formula.get_vars(var_names)
+            }
+            Self::Existential(v, formula) => {
+                var_names.insert(v);
+                formula.get_vars(var_names)
+            }
+            Self::Negation(formula) => formula.get_vars(var_names),
+            Self::And(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names)
+            }
+            Self::Or(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names)
+            }
+            Self::Implies(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names)
+            }
+        }
+    }
+
     pub fn contains_var(&mut self, name: &str) -> bool {
         match self {
             Self::Equality(left, right) => left.contains_var(name) || right.contains_var(name),
@@ -127,6 +158,47 @@ impl Formula {
             }
             Self::Implies(left, right) => {
                 left.contains_var_bound(name) || right.contains_var_bound(name)
+            }
+        }
+    }
+
+    pub fn contains_var_bound_universal(&mut self, name: &str) -> bool {
+        match self {
+            Self::Equality(_, _) => false,
+            Self::Universal(v, formula) => *v == name || formula.contains_var_bound_universal(name),
+            Self::Existential(_, formula) => formula.contains_var_bound_universal(name),
+            Self::Negation(formula) => formula.contains_var_bound_universal(name),
+            Self::And(left, right) => {
+                left.contains_var_bound_universal(name) || right.contains_var_bound_universal(name)
+            }
+            Self::Or(left, right) => {
+                left.contains_var_bound_universal(name) || right.contains_var_bound_universal(name)
+            }
+            Self::Implies(left, right) => {
+                left.contains_var_bound_universal(name) || right.contains_var_bound_universal(name)
+            }
+        }
+    }
+
+    pub fn contains_var_bound_existential(&mut self, name: &str) -> bool {
+        match self {
+            Self::Equality(_, _) => false,
+            Self::Universal(_, formula) => formula.contains_var_bound_existential(name),
+            Self::Existential(v, formula) => {
+                *v == name || formula.contains_var_bound_existential(name)
+            }
+            Self::Negation(formula) => formula.contains_var_bound_existential(name),
+            Self::And(left, right) => {
+                left.contains_var_bound_existential(name)
+                    || right.contains_var_bound_existential(name)
+            }
+            Self::Or(left, right) => {
+                left.contains_var_bound_existential(name)
+                    || right.contains_var_bound_existential(name)
+            }
+            Self::Implies(left, right) => {
+                left.contains_var_bound_existential(name)
+                    || right.contains_var_bound_existential(name)
             }
         }
     }

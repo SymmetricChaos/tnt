@@ -1,4 +1,5 @@
 use std::{
+    collections::HashSet,
     fmt::{self, Display, Formatter},
     ops::{Add, Mul},
 };
@@ -55,6 +56,24 @@ impl Term {
             Self::Succ(inner) => inner.contains_var(name),
             Self::Sum(left, right) => left.contains_var(name) || right.contains_var(name),
             Self::Prod(left, right) => left.contains_var(name) || right.contains_var(name),
+        }
+    }
+
+    pub fn get_vars(&self, var_names: &mut HashSet<&'static str>) {
+        match self {
+            Self::Zero => (),
+            Self::Var(v) => {
+                var_names.insert(v);
+            }
+            Self::Succ(inner) => inner.get_vars(var_names),
+            Self::Sum(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names);
+            }
+            Self::Prod(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names);
+            }
         }
     }
 
