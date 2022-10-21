@@ -11,6 +11,7 @@ use lazy_static::lazy_static;
 lazy_static! {
     pub static ref ZERO: Term = Term::Zero;
     pub static ref ONE: Term = succ(&Term::Zero);
+    pub static ref VARIABLE_NAME: Regex = Regex::new("[a-z]\'*").unwrap();
 }
 
 pub fn succ(term: &Term) -> Term {
@@ -40,8 +41,7 @@ impl Term {
     }
 
     pub fn var(name: &'static str) -> Term {
-        let re = Regex::new(r"^[a-z]'*$").unwrap();
-        if re.is_match(name) {
+        if VARIABLE_NAME.is_match(name) {
             Term::Var(name)
         } else {
             panic!("invalid Variable name")
