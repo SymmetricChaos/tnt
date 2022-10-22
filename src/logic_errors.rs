@@ -15,8 +15,8 @@ impl fmt::Display for LogicError {
     }
 }
 
-macro_rules! logic_err {
-    ($($arg:tt)*) => {
-        Err(LogicError(format!($($arg:tt)*)))
-    };
-}
+// macro_rules! logic_err {
+//     ($($arg:tt)*) => {
+//         Err(LogicError(format!($($arg:tt)*)))
+//     };
+// }

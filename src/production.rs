@@ -2,7 +2,7 @@
 
 use crate::formula::{eq, Formula};
 use crate::logic_errors::LogicError;
-use crate::terms::Term;
+use crate::terms::{succ, Term};
 
 // /// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
 // /// ```
@@ -199,21 +199,14 @@ use crate::terms::Term;
 /// let f = &Formula::new("a=b");
 /// successor(f); // Sa=Sb
 /// ```
-pub fn successor(a: &Formula) -> Result<Formula, LogicError> {
-    if let Formula::Simple(_) = a {
-        if let Some((l, r)) = split_eq(&a.to_string()) {
-            let lt = Expression::new(&format!("S{}", l));
-            let rt = Expression::new(&format!("S{}", r));
-            return Ok(eq(&lt, &rt));
-        } else {
-            unreachable!("Successor Error: unable to split {}", a)
-        }
+pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
+    if let Formula::Equality(l, r) = formula {
+        Ok(eq(&succ(&r), &succ(&l)))
     } else {
-        let msg = format!(
-            "Successor Error: {} is not a Formula::Simple which is required in order to split it",
-            a
-        );
-        return Err(LogicError::new(msg));
+        Err(LogicError(format!(
+            "Successor Error: {} is not a Formula::Equality",
+            formula
+        )))
     }
 }
 
@@ -224,28 +217,20 @@ pub fn successor(a: &Formula) -> Result<Formula, LogicError> {
 /// let f = &Formula::new("Sa=Sb");
 /// predecessor(f); // a=b
 /// ```
-pub fn predecessor(a: &Formula) -> Result<Formula, LogicError> {
-    if let Formula::Simple(_) = a {
-        if let Some((l, r)) = split_eq(&a.to_string()) {
-            if l.starts_with("S") && r.starts_with("S") {
-                let lt = Expression::new(&l.strip_prefix("S").unwrap());
-                let rt = Expression::new(&r.strip_prefix("S").unwrap());
-                return Ok(eq(&lt, &rt));
-            } else {
-                let msg = format!(
-                    "Predecessor Error: both terms the Formula `{}` must begin with S",
-                    a
-                );
-                return Err(LogicError::new(msg));
-            }
+pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
+    if let Formula::Equality(l, r) = formula {
+        match (l, r) {
+            (Term::Succ(pl), Term::Succ(pr)) => Ok(eq(&pl, &pr)),
+            _ => Err(LogicError(format!(
+                "Predecessor Error: {} does not have Term::Succ on both sides",
+                formula
+            ))),
         }
-        unreachable!("Predecessor Error: unable to split {}", a)
     } else {
-        let msg = format!(
-            "Predecessor Error: {} is not a Formula::Simple which is required in order to split it",
-            a
-        );
-        return Err(LogicError::new(msg));
+        Err(LogicError(format!(
+            "Predecessor Error: {} is not a Formula::Equality",
+            formula
+        )))
     }
 }
 
@@ -258,12 +243,12 @@ pub fn predecessor(a: &Formula) -> Result<Formula, LogicError> {
 /// ```
 pub fn symmetry(formula: &Formula) -> Result<Formula, LogicError> {
     if let Formula::Equality(l, r) = formula {
-        return Ok(eq(&r, &l));
+        Ok(eq(&r, &l))
     } else {
-        return LogicError(format!(
-            "Successor Error: {} is not a Formula::Equality",
+        Err(LogicError(format!(
+            "Symmetry Error: {} is not a Formula::Equality",
             formula
-        ));
+        )))
     }
 }
 
@@ -275,31 +260,27 @@ pub fn symmetry(formula: &Formula) -> Result<Formula, LogicError> {
 /// let f2 = &Formula::new("Sb'=(1+1)");
 /// transitivity(f1,f2); // SSa=(1+1)
 /// ```
-pub fn transitivity(a1: &Formula, a2: &Formula) -> Result<Formula, LogicError> {
-    if let Formula::Simple(_) = a1 {
-        if let Formula::Simple(_) = a2 {
-            if let Some((l1, r1)) = split_eq(&a1.to_string()) {
-                if let Some((l2, r2)) = split_eq(&a2.to_string()) {
-                    if r1 != l2 {
-                        let msg = format!("Transitivity Error: The right term of {} does not match the left term of {}",a1,a2);
-                        return Err(LogicError::new(msg));
-                    }
-                    let lt = Expression::new(&l1);
-                    let rt = Expression::new(&r2);
-                    return Ok(eq(&lt, &rt));
-                } else {
-                    unreachable!("Transitivity Error: unable to split {}", a2)
-                }
+pub fn transitivity(
+    left_formula: &Formula,
+    right_formula: &Formula,
+) -> Result<Formula, LogicError> {
+    match (left_formula, right_formula) {
+        (Formula::Equality(left_l, left_r), Formula::Equality(right_l, right_r)) => {
+            if left_r == right_l {
+                return Ok(eq(left_l, right_r));
             } else {
-                unreachable!("Transitivity Error: unable to split {}", a1)
+                return Err(LogicError(format!(
+                    "Transitivity Error: the terms `{}` and `{}` do not match",
+                    left_r, right_l
+                )));
             }
-        } else {
-            let msg = format!("Transitivity Error: {} is not a Formula::Simple which is required in order to split it",a2);
-            return Err(LogicError::new(msg));
         }
-    } else {
-        let msg = format!("Transitivity Error: {} is not a Formula::Simple which is required in order to split it",a1);
-        return Err(LogicError::new(msg));
+        _ => {
+            return Err(LogicError(format!(
+                "Transitivity Error: the formulas `{}` and `{}` are not both Formula::Equality",
+                left_formula, right_formula
+            )))
+        }
     }
 }
 
