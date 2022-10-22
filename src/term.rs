@@ -15,7 +15,7 @@ lazy_static! {
 }
 
 pub fn succ(term: &Term) -> Term {
-    Term::Succ(Box::new(term.clone()))
+    Term::Successor(Box::new(term.clone()))
 }
 
 pub fn sum(left: &Term, right: &Term) -> Term {
@@ -23,16 +23,16 @@ pub fn sum(left: &Term, right: &Term) -> Term {
 }
 
 pub fn prod(left: &Term, right: &Term) -> Term {
-    Term::Prod(Box::new(left.clone()), Box::new(right.clone()))
+    Term::Product(Box::new(left.clone()), Box::new(right.clone()))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Term {
     Zero,
-    Var(&'static str),
-    Succ(Box<Term>),
+    Variable(String),
+    Successor(Box<Term>),
     Sum(Box<Term>, Box<Term>),
-    Prod(Box<Term>, Box<Term>),
+    Product(Box<Term>, Box<Term>),
 }
 
 impl Term {
@@ -40,9 +40,9 @@ impl Term {
         Term::Zero
     }
 
-    pub fn var(name: &'static str) -> Term {
-        if VARIABLE_NAME.is_match(name) {
-            Term::Var(name)
+    pub fn var<S: ToString>(name: S) -> Term {
+        if VARIABLE_NAME.is_match(&name.to_string()) {
+            Term::Variable(name.to_string())
         } else {
             panic!("invalid Variable name")
         }
@@ -52,25 +52,25 @@ impl Term {
     pub fn contains_var(&self, name: &str) -> bool {
         match self {
             Self::Zero => false,
-            Self::Var(v) => *v == name,
-            Self::Succ(inner) => inner.contains_var(name),
+            Self::Variable(v) => *v == name,
+            Self::Successor(inner) => inner.contains_var(name),
             Self::Sum(left, right) => left.contains_var(name) || right.contains_var(name),
-            Self::Prod(left, right) => left.contains_var(name) || right.contains_var(name),
+            Self::Product(left, right) => left.contains_var(name) || right.contains_var(name),
         }
     }
 
-    pub fn get_vars(&self, var_names: &mut HashSet<&'static str>) {
+    pub fn get_vars(&self, var_names: &mut HashSet<String>) {
         match self {
             Self::Zero => (),
-            Self::Var(v) => {
-                var_names.insert(v);
+            Self::Variable(v) => {
+                var_names.insert(v.to_string());
             }
-            Self::Succ(inner) => inner.get_vars(var_names),
+            Self::Successor(inner) => inner.get_vars(var_names),
             Self::Sum(left, right) => {
                 left.get_vars(var_names);
                 right.get_vars(var_names);
             }
-            Self::Prod(left, right) => {
+            Self::Product(left, right) => {
                 left.get_vars(var_names);
                 right.get_vars(var_names);
             }
@@ -81,17 +81,17 @@ impl Term {
     pub fn replace(&mut self, name: &str, term: &Term) {
         match self {
             Self::Zero => {}
-            Self::Var(v) => {
+            Self::Variable(v) => {
                 if *v == name {
                     *self = term.clone();
                 }
             }
-            Self::Succ(inner) => inner.replace(name, term),
+            Self::Successor(inner) => inner.replace(name, term),
             Self::Sum(left, right) => {
                 left.replace(name, term);
                 right.replace(name, term);
             }
-            Self::Prod(left, right) => {
+            Self::Product(left, right) => {
                 left.replace(name, term);
                 right.replace(name, term);
             }
@@ -103,10 +103,10 @@ impl Display for Term {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
             Self::Zero => write!(f, "0"),
-            Self::Var(v) => write!(f, "{}", v),
-            Self::Succ(inner) => write!(f, "S{inner}"),
+            Self::Variable(v) => write!(f, "{}", v),
+            Self::Successor(inner) => write!(f, "S{inner}"),
             Self::Sum(left, right) => write!(f, "({left}+{right})"),
-            Self::Prod(left, right) => write!(f, "({left}*{right})"),
+            Self::Product(left, right) => write!(f, "({left}*{right})"),
         }
     }
 }
@@ -128,17 +128,17 @@ impl Mul<Term> for Term {
 }
 
 impl<'a, 'b> Add<&'b Term> for &'a Term {
-    type Output = &'a Term;
+    type Output = Term;
 
-    fn add(self, other: &'b Term) -> &'a Term {
-        &sum(self, other)
+    fn add(self, other: &'b Term) -> Term {
+        sum(self, other)
     }
 }
 
 impl<'a, 'b> Mul<&'b Term> for &'a Term {
-    type Output = &'a Term;
+    type Output = Term;
 
-    fn mul(self, other: &'b Term) -> &'a Term {
-        &prod(self, other)
+    fn mul(self, other: &'b Term) -> Term {
+        prod(self, other)
     }
 }

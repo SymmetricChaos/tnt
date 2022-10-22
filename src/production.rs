@@ -1,80 +1,88 @@
 //! Create inferences from other statements of TNT, will return LogicError if constraints are not met.
 
-use crate::formula::{eq, Formula};
+use std::collections::HashSet;
+
 use crate::logic_errors::LogicError;
-use crate::terms::{succ, Term};
+use crate::{eq, exists, forall, succ, Formula, Term};
 
-// /// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
-// /// ```
-// /// use tnt::terms::{Variable,Number,Term};
-// /// use tnt::formula::Formula;
-// /// use tnt::operations::production::specification;
-// /// let a = &Variable::new("a");
-// /// let n = &Number::new("SS0");
-// /// let f = &Formula::new("Ea':Aa:[a=a&a'=a']");
-// /// specification(f,a,n); // Ea':[SS0=SS0&a'=a']
-// /// ```
-// pub fn specification<T: Term>(x: &Formula, v: &Variable, t: &T) -> Result<Formula, LogicError> {
-//     if x.to_string().contains(&format!("A{}:", v)) {
-//         let var_in_t = get_vars(&t.get_string());
-//         let bound_in_x = get_bound_vars(&x.to_string());
-//         for var in var_in_t {
-//             if bound_in_x.contains(&var) && t.get_string() != v.get_string() {
-//                 let msg = format!("Specification Error: The Term `{}` contains the Variable `{}` which is already bound in the Formula `{}`",t.get_string(),var,x);
-//                 return Err(LogicError::new(msg));
-//             }
-//         }
-//         return Ok(x.specify_var(v, t));
-//     } else {
-//         let msg = format!("Specification Error: The Variable `{}` is not univerally quantified in the Formula `{}`",v,x);
-//         return Err(LogicError::new(msg));
-//     }
-// }
+/// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
+/// ```
+/// use tnt::terms::Term;
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::specification;
+/// let a = &Variable::new("a");
+/// let n = &Number::new("SS0");
+/// let f = &Formula::new("Ea':Aa:[a=a&a'=a']");
+/// specification(f,a,n); // Ea':[SS0=SS0&a'=a']
+/// ```
+pub fn specification(
+    formula: &Formula,
+    var_name: &'static str,
+    term: &Term,
+) -> Result<Formula, LogicError> {
+    if formula.contains_var_bound_universal(var_name) {
+        let vars_in_term = {
+            let mut m = HashSet::new();
+            term.get_vars(&mut m);
+            m
+        };
+        let bound_in_formula = {
+            let mut m = HashSet::new();
+            formula.get_vars_bound(&mut m);
+            m
+        };
+        for var in vars_in_term {
+            if bound_in_formula.contains(&var) && term.to_string() != var_name.to_string() {
+                return Err(LogicError(format!("Specification Error: The Term `{}` contains a Term::Variable with the name `{}` which is already bound in the Formula `{}`",term,var_name,formula)));
+            }
+        }
+        let mut out = formula.clone();
+        out.specify(var_name, term);
+        Ok(out)
+    } else {
+        Err(LogicError(format!("Specification Error: There is no Term::Variable with the name `{}` univerally quantified in the Formula `{}`",var_name,formula)))
+    }
+}
 
-// /// In a given Formula with some Variable not quantified, universally quantify that variable. This is additionally restricted within the Deduction struct.
-// /// ```
-// /// use tnt::terms::{Variable,Number,Term};
-// /// use tnt::formula::Formula;
-// /// use tnt::operations::production::generalization;
-// /// let a = &Variable::new("a");
-// /// let f = &Formula::new("Ea':[a=a&a'=a']");
-// /// generalization(f,a); // Ea':Aa:[a=a&a'=a']
-// /// ```
-// pub fn generalization(x: &Formula, v: &Variable) -> Result<Formula, LogicError> {
-//     if !x.contains_var_bound(&v) {
-//         return Ok(forall(v, x));
-//     } else {
-//         let msg = format!(
-//             "Generalization Error: The Variable `{}` is already bound in the Formula `{}`",
-//             v, x
-//         );
-//         return Err(LogicError::new(msg));
-//     }
-// }
+/// In a given Formula with some Variable not quantified, universally quantify that variable. This is additionally restricted within the Deduction struct.
+/// ```
+/// use tnt::terms::{Variable,Number,Term};
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::generalization;
+/// let a = &Variable::new("a");
+/// let f = &Formula::new("Ea':[a=a&a'=a']");
+/// generalization(f,a); // Ea':Aa:[a=a&a'=a']
+/// ```
+pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
+    if !formula.contains_var_bound(var_name) {
+        Ok(forall(var_name, formula))
+    } else {
+        Err(LogicError::new(format!(
+            "Generalization Error: The there is a Term::Variable with the name `{}` is already bound in the Formula `{}`",
+            var_name, formula
+        )))
+    }
+}
 
-// /// In a given Formula with some Variable not quantified, existentially quantify that variable.
-// /// ```
-// /// use tnt::terms::{Variable,Number,Term};
-// /// use tnt::formula::Formula;
-// /// use tnt::operations::production::existence;
-// /// let a = &Variable::new("a");
-// /// let f = &Formula::new("Ea':[a=a&a'=a']");
-// /// existence(f,a); // Ea':Ea:[a=a&a'=a']
-// /// ```
-// pub fn existence<T: Term>(x: &Formula, t: &T, v: &Variable) -> Result<Formula, LogicError> {
-//     if !x.contains_var_bound(&v) {
-//         let out = exists(v, x);
-//         return Ok(Formula::new(
-//             &out.to_string().replace(&t.get_string(), &v.to_string()),
-//         ));
-//     } else {
-//         let msg = format!(
-//             "Existence Error: the Variable `{}` is already bound in the formula `{}`",
-//             v, x
-//         );
-//         return Err(LogicError::new(msg));
-//     }
-// }
+/// In a given Formula with some Variable not quantified, existentially quantify that variable.
+/// ```
+/// use tnt::terms::{Variable,Number,Term};
+/// use tnt::formula::Formula;
+/// use tnt::operations::production::existence;
+/// let a = &Variable::new("a");
+/// let f = &Formula::new("Ea':[a=a&a'=a']");
+/// existence(f,a); // Ea':Ea:[a=a&a'=a']
+/// ```
+pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
+    if !formula.contains_var_bound(var_name) {
+        Ok(exists(var_name, formula))
+    } else {
+        Err(LogicError::new(format!(
+            "Existence Error: The there is a Term::Variable with the name `{}` is already bound in the Formula `{}`",
+            var_name, formula
+        )))
+    }
+}
 
 // /// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
 // /// ```
@@ -192,10 +200,9 @@ use crate::terms::{succ, Term};
 //     }
 // }
 
-/// Given a Formula::Simple return the successor of both sides
+/// Given a Formula::Equality return the successor of both sides
 /// ```
-/// use tnt::formula::Formula;
-/// use tnt::operations::production::successor;
+/// use tnt::{Formula,successor};
 /// let f = &Formula::new("a=b");
 /// successor(f); // Sa=Sb
 /// ```
@@ -210,17 +217,16 @@ pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
     }
 }
 
-/// Given a Formula::Simple return the predecessor of both sides
+/// Given a Formula::Equality return the predecessor of both sides
 /// ```
-/// use tnt::formula::Formula;
-/// use tnt::operations::production::predecessor;
+/// use tnt::{Formula,predecessor};
 /// let f = &Formula::new("Sa=Sb");
 /// predecessor(f); // a=b
 /// ```
 pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
     if let Formula::Equality(l, r) = formula {
         match (l, r) {
-            (Term::Succ(pl), Term::Succ(pr)) => Ok(eq(&pl, &pr)),
+            (Term::Successor(pl), Term::Successor(pr)) => Ok(eq(&pl, &pr)),
             _ => Err(LogicError(format!(
                 "Predecessor Error: {} does not have Term::Succ on both sides",
                 formula
@@ -234,10 +240,9 @@ pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
     }
 }
 
-/// Given a Formula::Simple flip the two sides of the equality
+/// Given a Formula::Equality flip the two sides of the equality
 /// ```
-/// use tnt::formula::Formula;
-/// use tnt::operations::production::symmetry;
+/// use tnt::{Formula,symmetry};
 /// let f = &Formula::new("SSa=Sb'");
 /// symmetry(f); // Sb'=SSa
 /// ```
@@ -252,10 +257,9 @@ pub fn symmetry(formula: &Formula) -> Result<Formula, LogicError> {
     }
 }
 
-/// Given two Formula::Simple where the right side of the first matches the left side of the second return the Formula that is the equality of their left and right
+/// Given two Formula::Equality where the right side of the first matches the left side of the second return the Formula that is the equality of their left and right
 /// ```
-/// use tnt::formula::Formula;
-/// use tnt::operations::production::transitivity;
+/// use tnt::{Formula,transitivity};
 /// let f1 = &Formula::new("SSa=Sb'");
 /// let f2 = &Formula::new("Sb'=(1+1)");
 /// transitivity(f1,f2); // SSa=(1+1)
@@ -284,18 +288,17 @@ pub fn transitivity(
     }
 }
 
-// TODO: test pathalogical inputs for all of these
-// TODO: test panic modes for all of these
-
 // #[cfg(test)]
 // mod test {
+
+//     use crate::ONE;
 
 //     use super::*;
 
 //     #[test]
 //     fn test_specification() -> Result<(), LogicError> {
-//         let a = &Variable::new("a");
-//         let one = &Number::new("S0");
+//         let a = "a";
+//         let one = ONE;
 //         let formula1 = &Formula::new("Aa:a=a");
 //         let formula2 = &Formula::new("Ea':Aa:[a=a&a'=a']");
 //         assert_eq!(specification(formula1, a, one)?.to_string(), "S0=S0");

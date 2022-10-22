@@ -4,7 +4,7 @@ use std::{
     ops::{BitAnd, BitOr},
 };
 
-use crate::terms::{succ, Term, ONE, ZERO};
+use crate::Term;
 
 use lazy_static::lazy_static;
 lazy_static! {
@@ -17,54 +17,32 @@ lazy_static! {
     *
     * Aa:Ab:(a+Sb)=S(a+b)       for all a and b, (a + (b + 1)) = ((a + b) + 1)
     *
-    * Aa:(a\*0) = 0             for all a, (a × 0) = 0
+    * Aa:(a\*0)=0             for all a, (a × 0) = 0
     *
     * Aa:Ab:(a\*Sb)=((a\*b)+a)  for all a and b, (a × (b + 1)) = ((a × b) + a)
     */
 
     pub static ref PEANO: Vec<Formula> = {
 
-        let a = &Term::var("a");
-        let b = &Term::var("b");
+        use crate::string_to_formula;
 
-        let mut m = Vec::new();
-        m.push(
-            forall("a", &not( &eq( &succ(a), &ZERO)))
-        );
+        let axioms = vec![
+            string_to_formula("Aa:~Sa=0").unwrap(),
+            string_to_formula("Aa:(a+0)=a").unwrap(),
+            string_to_formula("Aa:Ab:(a+Sb)=S(a+b)").unwrap(),
+            string_to_formula("Aa:(a*0)=0").unwrap(),
+            string_to_formula("Aa:Ab:(a*Sb)=((a*b)+a)").unwrap(),
+        ];
 
-        m.push(
-            forall("a",&eq( a + &ZERO, a))
-        );
-
-        m.push(
-            forall("a",&forall("b",
-                &eq(
-                    a + &succ(b) ,
-                    &succ( a + b )
-                )))
-        );
-
-        m.push(
-            forall("a", &eq( a * &ZERO, &ZERO))
-        );
-
-        m.push(
-            forall("a", &forall("b",
-                &eq(
-                    a * (b + &ONE),
-                    (a * b) + a)
-                ))
-        );
-
-        m
+        axioms
     };
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Formula {
     Equality(Term, Term),
-    Universal(&'static str, Box<Formula>),
-    Existential(&'static str, Box<Formula>),
+    Universal(String, Box<Formula>),
+    Existential(String, Box<Formula>),
     Negation(Box<Formula>),
     And(Box<Formula>, Box<Formula>),
     Or(Box<Formula>, Box<Formula>),
@@ -102,18 +80,18 @@ impl Formula {
         }
     }
 
-    pub fn get_vars(&mut self, var_names: &mut HashSet<&'static str>) {
+    pub fn get_vars(&self, var_names: &mut HashSet<String>) {
         match self {
             Self::Equality(left, right) => {
                 left.get_vars(var_names);
                 right.get_vars(var_names);
             }
             Self::Universal(v, formula) => {
-                var_names.insert(v);
+                var_names.insert(v.to_string());
                 formula.get_vars(var_names)
             }
             Self::Existential(v, formula) => {
-                var_names.insert(v);
+                var_names.insert(v.to_string());
                 formula.get_vars(var_names)
             }
             Self::Negation(formula) => formula.get_vars(var_names),
@@ -132,7 +110,34 @@ impl Formula {
         }
     }
 
-    pub fn contains_var(&mut self, name: &str) -> bool {
+    pub fn get_vars_bound(&self, var_names: &mut HashSet<String>) {
+        match self {
+            Self::Equality(_, _) => (),
+            Self::Universal(v, formula) => {
+                var_names.insert(v.to_string());
+                formula.get_vars(var_names);
+            }
+            Self::Existential(v, formula) => {
+                var_names.insert(v.to_string());
+                formula.get_vars(var_names);
+            }
+            Self::Negation(formula) => formula.get_vars(var_names),
+            Self::And(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names);
+            }
+            Self::Or(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names);
+            }
+            Self::Implies(left, right) => {
+                left.get_vars(var_names);
+                right.get_vars(var_names);
+            }
+        }
+    }
+
+    pub fn contains_var(&self, name: &str) -> bool {
         match self {
             Self::Equality(left, right) => left.contains_var(name) || right.contains_var(name),
             Self::Universal(v, formula) => *v == name || formula.contains_var(name),
@@ -144,7 +149,7 @@ impl Formula {
         }
     }
 
-    pub fn contains_var_bound(&mut self, name: &str) -> bool {
+    pub fn contains_var_bound(&self, name: &str) -> bool {
         match self {
             Self::Equality(_, _) => false,
             Self::Universal(v, formula) => *v == name || formula.contains_var_bound(name),
@@ -162,7 +167,7 @@ impl Formula {
         }
     }
 
-    pub fn contains_var_bound_universal(&mut self, name: &str) -> bool {
+    pub fn contains_var_bound_universal(&self, name: &str) -> bool {
         match self {
             Self::Equality(_, _) => false,
             Self::Universal(v, formula) => *v == name || formula.contains_var_bound_universal(name),
@@ -180,7 +185,7 @@ impl Formula {
         }
     }
 
-    pub fn contains_var_bound_existential(&mut self, name: &str) -> bool {
+    pub fn contains_var_bound_existential(&self, name: &str) -> bool {
         match self {
             Self::Equality(_, _) => false,
             Self::Universal(_, formula) => formula.contains_var_bound_existential(name),
@@ -246,13 +251,13 @@ pub fn implies(left: &Formula, right: &Formula) -> Formula {
 }
 
 /// Assert some values for a Variable with the given name makes the Forumla true
-pub fn exists(v: &'static str, formula: &Formula) -> Formula {
-    Formula::Existential(v, Box::new(formula.clone()))
+pub fn exists<S: ToString>(var_name: S, formula: &Formula) -> Formula {
+    Formula::Existential(var_name.to_string(), Box::new(formula.clone()))
 }
 
 /// Assert that all values of a Variable with the given name make the Formula true
-pub fn forall(v: &'static str, formula: &Formula) -> Formula {
-    Formula::Universal(v, Box::new(formula.clone()))
+pub fn forall<S: ToString>(var_name: S, formula: &Formula) -> Formula {
+    Formula::Universal(var_name.to_string(), Box::new(formula.clone()))
 }
 
 impl<'a, 'b> BitAnd<&'b Formula> for &'a Formula {

@@ -1,10 +1,9 @@
-use tnt::{logic_errors::LogicError, formula::Formula};
-use tnt::terms::{Term,Variable,Number};
-use tnt::deduction::Deduction;
 use tnt::axioms::PEANO;
+use tnt::deduction::Deduction;
+use tnt::term::{Number, Term, Variable};
+use tnt::{formula::Formula, logic_errors::LogicError};
 
-fn main() -> Result<(),LogicError> {
-
+fn main() -> Result<(), LogicError> {
     let a = &Variable::new("a");
     let b = &Variable::new("b");
     let c = &Variable::new("c");
@@ -17,7 +16,7 @@ fn main() -> Result<(),LogicError> {
     let mut e = Deduction::new("Prove That Addition Commutes", PEANO.clone());
     e.add_axiom(&PEANO[2])?;
     e.specification(0, a, d)?;
-    e.specification(1, b,sc)?;
+    e.specification(1, b, sc)?;
     e.specification(0, a, sd)?;
     e.specification(3, b, c)?;
     e.symmetry(4)?;
@@ -36,15 +35,15 @@ fn main() -> Result<(),LogicError> {
     e.specification(15, a, d)?;
     e.successor(16)?;
     e.transitivity(14, 17)?;
-    e.specification(15,a, sd)?;
+    e.specification(15, a, sd)?;
     e.symmetry(19)?;
     e.transitivity(18, 20)?;
     e.generalization(21, d)?;
-    e.induction( c, 22, 13)?;
+    e.induction(c, 22, 13)?;
     e.specification(0, a, c)?;
-    e.specification( 24, b, d)?;
+    e.specification(24, b, d)?;
     e.specification(0, a, d)?;
-    e.specification( 26, b, c)?;
+    e.specification(26, b, c)?;
     e.symmetry(27)?;
     e.specification(23, c, c)?;
     e.specification(29, d, d)?;
@@ -59,9 +58,9 @@ fn main() -> Result<(),LogicError> {
     e.implication()?;
 
     e.generalization(38, d)?;
-    e.specification(15,a, c)?;
+    e.specification(15, a, c)?;
     e.specification(0, a, zero)?;
-    e.specification(41, b,b)?;
+    e.specification(41, b, b)?;
 
     e.supposition(Formula::new("(0+b)=b"))?;
     e.successor(43)?;
@@ -70,20 +69,20 @@ fn main() -> Result<(),LogicError> {
 
     e.generalization(46, b)?;
     e.specification(15, a, zero)?;
-    e.induction( b, 48, 47)?;
+    e.induction(b, 48, 47)?;
     e.specification(49, b, c)?;
     e.symmetry(50)?;
     e.transitivity(40, 51)?;
     e.generalization(52, c)?;
-    e.induction( d, 53, 39)?;
+    e.induction(d, 53, 39)?;
 
-    assert_eq!(e.last_theorem().formula,*t);
+    assert_eq!(e.last_theorem().formula, *t);
 
     e.pretty_print();
 
     match e.latex_file_annotated("commutativity") {
         Ok(_) => println!("\nSuccessfully created .tex file!"),
-        Err(w) => println!("\nError: {}",w)
+        Err(w) => println!("\nError: {}", w),
     };
 
     Ok(())

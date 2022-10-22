@@ -1,9 +1,11 @@
-use tnt::{logic_errors::LogicError, terms::{Term, Variable, Number}};
-use tnt::deduction::Deduction;
 use tnt::axioms::PEANO;
+use tnt::deduction::Deduction;
+use tnt::{
+    logic_errors::LogicError,
+    term::{Number, Term, Variable},
+};
 
-fn main() -> Result<(),LogicError> {
-
+fn main() -> Result<(), LogicError> {
     let a = &Variable::new("a");
     let b = &Variable::new("b");
     let zero = &Number::zero();
@@ -16,11 +18,11 @@ fn main() -> Result<(),LogicError> {
     d.add_axiom(&PEANO[1])?;
     d.specification(3, a, one)?;
     d.successor(4)?;
-    d.transitivity(2,5)?;
+    d.transitivity(2, 5)?;
 
     d.english();
 
-    println!("{}",d.arithmetize());
+    println!("{}", d.arithmetize());
 
     Ok(())
 }

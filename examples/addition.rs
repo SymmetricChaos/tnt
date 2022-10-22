@@ -1,10 +1,9 @@
-use tnt::{logic_errors::LogicError};
-use tnt::terms::{Variable,Number,Term};
-use tnt::deduction::Deduction;
 use tnt::axioms::PEANO;
+use tnt::deduction::Deduction;
+use tnt::logic_errors::LogicError;
+use tnt::term::{Number, Term, Variable};
 
-fn main() -> Result<(),LogicError> {
-
+fn main() -> Result<(), LogicError> {
     let a = &Variable::new("a");
     let b = &Variable::new("b");
     let zero = &Number::zero();
@@ -17,15 +16,15 @@ fn main() -> Result<(),LogicError> {
     d.add_axiom(&PEANO[1])?;
     d.specification(3, a, one)?;
     d.successor(4)?;
-    d.transitivity(2,5)?;
+    d.transitivity(2, 5)?;
 
     d.pretty_print();
 
-    println!("{}",d.arithmetize());
+    println!("{}", d.arithmetize());
 
     match d.latex_file("addition") {
         Ok(_) => println!("\nSuccessfully created .tex file!"),
-        Err(w) => println!("\nError: {}",w)
+        Err(w) => println!("\nError: {}", w),
     };
 
     Ok(())

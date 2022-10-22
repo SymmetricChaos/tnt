@@ -1,8 +1,7 @@
 use tnt::formula::Formula;
-use tnt::terms::{Number,Term};
+use tnt::term::{Number, Term};
 
 fn main() {
-
     println!("Every Term, Formula, and Deduction of tnt can be turned into a BigUint.");
     println!("Because only ASCII symbols are used and they are simply read as a sequence of bytes then provided to BigUint.");
     println!("In the specific case of arithmetizing a Deduction the byte '00100000' (the ASCII space) is used to seperate formulas.");
@@ -16,7 +15,6 @@ fn main() {
     let n1 = f1.arithmetize();
     let d1 = Number::dearithmetize(&n1);
 
-    println!("{} -> {} -> {}",f0,n0,d0);
-    println!("{} -> {} -> {}",f1,n1,d1);
-    
+    println!("{} -> {} -> {}", f0, n0, d0);
+    println!("{} -> {} -> {}", f1, n1, d1);
 }

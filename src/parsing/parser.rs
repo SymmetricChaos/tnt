@@ -1,6 +1,6 @@
 use pest::{iterators::Pair, Parser};
 
-use crate::{formula::Formula, terms::Term};
+use crate::{formula::Formula, term::Term};
 
 #[derive(Parser)]
 #[grammar = "parsing\\tnt.pest"]
@@ -12,12 +12,12 @@ pub fn print_parse_tree(text: &str, rule: Rule) -> Result<(), pest::error::Error
     Ok(())
 }
 
-pub fn formula_to_ast(text: &str) -> Result<Formula, pest::error::Error<Rule>> {
+pub fn string_to_formula(text: &str) -> Result<Formula, pest::error::Error<Rule>> {
     let mut tree = TntParser::parse(Rule::formula, text)?;
     Ok(build_formula_tree(tree.next().unwrap()))
 }
 
-pub fn term_to_ast(text: &str) -> Result<Term, pest::error::Error<Rule>> {
+pub fn string_to_term(text: &str) -> Result<Term, pest::error::Error<Rule>> {
     let mut tree = TntParser::parse(Rule::term, text)?;
     Ok(build_term_tree(tree.next().unwrap()))
 }
@@ -25,12 +25,12 @@ pub fn term_to_ast(text: &str) -> Result<Term, pest::error::Error<Rule>> {
 pub fn build_term_tree(pair: Pair<Rule>) -> Term {
     match pair.as_rule() {
         Rule::zero => Term::Zero,
-        Rule::variable => Term::Variable(Variable::new(pair.as_str())),
+        Rule::variable => Term::var(pair.as_str()),
         Rule::multiplication => {
             let mut t = pair.into_inner();
             let lhs = t.next().unwrap();
             let rhs = t.next().unwrap();
-            Term::Prod(
+            Term::Product(
                 Box::new(build_term_tree(lhs)),
                 Box::new(build_term_tree(rhs)),
             )
@@ -47,7 +47,7 @@ pub fn build_term_tree(pair: Pair<Rule>) -> Term {
         Rule::successor => {
             let mut t = pair.into_inner();
             let term = t.next().unwrap();
-            Term::Succ(Box::new(build_term_tree(term)))
+            Term::Successor(Box::new(build_term_tree(term)))
         }
         _ => unreachable!("input to build_term_tree was not a term"),
     }
@@ -59,19 +59,13 @@ pub fn build_formula_tree(pair: Pair<Rule>) -> Formula {
             let mut t = pair.into_inner();
             let v = t.next().unwrap();
             let form = t.next().unwrap();
-            Formula::Existential(
-                Variable::new(v.as_str()),
-                Box::new(build_formula_tree(form)),
-            )
+            Formula::Existential(v.as_str().to_owned(), Box::new(build_formula_tree(form)))
         }
         Rule::universal => {
             let mut t = pair.into_inner();
             let v = t.next().unwrap();
             let form = t.next().unwrap();
-            Formula::ForAll(
-                Variable::new(v.as_str()),
-                Box::new(build_formula_tree(form)),
-            )
+            Formula::Universal(v.as_str().to_owned(), Box::new(build_formula_tree(form)))
         }
         Rule::equality => {
             let mut t = pair.into_inner();
@@ -123,21 +117,21 @@ mod test_expressions {
     #[test]
     fn test_addition() {
         let tnt = "(0+Sa)";
-        let ast = term_to_ast(tnt).unwrap();
+        let ast = string_to_term(tnt).unwrap();
         assert_eq!(tnt, format!("{}", &ast));
     }
 
     #[test]
     fn test_multiplication() {
         let tnt = "(x''*SSSSSS0)";
-        let ast = term_to_ast(tnt).unwrap();
+        let ast = string_to_term(tnt).unwrap();
         assert_eq!(tnt, format!("{}", &ast));
     }
 
     #[test]
     fn test_complex_arithmetic() {
         let tnt = "SS((b+S0)*Sa'')";
-        let ast = term_to_ast(tnt).unwrap();
+        let ast = string_to_term(tnt).unwrap();
         assert_eq!(tnt, format!("{}", &ast));
     }
 }
@@ -150,35 +144,35 @@ mod test_formulas {
     #[test]
     fn test_simple_equality() {
         let tnt = "S0=a''";
-        let ast = formula_to_ast(tnt).unwrap();
+        let ast = string_to_formula(tnt).unwrap();
         assert_eq!(tnt, format!("{}", &ast));
     }
 
     #[test]
     fn test_compound_equality() {
         let tnt = "S0=(b+b)";
-        let ast = formula_to_ast(tnt).unwrap();
+        let ast = string_to_formula(tnt).unwrap();
         assert_eq!(tnt, format!("{}", &ast));
     }
 
     #[test]
     fn test_quantification() {
         let tnt = "~~Ea':z=a";
-        let ast = formula_to_ast(tnt).unwrap();
+        let ast = string_to_formula(tnt).unwrap();
         assert_eq!(tnt, format!("{}", &ast));
     }
 
     #[test]
     fn test_complex_formula() {
         let tnt = "Aa:Ab:(a*Sb)=((a*b)+a)";
-        let ast = formula_to_ast(tnt).unwrap();
+        let ast = string_to_formula(tnt).unwrap();
         assert_eq!(tnt, format!("{}", &ast));
     }
 
     #[test]
     fn test_very_complex_formula() {
         let tnt = "Aa:[Ec:(a*c)=b>Ed:(d*SS0)=a]";
-        let ast = formula_to_ast(tnt).unwrap();
+        let ast = string_to_formula(tnt).unwrap();
         assert_eq!(tnt, format!("{}", &ast));
     }
 }
