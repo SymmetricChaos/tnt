@@ -2,6 +2,7 @@ use crate::parsing::parser::string_to_term;
 use crate::parsing::parser::Rule;
 use lazy_static::lazy_static;
 use regex::Regex;
+use std::convert::TryFrom;
 use std::{
     collections::HashSet,
     fmt::{self, Display, Formatter},
@@ -10,7 +11,7 @@ use std::{
 
 lazy_static! {
     pub static ref ZERO: Term = Term::Zero;
-    pub static ref ONE: Term = Term::from_string("S0").unwrap();
+    pub static ref ONE: Term = Term::try_from("S0").unwrap();
     pub static ref VARIABLE_NAME: Regex = Regex::new("[a-z]\'*").unwrap();
 }
 
@@ -36,10 +37,6 @@ pub enum Term {
 }
 
 impl Term {
-    pub fn from_string(s: &str) -> Result<Term, pest::error::Error<Rule>> {
-        string_to_term(s)
-    }
-
     pub fn zero() -> Term {
         Term::Zero
     }
@@ -144,5 +141,13 @@ impl<'a, 'b> Mul<&'b Term> for &'a Term {
 
     fn mul(self, other: &'b Term) -> Term {
         prod(self, other)
+    }
+}
+
+impl TryFrom<&str> for Term {
+    type Error = pest::error::Error<Rule>;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        string_to_term(value)
     }
 }
