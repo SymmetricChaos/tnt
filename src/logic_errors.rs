@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[derive(Debug, Clone)]
-pub struct LogicError(String);
+pub struct LogicError(pub String);
 
 impl LogicError {
     pub fn new(message: String) -> LogicError {

@@ -4,7 +4,7 @@ pub mod terms;
 //mod properties;
 //pub mod axioms;
 pub mod logic_errors;
-//pub mod operations;
+pub mod production;
 mod random;
 mod string_manip;
 //mod translate;
