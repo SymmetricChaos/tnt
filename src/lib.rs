@@ -10,7 +10,6 @@ pub mod production;
 //mod translate;
 
 pub mod parsing;
-use parsing::parser::{string_to_formula, string_to_term};
 
 #[macro_use]
 extern crate pest_derive;

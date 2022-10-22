@@ -69,7 +69,7 @@ pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formu
 /// use tnt::terms::{Variable,Number,Term};
 /// use tnt::formula::Formula;
 /// use tnt::operations::production::existence;
-/// let a = &Variable::new("a");
+/// let a = "a");
 /// let f = &Formula::new("Ea':[a=a&a'=a']");
 /// existence(f,a); // Ea':Ea:[a=a&a'=a']
 /// ```
@@ -164,12 +164,7 @@ pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, L
 
 // /// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
 // /// ```
-// /// use tnt::terms::{Variable,Term};
-// /// use tnt::formula::Formula;
-// /// use tnt::operations::production::interchange_ae;
-// /// let b = &Variable::new("b");
-// /// let f = &Formula::new("Ab:~[a=b|Sa=b]");
-// /// interchange_ae(f,b,0); // ~Eb:[a=b|Sa=b]
+
 // /// ```
 // pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Formula, LogicError> {
 //     // The theorem we need to generalize is the outermost, leftmost implication of the general case

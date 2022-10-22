@@ -1,12 +1,12 @@
+use crate::parsing::parser::{string_to_formula, Rule};
+use crate::Term;
+use lazy_static::lazy_static;
 use std::{
     collections::HashSet,
     fmt::{self, Display, Formatter},
     ops::{BitAnd, BitOr},
 };
 
-use crate::Term;
-
-use lazy_static::lazy_static;
 lazy_static! {
     /**
     * These are the axiomatic statements of the TNT formal system, they don't align strictly with the Peano Axioms but they define the same arithmetic properties for addition and multiplication. The axioms are as follows:
@@ -24,14 +24,13 @@ lazy_static! {
 
     pub static ref PEANO: Vec<Formula> = {
 
-        use crate::string_to_formula;
 
         let axioms = vec![
-            string_to_formula("Aa:~Sa=0").unwrap(),
-            string_to_formula("Aa:(a+0)=a").unwrap(),
-            string_to_formula("Aa:Ab:(a+Sb)=S(a+b)").unwrap(),
-            string_to_formula("Aa:(a*0)=0").unwrap(),
-            string_to_formula("Aa:Ab:(a*Sb)=((a*b)+a)").unwrap(),
+            Formula::from_string("Aa:~Sa=0").unwrap(),
+            Formula::from_string("Aa:(a+0)=a").unwrap(),
+            Formula::from_string("Aa:Ab:(a+Sb)=S(a+b)").unwrap(),
+            Formula::from_string("Aa:(a*0)=0").unwrap(),
+            Formula::from_string("Aa:Ab:(a*Sb)=((a*b)+a)").unwrap(),
         ];
 
         axioms
@@ -50,6 +49,10 @@ pub enum Formula {
 }
 
 impl Formula {
+    pub fn from_string(s: &str) -> Result<Formula, pest::error::Error<Rule>> {
+        string_to_formula(s)
+    }
+
     // Eliminate all universal quantification of some Variable and then replace all instances of that variable with the provided Term
     pub fn specify(&mut self, name: &str, term: &Term) {
         match self {

@@ -1,16 +1,16 @@
+use crate::parsing::parser::string_to_term;
+use crate::parsing::parser::Rule;
+use lazy_static::lazy_static;
+use regex::Regex;
 use std::{
     collections::HashSet,
     fmt::{self, Display, Formatter},
     ops::{Add, Mul},
 };
 
-use regex::Regex;
-
-use lazy_static::lazy_static;
-
 lazy_static! {
     pub static ref ZERO: Term = Term::Zero;
-    pub static ref ONE: Term = succ(&Term::Zero);
+    pub static ref ONE: Term = Term::from_string("S0").unwrap();
     pub static ref VARIABLE_NAME: Regex = Regex::new("[a-z]\'*").unwrap();
 }
 
@@ -36,6 +36,10 @@ pub enum Term {
 }
 
 impl Term {
+    pub fn from_string(s: &str) -> Result<Term, pest::error::Error<Rule>> {
+        string_to_term(s)
+    }
+
     pub fn zero() -> Term {
         Term::Zero
     }
