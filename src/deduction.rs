@@ -5,13 +5,9 @@ use std::{
     slice::Iter,
 };
 
-use crate::logic_errors::LogicError;
-use crate::operations::construction::implies;
-use crate::operations::production::*;
-use crate::terms::Term;
-use crate::{formula::Formula, string_manip::get_free_vars};
+use crate::{production::*, Formula, LogicError, Term};
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Rule {
     Axiom,
     Specification,

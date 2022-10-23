@@ -80,6 +80,31 @@ impl Formula {
         }
     }
 
+    /// Replace all free instances of the named Term::Variable with a Term
+    pub fn replace_free(&mut self, name: &str, term: &Term) {
+        match self {
+            Self::Equality(left, right) => {
+                left.replace(name, term);
+                right.replace(name, term);
+            }
+            Self::Universal(_, formula) => formula.replace_free(name, term),
+            Self::Existential(_, formula) => formula.replace_free(name, term),
+            Self::Negation(formula) => formula.replace_free(name, term),
+            Self::And(left, right) => {
+                left.replace_free(name, term);
+                right.replace_free(name, term);
+            }
+            Self::Or(left, right) => {
+                left.replace_free(name, term);
+                right.replace_free(name, term);
+            }
+            Self::Implies(left, right) => {
+                left.replace_free(name, term);
+                right.replace_free(name, term);
+            }
+        }
+    }
+
     pub fn get_vars(&self, var_names: &mut HashSet<String>) {
         match self {
             Self::Equality(left, right) => {

@@ -98,6 +98,14 @@ impl Term {
             }
         }
     }
+
+    pub fn is_num(&self) -> bool {
+        match self {
+            Self::Zero => true,
+            Self::Successor(inner) => inner.is_num(),
+            _ => false,
+        }
+    }
 }
 
 impl Display for Term {
@@ -149,5 +157,13 @@ impl TryFrom<&str> for Term {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         string_to_term(value)
+    }
+}
+
+impl TryFrom<String> for Term {
+    type Error = pest::error::Error<Rule>;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        string_to_term(&value)
     }
 }
