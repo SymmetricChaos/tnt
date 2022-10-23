@@ -1,6 +1,7 @@
 //! Create inferences from other statements of TNT, will return LogicError if constraints are not met.
 
 use std::collections::HashSet;
+use std::convert::TryFrom;
 
 use crate::logic_errors::LogicError;
 use crate::{eq, exists, forall, succ, Formula, Term};
@@ -84,84 +85,85 @@ pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, L
     }
 }
 
-// /// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
-// /// ```
-// /// use tnt::{Term,Fomula};
-// /// use tnt::production::interchange_ea;
-// /// let b = "b";
-// /// let f = &Formula::try_from("~Eb:[a=b|Sa=b]").unwrap();
-// /// interchange_ea(f,b,0); // Ab:~[a=b&Sa=b]
-// /// ```
-// pub fn interchange_ea(
-//     formula: &Formula,
-//     var_name: &str,
-//     nth: usize,
-// ) -> Result<Formula, LogicError> {
-//     let e = format!("~E{}:", var_name);
-//     let a = format!("A{}:~", var_name);
-//     let mut new_s = formula.to_string().clone();
-//     let xs = formula.to_string();
-//     let qs = xs.match_indices(&e);
-//     let count = qs.clone().count();
-//     if count == 0 {
-//         return Err(LogicError(format!(
-//             "Interchange Error: The quantification `{}` does not exist in the Formula `{}`",
-//             e, formula
-//         )));
-//     }
-//     if count < nth {
-//         Err(LogicError(format!(
-//             "Interchange Error: The quantification `{}` only appears {} times in the Formula `{}`",
-//             e, count, formula
-//         )));
-//     }
-//     for (pos, q) in qs.enumerate() {
-//         if pos == nth {
-//             new_s.replace_range(q.0..q.0 + q.1.len(), &a);
-//             break;
-//         }
-//     }
-//     Ok(Formula::new_complex(&new_s))
-// }
+/// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
+/// ```
+/// use tnt::{Term,Fomula};
+/// use tnt::production::interchange_ea;
+/// let b = "b";
+/// let f = &Formula::try_from("~Eb:[a=b|Sa=b]").unwrap();
+/// interchange_ea(f,b,0); // Ab:~[a=b&Sa=b]
+/// ```
+pub fn interchange_ea(
+    formula: &Formula,
+    var_name: &str,
+    nth: usize,
+) -> Result<Formula, LogicError> {
+    let e = format!("~E{}:", var_name);
+    let a = format!("A{}:~", var_name);
+    let mut new_string = formula.to_string();
+    let old_string = formula.to_string();
+    let quantifications = old_string.match_indices(&e);
+    let count = quantifications.clone().count();
+    if count == 0 {
+        return Err(LogicError(format!(
+            "Interchange Error: The quantification `{}` does not exist in the Formula `{}`",
+            e, formula
+        )));
+    }
+    if count < nth {
+        return Err(LogicError(format!(
+            "Interchange Error: The quantification `{}` only appears {} times in the Formula `{}`",
+            e, count, formula
+        )));
+    }
+    for (pos, q) in quantifications.enumerate() {
+        if pos == nth {
+            new_string.replace_range(q.0..q.0 + q.1.len(), &a);
+            break;
+        }
+    }
+    Ok(Formula::try_from(new_string).unwrap())
+}
 
-// /// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
-// /// ```
-// /// use tnt::terms::{Variable,Term};
-// /// use tnt::formula::Formula;
-// /// use tnt::operations::production::interchange_ae;
-// /// let b = &Variable::new("b");
-// /// let f = &Formula::new("Ab:~[a=b|Sa=b]");
-// /// interchange_ae(f,b,0); // ~Eb:[a=b|Sa=b]
-// /// ```
-// pub fn interchange_ae(x: &Formula, v: &Variable, nth: usize) -> Result<Formula, LogicError> {
-//     let e = format!("~E{}:", v);
-//     let a = format!("A{}:~", v);
-//     let mut new_s = x.to_string().clone();
-//     let xs = &x.to_string();
-//     let qs = xs.match_indices(&a);
-//     let count = qs.clone().count();
-//     if count == 0 {
-//         let msg = format!(
-//             "Interchange Error: The quantification `{}` does not exist in the Formula `{}`",
-//             e, x
-//         );
-//         return Err(LogicError::new(msg));
-//     }
-//     if count < nth {
-//         let msg = format!(
-//             "Interchange Error: The quantification `{}` only appears {} times in the Formula `{}`",
-//             e, count, x
-//         );
-//         return Err(LogicError::new(msg));
-//     }
-//     for (pos, q) in qs.enumerate() {
-//         if pos == nth {
-//             new_s.replace_range(q.0..q.0 + q.1.len(), &e);
-//             break;
-//         }
-//     }
-//     Ok(Formula::new_complex(&new_s))
-// }
+/// In a given Formula change the nth occurrence of the quantification A<var>:~ to ~E<var>:
+/// ```
+/// use tnt::{Term,Fomula};
+/// use tnt::production::interchange_ae;
+/// let b = "b";
+/// let f = &Formula::new("Ab:~[a=b|Sa=b]");
+/// interchange_ae(f,b,0); // ~Eb:[a=b|Sa=b]
+/// ```
+pub fn interchange_ae(
+    formula: &Formula,
+    var_name: &str,
+    nth: usize,
+) -> Result<Formula, LogicError> {
+    let e = format!("~E{}:", var_name);
+    let a = format!("A{}:~", var_name);
+    let mut new_string = formula.to_string();
+    let old_string = formula.to_string();
+    let quantifications = old_string.match_indices(&a);
+    let count = quantifications.clone().count();
+    if count == 0 {
+        return Err(LogicError(format!(
+            "Interchange Error: The quantification `{}` does not exist in the Formula `{}`",
+            a, formula
+        )));
+    }
+    if count < nth {
+        return Err(LogicError(format!(
+            "Interchange Error: The quantification `{}` only appears {} times in the Formula `{}`",
+            a, count, formula
+        )));
+    }
+    for (pos, q) in quantifications.enumerate() {
+        if pos == nth {
+            new_string.replace_range(q.0..q.0 + q.1.len(), &e);
+            break;
+        }
+    }
+    Ok(Formula::try_from(new_string).unwrap())
+}
 
 // /// Perform induction
 // /// ```

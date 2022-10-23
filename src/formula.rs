@@ -296,3 +296,11 @@ impl TryFrom<&str> for Formula {
         string_to_formula(value)
     }
 }
+
+impl TryFrom<String> for Formula {
+    type Error = pest::error::Error<Rule>;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        string_to_formula(&value)
+    }
+}
