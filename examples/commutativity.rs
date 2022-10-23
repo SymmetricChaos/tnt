@@ -1,18 +1,17 @@
-use tnt::axioms::PEANO;
-use tnt::deduction::Deduction;
-use tnt::term::{Number, Term, Variable};
-use tnt::{formula::Formula, logic_errors::LogicError};
+use std::convert::TryFrom;
+
+use tnt::{Deduction, Formula, LogicError, Term, PEANO, ZERO};
 
 fn main() -> Result<(), LogicError> {
-    let a = &Variable::new("a");
-    let b = &Variable::new("b");
-    let c = &Variable::new("c");
-    let d = &Variable::new("d");
-    let sc = &c.succ();
-    let sd = &d.succ();
-    let zero = &Number::new("0");
+    let a = &Term::var("a");
+    let b = &Term::var("b");
+    let c = &Term::var("c");
+    let d = &Term::var("d");
+    let sc = &Term::try_from("Sc").expect("invalid term");
+    let sd = &Term::try_from("Sd").expect("invalid term");
+    let zero = &ZERO;
 
-    let t = &Formula::new("Ad:Ac:(c+d)=(d+c)");
+    let t = &Formula::try_from("Ad:Ac:(c+d)=(d+c)").expect("invalid formula");
     let mut e = Deduction::new("Prove That Addition Commutes", PEANO.clone());
     e.add_axiom(&PEANO[2])?;
     e.specification(0, a, d)?;
@@ -21,7 +20,7 @@ fn main() -> Result<(), LogicError> {
     e.specification(3, b, c)?;
     e.symmetry(4)?;
 
-    e.supposition(Formula::new("Ad:(d+Sc)=(Sd+c)"))?;
+    e.supposition(Formula::try_from("Ad:(d+Sc)=(Sd+c)").expect("invalid formula"))?;
     e.specification(6, d, d)?;
     e.successor(7)?;
     e.transitivity(2, 8)?;
@@ -48,7 +47,7 @@ fn main() -> Result<(), LogicError> {
     e.specification(23, c, c)?;
     e.specification(29, d, d)?;
 
-    e.supposition(Formula::new("Ac:(c+d)=(d+c)"))?;
+    e.supposition(Formula::try_from("Ac:(c+d)=(d+c)").expect("invalid formula"))?;
     e.specification(31, c, c)?;
     e.successor(32)?;
     e.transitivity(25, 33)?;
@@ -62,7 +61,7 @@ fn main() -> Result<(), LogicError> {
     e.specification(0, a, zero)?;
     e.specification(41, b, b)?;
 
-    e.supposition(Formula::new("(0+b)=b"))?;
+    e.supposition(Formula::try_from("(0+b)=b").expect("invalid formula"))?;
     e.successor(43)?;
     e.transitivity(42, 44)?;
     e.implication()?;
