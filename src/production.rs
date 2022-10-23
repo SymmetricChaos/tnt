@@ -86,33 +86,34 @@ pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, L
 
 // /// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
 // /// ```
-// /// use tnt::terms::{Variable,Term};
-// /// use tnt::formula::Formula;
-// /// use tnt::operations::production::interchange_ea;
-// /// let b = &Variable::new("b");
-// /// let f = &Formula::new("~Eb:[a=b|Sa=b]");
+// /// use tnt::{Term,Fomula};
+// /// use tnt::production::interchange_ea;
+// /// let b = "b";
+// /// let f = &Formula::try_from("~Eb:[a=b|Sa=b]").unwrap();
 // /// interchange_ea(f,b,0); // Ab:~[a=b&Sa=b]
 // /// ```
-// pub fn interchange_ea(x: &Formula, v: &Variable, nth: usize) -> Result<Formula, LogicError> {
-//     let e = format!("~E{}:", v);
-//     let a = format!("A{}:~", v);
-//     let mut new_s = x.to_string().clone();
-//     let xs = x.to_string();
+// pub fn interchange_ea(
+//     formula: &Formula,
+//     var_name: &str,
+//     nth: usize,
+// ) -> Result<Formula, LogicError> {
+//     let e = format!("~E{}:", var_name);
+//     let a = format!("A{}:~", var_name);
+//     let mut new_s = formula.to_string().clone();
+//     let xs = formula.to_string();
 //     let qs = xs.match_indices(&e);
 //     let count = qs.clone().count();
 //     if count == 0 {
-//         let msg = format!(
+//         return Err(LogicError(format!(
 //             "Interchange Error: The quantification `{}` does not exist in the Formula `{}`",
-//             e, x
-//         );
-//         return Err(LogicError::new(msg));
+//             e, formula
+//         )));
 //     }
 //     if count < nth {
-//         let msg = format!(
+//         Err(LogicError(format!(
 //             "Interchange Error: The quantification `{}` only appears {} times in the Formula `{}`",
-//             e, count, x
-//         );
-//         return Err(LogicError::new(msg));
+//             e, count, formula
+//         )));
 //     }
 //     for (pos, q) in qs.enumerate() {
 //         if pos == nth {
@@ -162,7 +163,7 @@ pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, L
 //     Ok(Formula::new_complex(&new_s))
 // }
 
-// /// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
+// /// Perform induction
 // /// ```
 
 // /// ```

@@ -207,6 +207,19 @@ impl Formula {
             }
         }
     }
+
+    pub fn matches_variant(&self, formula: &Formula) -> bool {
+        match (self, formula) {
+            (Formula::Equality(_, _), Formula::Equality(_, _)) => true,
+            (Formula::Universal(_, _), Formula::Universal(_, _)) => true,
+            (Formula::Existential(_, _), Formula::Existential(_, _)) => true,
+            (Formula::Negation(_), Formula::Negation(_)) => true,
+            (Formula::And(_, _), Formula::And(_, _)) => true,
+            (Formula::Or(_, _), Formula::Or(_, _)) => true,
+            (Formula::Implies(_, _), Formula::Implies(_, _)) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Display for Formula {
