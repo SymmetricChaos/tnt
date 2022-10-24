@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::convert::TryFrom;
 
 use crate::logic_errors::LogicError;
-use crate::{eq, exists, forall, succ, Formula, Term};
+use crate::{eq, exists, forall, implies, succ, Formula, Term, ZERO};
 
 /// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
 /// ```
@@ -165,13 +165,73 @@ pub fn interchange_ae(
     Ok(Formula::try_from(new_string).unwrap())
 }
 
-// /// Perform induction
-// /// ```
+/// Perform induction.
+/// ```
 
-// /// ```
+/// ```
+pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Formula, LogicError> {
+    // If the variable name requested doesn't exist in the general case then we can stop immediately.
+    if !general.contains_var(var_name) {
+        return Err(LogicError(format!(
+            "Induction Error: The Term::Variable `{var_name}` does not appear in the general case `{general}`"
+        )));
+    }
+
+    // Likewise if the variable name requested DOES exist in the base case then we can stop immediately.
+    if base.contains_var(var_name) {
+        return Err(LogicError(format!(
+            "Induction Error: The Term::Variable `{var_name}` appears in the base case `{base}`"
+        )));
+    }
+
+    // Now we must extract the left side of the implication from the general case and provide an
+    // error if this is not possible.
+    let left_implication = if let Formula::Universal(_, inner) = general {
+        if let Formula::Implies(left, right) = **inner {
+            *left.clone()
+        } else {
+            return Err(LogicError(format!(
+                "Induction Error: The general case `{general}` does not contain an implication"
+            )));
+        }
+    } else {
+        return Err(LogicError(format!(
+            "Induction Error: The general case `{general}` is not a universal quantification"
+        )));
+    };
+
+    // If the variable name is being used in a quantification of the left side of the implication we must stop
+    if left_implication.contains_var_bound(var_name) {
+        return Err(LogicError(format!(
+            "Induction Error: The Term::Variable `{var_name}` is already bound in the Formula `{left_implication}`, which is the left side of the general case `{general}`" 
+        )));
+    }
+
+    // The left side of the implication when the variable is replaced with Zero should match the base case.
+    let mut formula_zero = left_implication.clone();
+    formula_zero.replace_free(var_name, &ZERO);
+    if &formula_zero != base {
+        return Err(LogicError(format!(
+            "Induction Error: The base case `{base}` is not of the same form as `{left_implication}`, which is the left side of the general case `{general}`" 
+        )));
+    }
+
+    // The implication of the general case must be that the left side implies that the variable can be replaced with its successor everywhere and still be true
+    let successor_of_var = succ(&Term::var(var_name));
+    let formula_succ = left_implication.clone();
+    formula_succ.replace_free(var_name, &successor_of_var);
+    let correct_general = forall(var_name, &implies(&left_implication, &formula_succ));
+    if &correct_general != general {
+        return Err(LogicError(format!(
+            "Induction Error: The general case should be `{correct_general}` but the general case provided is actually `{general}`" 
+        )));
+    }
+
+    Ok(forall(var_name, &left_implication))
+}
+
 // pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Formula, LogicError> {
 //     // The theorem we need to generalize is the outermost, leftmost implication of the general case
-//     // Need to change this from causing a panic if malformed to causing a LogicError
 //     let theorem = Formula::new(left_implies(&general.to_string()).unwrap());
 //     if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
 //         let msg = format!("Induction Error: The Variable `{}` is already bound in the Formula `{}`, which is the left side of the general case `{}`",v,theorem,general);
