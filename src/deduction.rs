@@ -196,102 +196,102 @@ impl Deduction {
         out
     }
 
-    /// Create a LaTeX file the given file name that displays the Deduction.
-    pub fn latex_file(&self, filename: &str) -> Result<(), Error> {
-        let filename = format!("{}.tex", filename);
-        let mut file = File::create(filename)?;
+    // /// Create a LaTeX file the given file name that displays the Deduction.
+    // pub fn latex_file(&self, filename: &str) -> Result<(), Error> {
+    //     let filename = format!("{}.tex", filename);
+    //     let mut file = File::create(filename)?;
 
-        let section_title = format!("\\section*{{{}}}\n", self.title);
+    //     let section_title = format!("\\section*{{{}}}\n", self.title);
 
-        file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
-        file.write(b"\\usepackage{amsmath}\n")?;
-        file.write(b"\\allowdisplaybreaks\n")?;
-        file.write(b"\\begin{document}\n")?;
-        file.write(&section_title.into_bytes())?;
-        file.write(b"\\begin{flalign*}\n")?;
+    //     file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
+    //     file.write(b"\\usepackage{amsmath}\n")?;
+    //     file.write(b"\\allowdisplaybreaks\n")?;
+    //     file.write(b"\\begin{document}\n")?;
+    //     file.write(&section_title.into_bytes())?;
+    //     file.write(b"\\begin{flalign*}\n")?;
 
-        let mut prev_depth = 0;
-        for t in self.theorems.iter() {
-            if t.depth > prev_depth {
-                let line = format!(
-                    "&{}\\text{{begin supposition}}&\\\\\n",
-                    "   ".repeat(prev_depth)
-                )
-                .into_bytes();
-                file.write(&line)?;
-            } else if t.depth < prev_depth {
-                let line = format!("&{}\\text{{end supposition}}&\\\\\n", "   ".repeat(t.depth))
-                    .into_bytes();
-                file.write(&line)?;
-            }
+    //     let mut prev_depth = 0;
+    //     for t in self.theorems.iter() {
+    //         if t.depth > prev_depth {
+    //             let line = format!(
+    //                 "&{}\\text{{begin supposition}}&\\\\\n",
+    //                 "   ".repeat(prev_depth)
+    //             )
+    //             .into_bytes();
+    //             file.write(&line)?;
+    //         } else if t.depth < prev_depth {
+    //             let line = format!("&{}\\text{{end supposition}}&\\\\\n", "   ".repeat(t.depth))
+    //                 .into_bytes();
+    //             file.write(&line)?;
+    //         }
 
-            prev_depth = t.depth;
-        }
+    //         prev_depth = t.depth;
+    //     }
 
-        file.write(b"\\end{flalign*}\n")?;
-        file.write(b"\\end{document}")?;
-        Ok(())
-    }
+    //     file.write(b"\\end{flalign*}\n")?;
+    //     file.write(b"\\end{document}")?;
+    //     Ok(())
+    // }
 
-    /// Create an annotated LaTeX file the given file name that displays the Deduction.
-    pub fn latex_file_annotated(&self, filename: &str) -> Result<(), Error> {
-        let filename = format!("{}.tex", filename);
-        let mut file = File::create(filename)?;
+    // /// Create an annotated LaTeX file the given file name that displays the Deduction.
+    // pub fn latex_file_annotated(&self, filename: &str) -> Result<(), Error> {
+    //     let filename = format!("{}.tex", filename);
+    //     let mut file = File::create(filename)?;
 
-        let section_title = format!("\\section*{{{}}}\n", self.title);
+    //     let section_title = format!("\\section*{{{}}}\n", self.title);
 
-        file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
-        file.write(b"\\usepackage{amsmath}\n")?;
-        file.write(b"\\allowdisplaybreaks\n")?;
-        file.write(b"\\begin{document}\n")?;
-        file.write(&section_title.into_bytes())?;
-        file.write(b"\\begin{flalign*}\n")?;
+    //     file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
+    //     file.write(b"\\usepackage{amsmath}\n")?;
+    //     file.write(b"\\allowdisplaybreaks\n")?;
+    //     file.write(b"\\begin{document}\n")?;
+    //     file.write(&section_title.into_bytes())?;
+    //     file.write(b"\\begin{flalign*}\n")?;
 
-        let mut prev_depth = 0;
-        for (pos, t) in self.theorems.iter().enumerate() {
-            if t.depth > prev_depth {
-                let line = format!(
-                    "&{}\\text{{begin supposition}}&\\\\\n",
-                    "   ".repeat(prev_depth)
-                )
-                .into_bytes();
-                file.write(&line)?;
-            } else if t.depth < prev_depth {
-                let line = format!("&{}\\text{{end supposition}}&\\\\\n", "   ".repeat(t.depth))
-                    .into_bytes();
-                file.write(&line)?;
-            }
+    //     let mut prev_depth = 0;
+    //     for (pos, t) in self.theorems.iter().enumerate() {
+    //         if t.depth > prev_depth {
+    //             let line = format!(
+    //                 "&{}\\text{{begin supposition}}&\\\\\n",
+    //                 "   ".repeat(prev_depth)
+    //             )
+    //             .into_bytes();
+    //             file.write(&line)?;
+    //         } else if t.depth < prev_depth {
+    //             let line = format!("&{}\\text{{end supposition}}&\\\\\n", "   ".repeat(t.depth))
+    //                 .into_bytes();
+    //             file.write(&line)?;
+    //         }
 
-            let line = format!(
-                "&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",
-                t.depth * 2,
-                pos,
-                t.formula.latex(),
-                t.annotation
-            )
-            .into_bytes();
-            file.write(&line)?;
+    //         let line = format!(
+    //             "&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",
+    //             t.depth * 2,
+    //             pos,
+    //             t.formula.latex(),
+    //             t.annotation
+    //         )
+    //         .into_bytes();
+    //         file.write(&line)?;
 
-            prev_depth = t.depth;
-        }
+    //         prev_depth = t.depth;
+    //     }
 
-        file.write(b"\\end{flalign*}\n")?;
-        file.write(b"\\end{document}")?;
-        Ok(())
-    }
+    //     file.write(b"\\end{flalign*}\n")?;
+    //     file.write(b"\\end{document}")?;
+    //     Ok(())
+    // }
 
-    pub fn english(&self) -> String {
-        let mut out = String::new();
-        for t in self.theorems.iter() {
-            out.push_str(&format!(
-                "{}) {} [{}]",
-                t.position,
-                t.formula.english(),
-                t.annotation
-            ));
-        }
-        out
-    }
+    // pub fn english(&self) -> String {
+    //     let mut out = String::new();
+    //     for t in self.theorems.iter() {
+    //         out.push_str(&format!(
+    //             "{}) {} [{}]",
+    //             t.position,
+    //             t.formula.english(),
+    //             t.annotation
+    //         ));
+    //     }
+    //     out
+    // }
 
     /// Convert the Deduction to a (very large) integer.
     pub fn arithmetize(&self) -> BigUint {

@@ -13,7 +13,7 @@ use crate::{eq, exists, forall, implies, succ, Formula, Term, ZERO};
 /// use tnt::operations::production::specification;
 /// let a = &Variable::new("a");
 /// let n = &Number::new("SS0");
-/// let f = &Formula::new("Ea':Aa:[a=a&a'=a']");
+/// let f = &Formula::try_from("Ea':Aa:[a=a&a'=a']");
 /// specification(f,a,n); // Ea':[SS0=SS0&a'=a']
 /// ```
 pub fn specification(
@@ -51,7 +51,7 @@ pub fn specification(
 /// use tnt::formula::Formula;
 /// use tnt::operations::production::generalization;
 /// let a = &Variable::new("a");
-/// let f = &Formula::new("Ea':[a=a&a'=a']");
+/// let f = &Formula::try_from("Ea':[a=a&a'=a']");
 /// generalization(f,a); // Ea':Aa:[a=a&a'=a']
 /// ```
 pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
@@ -71,7 +71,7 @@ pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formu
 /// use tnt::formula::Formula;
 /// use tnt::operations::production::existence;
 /// let a = "a");
-/// let f = &Formula::new("Ea':[a=a&a'=a']");
+/// let f = &Formula::try_from("Ea':[a=a&a'=a']");
 /// existence(f,a); // Ea':Ea:[a=a&a'=a']
 /// ```
 pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
@@ -130,7 +130,7 @@ pub fn interchange_ea(
 /// use tnt::{Term,Fomula};
 /// use tnt::production::interchange_ae;
 /// let b = "b";
-/// let f = &Formula::new("Ab:~[a=b|Sa=b]");
+/// let f = &Formula::try_from("Ab:~[a=b|Sa=b]");
 /// interchange_ae(f,b,0); // ~Eb:[a=b|Sa=b]
 /// ```
 pub fn interchange_ae(
@@ -232,7 +232,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 
 // pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Formula, LogicError> {
 //     // The theorem we need to generalize is the outermost, leftmost implication of the general case
-//     let theorem = Formula::new(left_implies(&general.to_string()).unwrap());
+//     let theorem = Formula::try_from(left_implies(&general.to_string()).unwrap());
 //     if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
 //         let msg = format!("Induction Error: The Variable `{}` is already bound in the Formula `{}`, which is the left side of the general case `{}`",v,theorem,general);
 //         return Err(LogicError::new(msg));
@@ -261,7 +261,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 /// Given a Formula::Equality return the successor of both sides
 /// ```
 /// use tnt::{Formula,successor};
-/// let f = &Formula::new("a=b");
+/// let f = &Formula::try_from("a=b");
 /// successor(f); // Sa=Sb
 /// ```
 pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
@@ -278,7 +278,7 @@ pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
 /// Given a Formula::Equality return the predecessor of both sides
 /// ```
 /// use tnt::{Formula,predecessor};
-/// let f = &Formula::new("Sa=Sb");
+/// let f = &Formula::try_from("Sa=Sb");
 /// predecessor(f); // a=b
 /// ```
 pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
@@ -301,7 +301,7 @@ pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
 /// Given a Formula::Equality flip the two sides of the equality
 /// ```
 /// use tnt::{Formula,symmetry};
-/// let f = &Formula::new("SSa=Sb'");
+/// let f = &Formula::try_from("SSa=Sb'");
 /// symmetry(f); // Sb'=SSa
 /// ```
 pub fn symmetry(formula: &Formula) -> Result<Formula, LogicError> {
@@ -318,8 +318,8 @@ pub fn symmetry(formula: &Formula) -> Result<Formula, LogicError> {
 /// Given two Formula::Equality where the right side of the first matches the left side of the second return the Formula that is the equality of their left and right
 /// ```
 /// use tnt::{Formula,transitivity};
-/// let f1 = &Formula::new("SSa=Sb'");
-/// let f2 = &Formula::new("Sb'=(1+1)");
+/// let f1 = &Formula::try_from("SSa=Sb'");
+/// let f2 = &Formula::try_from("Sb'=(1+1)");
 /// transitivity(f1,f2); // SSa=(1+1)
 /// ```
 pub fn transitivity(
@@ -346,192 +346,189 @@ pub fn transitivity(
     }
 }
 
-// #[cfg(test)]
-// mod test {
+#[cfg(test)]
+mod test {
 
-//     use crate::ONE;
+    use crate::ONE;
 
-//     use super::*;
+    use super::*;
 
-//     #[test]
-//     fn test_specification() -> Result<(), LogicError> {
-//         let a = "a";
-//         let one = ONE;
-//         let formula1 = &Formula::new("Aa:a=a");
-//         let formula2 = &Formula::new("Ea':Aa:[a=a&a'=a']");
-//         assert_eq!(specification(formula1, a, one)?.to_string(), "S0=S0");
-//         assert_eq!(
-//             specification(formula2, a, one)?.to_string(),
-//             "Ea':[S0=S0&a'=a']"
-//         );
-//         Ok(())
-//     }
+    #[test]
+    fn test_specification() -> Result<(), LogicError> {
+        let a = "a";
+        let formula1 = &Formula::try_from("Aa:a=a").unwrap();
+        let formula2 = &Formula::try_from("Ea':Aa:[a=a&a'=a']").unwrap();
+        assert_eq!(specification(formula1, a, &ONE)?.to_string(), "S0=S0");
+        assert_eq!(
+            specification(formula2, a, &ONE)?.to_string(),
+            "Ea':[S0=S0&a'=a']"
+        );
+        Ok(())
+    }
 
-//     #[test]
-//     fn test_specification_err1() {
-//         let a = &Variable::new("b");
-//         let one = &Number::new("S0");
-//         let formula1 = &Formula::new("Aa:a=a");
-//         assert!(specification(formula1, a, one).is_err());
-//     }
+    #[test]
+    fn test_specification_err1() {
+        let a = "b";
+        let formula1 = &Formula::try_from("Aa:a=a").unwrap();
+        assert!(specification(formula1, a, &ONE).is_err());
+    }
 
-//     #[test]
-//     fn test_specification_err2() {
-//         let a = &Variable::new("a");
-//         let one = &Number::new("S0");
-//         let formula1 = &Formula::new("Aa:a=a");
-//         assert!(specification(formula1, a, &(a + one)).is_err());
-//     }
+    #[test]
+    fn test_specification_err2() {
+        let a = Term::var("a");
+        let formula1 = &Formula::try_from("Aa:a=a").unwrap();
+        assert!(specification(formula1, "a", &(&a + &ONE)).is_err());
+    }
 
-//     #[test]
-//     fn test_generalization() -> Result<(), LogicError> {
-//         let a = &Variable::new("a");
-//         let x = &Variable::new("x'");
-//         let formula1 = &Formula::new("a=a");
-//         let formula2 = &Formula::new("Ea':Aa:[a=a&x'=a']");
-//         assert_eq!(generalization(formula1, a)?.to_string(), "Aa:a=a");
-//         assert_eq!(
-//             generalization(formula2, x)?.to_string(),
-//             "Ax':Ea':Aa:[a=a&x'=a']"
-//         );
-//         Ok(())
-//     }
+    #[test]
+    fn test_generalization() -> Result<(), LogicError> {
+        let a = "a";
+        let x = "x'";
+        let formula1 = &Formula::try_from("a=a").unwrap();
+        let formula2 = &Formula::try_from("Ea':Aa:[a=a&x'=a']").unwrap();
+        assert_eq!(generalization(formula1, a)?.to_string(), "Aa:a=a");
+        assert_eq!(
+            generalization(formula2, x)?.to_string(),
+            "Ax':Ea':Aa:[a=a&x'=a']"
+        );
+        Ok(())
+    }
 
-//     #[test]
-//     fn test_generalization_err() {
-//         let c = &Variable::new("c");
-//         let formula1 = &Formula::new("Ec:a=c");
-//         assert!(generalization(formula1, c).is_err());
-//     }
+    #[test]
+    fn test_generalization_err() {
+        let c = "c";
+        let formula1 = &Formula::try_from("Ec:a=c").unwrap();
+        assert!(generalization(formula1, c).is_err());
+    }
 
-//     #[test]
-//     fn test_symmetry() -> Result<(), LogicError> {
-//         let simple1 = &Formula::new("a=b");
-//         let simple2 = &Formula::new("b=S(a+S0)");
-//         assert_eq!(symmetry(simple1)?.to_string(), "b=a");
-//         assert_eq!(symmetry(simple2)?.to_string(), "S(a+S0)=b");
-//         Ok(())
-//     }
+    #[test]
+    fn test_symmetry() -> Result<(), LogicError> {
+        let simple1 = &Formula::try_from("a=b").unwrap();
+        let simple2 = &Formula::try_from("b=S(a+S0)").unwrap();
+        assert_eq!(symmetry(simple1)?.to_string(), "b=a");
+        assert_eq!(symmetry(simple2)?.to_string(), "S(a+S0)=b");
+        Ok(())
+    }
 
-//     #[test]
-//     fn test_symmetry_err() {
-//         let complex = &Formula::new("Aa:a=b");
-//         assert!(symmetry(complex).is_err());
-//     }
+    #[test]
+    fn test_symmetry_err() {
+        let complex = &Formula::try_from("Aa:a=b").unwrap();
+        assert!(symmetry(complex).is_err());
+    }
 
-//     #[test]
-//     fn test_transitivity() -> Result<(), LogicError> {
-//         let atom1 = Formula::new("a=b");
-//         let atom2 = Formula::new("b=S(a+S0)");
-//         assert_eq!(transitivity(&atom1, &atom2)?.to_string(), "a=S(a+S0)");
-//         Ok(())
-//     }
+    #[test]
+    fn test_transitivity() -> Result<(), LogicError> {
+        let atom1 = Formula::try_from("a=b").unwrap();
+        let atom2 = Formula::try_from("b=S(a+S0)").unwrap();
+        assert_eq!(transitivity(&atom1, &atom2)?.to_string(), "a=S(a+S0)");
+        Ok(())
+    }
 
-//     #[test]
-//     fn test_transitivity_err_1_left() {
-//         let complex1 = &Formula::new("Aa:a=b");
-//         let complex2 = &Formula::new("p=j''");
-//         assert!(transitivity(complex1, complex2).is_err());
-//     }
+    #[test]
+    fn test_transitivity_err_1_left() {
+        let complex1 = &Formula::try_from("Aa:a=b").unwrap();
+        let complex2 = &Formula::try_from("p=j''").unwrap();
+        assert!(transitivity(complex1, complex2).is_err());
+    }
 
-//     #[test]
-//     fn test_transitivity_err_1_right() {
-//         let complex1 = &Formula::new("Aa:a=b");
-//         let complex2 = &Formula::new("p=j''");
-//         assert!(transitivity(complex2, complex1).is_err());
-//     }
+    #[test]
+    fn test_transitivity_err_1_right() {
+        let complex1 = &Formula::try_from("Aa:a=b").unwrap();
+        let complex2 = &Formula::try_from("p=j''").unwrap();
+        assert!(transitivity(complex2, complex1).is_err());
+    }
 
-//     #[test]
-//     fn test_transitivity_err_2() {
-//         let complex1 = &Formula::new("p=j''");
-//         let complex2 = &Formula::new("q'=p");
-//         assert!(transitivity(complex1, complex2).is_err());
-//     }
+    #[test]
+    fn test_transitivity_err_2() {
+        let complex1 = &Formula::try_from("p=j''").unwrap();
+        let complex2 = &Formula::try_from("q'=p").unwrap();
+        assert!(transitivity(complex1, complex2).is_err());
+    }
 
-//     #[test]
-//     fn test_predecessor() -> Result<(), LogicError> {
-//         let simple = &Formula::new("Sm''=SSu");
-//         assert_eq!(predecessor(simple)?.to_string(), "m''=Su");
-//         Ok(())
-//     }
+    #[test]
+    fn test_predecessor() -> Result<(), LogicError> {
+        let simple = &Formula::try_from("Sm''=SSu").unwrap();
+        assert_eq!(predecessor(simple)?.to_string(), "m''=Su");
+        Ok(())
+    }
 
-//     #[test]
-//     fn test_predecessor_err_1() {
-//         let complex = &Formula::new("~Ei:(i+SS0)=g");
-//         assert!(predecessor(complex).is_err());
-//     }
+    #[test]
+    fn test_predecessor_err_1() {
+        let complex = &Formula::try_from("~Ei:(i+SS0)=g").unwrap();
+        assert!(predecessor(complex).is_err());
+    }
 
-//     #[test]
-//     fn test_predecessor_err_2() {
-//         let simple = &Formula::new("SSb'=0");
-//         assert!(predecessor(simple).is_err());
-//     }
+    #[test]
+    fn test_predecessor_err_2() {
+        let simple = &Formula::try_from("SSb'=0").unwrap();
+        assert!(predecessor(simple).is_err());
+    }
 
-//     #[test]
-//     fn test_successor() -> Result<(), LogicError> {
-//         let simple = &Formula::new("Sm''=SSu");
-//         assert_eq!(successor(simple)?.to_string(), "SSm''=SSSu");
-//         Ok(())
-//     }
+    #[test]
+    fn test_successor() -> Result<(), LogicError> {
+        let simple = &Formula::try_from("Sm''=SSu").unwrap();
+        assert_eq!(successor(simple)?.to_string(), "SSm''=SSSu");
+        Ok(())
+    }
 
-//     #[test]
-//     fn test_successor_err() {
-//         let complex = &Formula::new("~Ei:(i+SS0)=g");
-//         assert!(successor(complex).is_err());
-//     }
+    #[test]
+    fn test_successor_err() {
+        let complex = &Formula::try_from("~Ei:(i+SS0)=g").unwrap();
+        assert!(successor(complex).is_err());
+    }
 
-//     #[test]
-//     fn test_interchange_ea() -> Result<(), LogicError> {
-//         let formula1 = &Formula::new("Aa:~Eu':(a+u')=Sa");
-//         let formula2 = &Formula::new("[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]");
-//         let variable = &Variable::new("u'");
-//         assert_eq!(
-//             interchange_ea(formula1, variable, 0)?.to_string(),
-//             "Aa:Au':~(a+u')=Sa"
-//         );
-//         assert_eq!(
-//             interchange_ea(formula2, variable, 1)?.to_string(),
-//             "[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]"
-//         );
-//         Ok(())
-//     }
+    #[test]
+    fn test_interchange_ea() -> Result<(), LogicError> {
+        let formula1 = &Formula::try_from("Aa:~Eu':(a+u')=Sa").unwrap();
+        let formula2 = &Formula::try_from("[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]").unwrap();
+        let variable = "u'";
+        assert_eq!(
+            interchange_ea(formula1, variable, 0)?.to_string(),
+            "Aa:Au':~(a+u')=Sa"
+        );
+        assert_eq!(
+            interchange_ea(formula2, variable, 1)?.to_string(),
+            "[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]"
+        );
+        Ok(())
+    }
 
-//     #[test]
-//     fn test_interchange_ea_err() {
-//         let formula1 = &Formula::new("Aa:~Eu':(a+u')=Sa");
-//         let variable = &Variable::new("z");
-//         assert!(interchange_ea(formula1, variable, 0).is_err());
-//     }
+    #[test]
+    fn test_interchange_ea_err() {
+        let formula1 = &Formula::try_from("Aa:~Eu':(a+u')=Sa").unwrap();
+        let variable = "z";
+        assert!(interchange_ea(formula1, variable, 0).is_err());
+    }
 
-//     #[test]
-//     fn test_interchange_ae() -> Result<(), LogicError> {
-//         let formula1 = &Formula::new("Aa:Au':~(a+u')=Sa");
-//         let formula2 = &Formula::new("[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]");
-//         let variable = &Variable::new("u'");
-//         assert_eq!(
-//             interchange_ae(formula1, variable, 0)?.to_string(),
-//             "Aa:~Eu':(a+u')=Sa"
-//         );
-//         assert_eq!(
-//             interchange_ae(formula2, variable, 0)?.to_string(),
-//             "[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]"
-//         );
-//         Ok(())
-//     }
+    #[test]
+    fn test_interchange_ae() -> Result<(), LogicError> {
+        let formula1 = &Formula::try_from("Aa:Au':~(a+u')=Sa").unwrap();
+        let formula2 = &Formula::try_from("[Aa:~Eu':(a+u')=Sa&Au':~u'=SS0]").unwrap();
+        let variable = "u'";
+        assert_eq!(
+            interchange_ae(formula1, variable, 0)?.to_string(),
+            "Aa:~Eu':(a+u')=Sa"
+        );
+        assert_eq!(
+            interchange_ae(formula2, variable, 0)?.to_string(),
+            "[Aa:~Eu':(a+u')=Sa&~Eu':u'=SS0]"
+        );
+        Ok(())
+    }
 
-//     #[test]
-//     fn test_interchange_ae_err() {
-//         let formula1 = &Formula::new("Aa:~Eu':(a+u')=Sa");
-//         let variable = &Variable::new("z");
-//         assert!(interchange_ae(formula1, variable, 0).is_err());
-//     }
+    #[test]
+    fn test_interchange_ae_err() {
+        let formula1 = &Formula::try_from("Aa:~Eu':(a+u')=Sa").unwrap();
+        let variable = "z";
+        assert!(interchange_ae(formula1, variable, 0).is_err());
+    }
 
-//     #[test]
-//     fn test_induction() -> Result<(), LogicError> {
-//         let v = &Variable::new("v");
-//         let base = &Formula::new("0=0");
-//         let gen = &Formula::new("Av:[v=v>Sv=Sv]");
-//         assert_eq!(induction(v, base, gen)?.to_string(), "Av:v=v");
-//         Ok(())
-//     }
-// }
+    #[test]
+    fn test_induction() -> Result<(), LogicError> {
+        let v = "v";
+        let base = &Formula::try_from("0=0").unwrap();
+        let gen = &Formula::try_from("Av:[v=v>Sv=Sv]").unwrap();
+        assert_eq!(induction(v, base, gen)?.to_string(), "Av:v=v");
+        Ok(())
+    }
+}
