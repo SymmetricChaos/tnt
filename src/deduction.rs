@@ -94,11 +94,11 @@ impl Deduction {
 
     // Internal methods
     // Get a theorem if it is in an accessible scope
-    fn get_theorem(&self, n: usize) -> Result<&Formula, LogicError> {
+    fn get_theorem(&self, n: usize) -> Result<Formula, LogicError> {
         // Check the scope
         let tscope = self.theorems[n].scope;
         if tscope == self.scope_cur || self.scope_stack.contains(&tscope) {
-            return Ok(&self.theorems[n].formula);
+            return Ok(self.theorems[n].formula.clone());
         }
         let msg = format!("Scope Error: position {n} is not in an accessible scope");
         Err(LogicError::new(msg))
@@ -332,17 +332,17 @@ impl Deduction {
     pub fn specification(
         &mut self,
         n: usize,
-        var_name: &str,
+        var_name: &'static str,
         replacement: &Term,
     ) -> Result<(), LogicError> {
-        let t = specification(self.get_theorem(n)?, &var_name, replacement);
+        let t = specification(&self.get_theorem(n)?, &var_name, replacement);
         let r = format!("specification of {var_name} to {replacement} in theorem {n}");
         self.push_new(t?, r, Rule::Specification);
         Ok(())
     }
 
     /// Push a new theorem that adds universal quantification of var in theorem n.
-    pub fn generalization(&mut self, n: usize, var_name: &str) -> Result<(), LogicError> {
+    pub fn generalization(&mut self, n: usize, var_name: &'static str) -> Result<(), LogicError> {
         if self.depth() != 0 {
             let mut free_vars = HashSet::<String>::new();
             self.get_theorem(self.scope_cur)?
@@ -355,7 +355,7 @@ impl Deduction {
                 return Err(LogicError::new(msg));
             }
         }
-        let t = generalization(self.get_theorem(n)?, var_name);
+        let t = generalization(&self.get_theorem(n)?, var_name);
         let r = format!("generalization of {var_name} in theorem {n}");
         self.push_new(t?, r, Rule::Generalization);
         Ok(())
@@ -371,7 +371,7 @@ impl Deduction {
 
     /// Push a new theorem that applies the successor to each side of a theorem n.
     pub fn successor(&mut self, n: usize) -> Result<(), LogicError> {
-        let t = successor(self.get_theorem(n)?);
+        let t = successor(&self.get_theorem(n)?);
         let r = format!("successor of theorem {n}");
         self.push_new(t?, r, Rule::Successor);
         Ok(())
@@ -379,7 +379,7 @@ impl Deduction {
 
     /// Push a new theorem that strips the successor to each side of a theorem n.
     pub fn predecessor(&mut self, n: usize) -> Result<(), LogicError> {
-        let t = predecessor(self.get_theorem(n)?);
+        let t = predecessor(&self.get_theorem(n)?);
         let r = format!("predecessor of theorem {n}");
         self.push_new(t?, r, Rule::Predecessor);
         Ok(())
@@ -392,7 +392,7 @@ impl Deduction {
         var_name: &str,
         pos: usize,
     ) -> Result<(), LogicError> {
-        let t = interchange_ea(self.get_theorem(n)?, var_name, pos);
+        let t = interchange_ea(&self.get_theorem(n)?, var_name, pos);
         let r = format!("interchange ~E{var_name}: for A{var_name}:~ in theorem {n}");
         self.push_new(t?, r, Rule::InterchangeEA);
         Ok(())
@@ -405,7 +405,7 @@ impl Deduction {
         var_name: &str,
         pos: usize,
     ) -> Result<(), LogicError> {
-        let t = interchange_ae(self.get_theorem(n)?, var_name, pos);
+        let t = interchange_ae(&self.get_theorem(n)?, var_name, pos);
         let r = format!("interchange A{var_name}:~ for ~E{var_name}: in theorem {n}");
         self.push_new(t?, r, Rule::InterchangeAE);
         Ok(())
@@ -413,7 +413,7 @@ impl Deduction {
 
     /// Push a new theorem that flips the left and right sides of theorem n.
     pub fn symmetry(&mut self, n: usize) -> Result<(), LogicError> {
-        let t = symmetry(self.get_theorem(n)?);
+        let t = symmetry(&self.get_theorem(n)?);
         let r = format!("symmetry of theorem {n}");
         self.push_new(t?, r, Rule::Symmetry);
         Ok(())
@@ -421,7 +421,7 @@ impl Deduction {
 
     /// Push a new theorem that is an equality of the left term and right term of formula n1 and n2.
     pub fn transitivity(&mut self, n1: usize, n2: usize) -> Result<(), LogicError> {
-        let t = transitivity(self.get_theorem(n1)?, self.get_theorem(n2)?);
+        let t = transitivity(&self.get_theorem(n1)?, &self.get_theorem(n2)?);
         let r = format!("transitivity of theorem {n1} and theorem {n2}");
         self.push_new(t?, r, Rule::Transitivity);
         Ok(())
@@ -439,7 +439,7 @@ impl Deduction {
     /// End a supposition and push a new theorem that the premise of the supposition implies the final theorem of the supposition.
     pub fn implication(&mut self) -> Result<(), LogicError> {
         // Create the formula and annotation
-        let t = implies(self.get_theorem(self.scope_cur)?, self.get_last_theorem());
+        let t = implies(&self.get_theorem(self.scope_cur)?, self.get_last_theorem());
         let r = format!(
             "implication of theorem {} and theorem {}",
             self.scope_cur, self.index
@@ -460,8 +460,8 @@ impl Deduction {
     ) -> Result<(), LogicError> {
         let t = induction(
             var_name,
-            self.get_theorem(base)?,
-            self.get_theorem(general)?,
+            &self.get_theorem(base)?,
+            &self.get_theorem(general)?,
         );
         let r = format!("induction of {var_name} on theorems {base} and {general}");
         self.push_new(t?, r, Rule::Induction);
