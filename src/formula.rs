@@ -135,6 +135,16 @@ impl Formula {
         }
     }
 
+    pub fn get_vars_free(&self, var_names: &mut HashSet<String>) {
+        let mut all_v = HashSet::<String>::new();
+        let mut bound_v = HashSet::<String>::new();
+        self.get_vars(&mut all_v);
+        self.get_vars(&mut bound_v);
+        for free_v in all_v.difference(&bound_v) {
+            var_names.insert(free_v.clone());
+        }
+    }
+
     pub fn get_vars_bound(&self, var_names: &mut HashSet<String>) {
         match self {
             Self::Equality(_, _) => (),

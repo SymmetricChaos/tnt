@@ -187,7 +187,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
     // Now we must extract the left side of the implication from the general case and provide an
     // error if this is not possible.
     let left_implication = if let Formula::Universal(_, inner) = general {
-        if let Formula::Implies(left, right) = **inner {
+        if let Formula::Implies(left, _right) = &**inner {
             *left.clone()
         } else {
             return Err(LogicError(format!(
@@ -218,7 +218,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 
     // The implication of the general case must be that the left side implies that the variable can be replaced with its successor everywhere and still be true
     let successor_of_var = succ(&Term::var(var_name));
-    let formula_succ = left_implication.clone();
+    let mut formula_succ = left_implication.clone();
     formula_succ.replace_free(var_name, &successor_of_var);
     let correct_general = forall(var_name, &implies(&left_implication, &formula_succ));
     if &correct_general != general {
