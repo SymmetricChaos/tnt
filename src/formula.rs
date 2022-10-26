@@ -50,6 +50,30 @@ pub enum Formula {
 }
 
 impl Formula {
+    pub fn to_english(&self) -> String {
+        match self {
+            Formula::Equality(l, r) => format!("{l} equals {r}"),
+            Formula::Universal(var, inner) => format!("for all {var} it is the case that {inner}"),
+            Formula::Existential(var, inner) => format!("there exists {var} such that {inner}"),
+            Formula::Negation(inner) => format!("it is false that {inner}"),
+            Formula::And(l, r) => format!("[{l} and {r}]"),
+            Formula::Or(l, r) => format!("[{l} or {r}]"),
+            Formula::Implies(l, r) => format!("[{l} implies {r}]"),
+        }
+    }
+
+    pub fn to_latex(&self) -> String {
+        match self {
+            Formula::Equality(l, r) => format!("{} = {}", l.to_latex(), r.to_latex()),
+            Formula::Universal(var, inner) => format!("\\forall {var}: {inner}"),
+            Formula::Existential(var, inner) => format!("\\exists {var}: {inner}"),
+            Formula::Negation(inner) => format!("\\neg {inner}"),
+            Formula::And(l, r) => format!("\\langle {l} \\wedge {r} \\rangle"),
+            Formula::Or(l, r) => format!("\\langle {l} \\vee {r} \\rangle"),
+            Formula::Implies(l, r) => format!(" \\langle{l} \\Rightarrow {r} \\rangle"),
+        }
+    }
+
     // Eliminate all universal quantification of some Variable and then replace all instances of that variable with the provided Term
     pub fn specify(&mut self, name: &str, term: &Term) {
         match self {

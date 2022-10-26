@@ -94,11 +94,11 @@ impl Deduction {
 
     // Internal methods
     // Get a theorem if it is in an accessible scope
-    fn get_theorem(&self, n: usize) -> Result<Formula, LogicError> {
+    fn get_theorem(&self, n: usize) -> Result<&Formula, LogicError> {
         // Check the scope
         let tscope = self.theorems[n].scope;
         if tscope == self.scope_cur || self.scope_stack.contains(&tscope) {
-            return Ok(self.theorems[n].formula.clone());
+            return Ok(&self.theorems[n].formula);
         }
         let msg = format!("Scope Error: position {n} is not in an accessible scope");
         Err(LogicError::new(msg))
@@ -166,22 +166,7 @@ impl Deduction {
 
     /// Print the Deduction as a nicely formatted as an ASCII representation.
     pub fn pretty_print(&self) {
-        let mut prev_depth = 0;
-        for (pos, t) in self.theorems.iter().enumerate() {
-            if t.depth > prev_depth {
-                println!("{}begin supposition", "   ".repeat(prev_depth));
-            } else if t.depth < prev_depth {
-                println!("{}end supposition", "   ".repeat(t.depth));
-            } else {
-            }
-            println!(
-                "{}{}) {}",
-                "   ".repeat(t.depth),
-                pos,
-                t.formula.to_string()
-            );
-            prev_depth = t.depth;
-        }
+        println!("{}", self.pretty_string());
     }
 
     pub fn pretty_string(&self) -> String {
@@ -208,102 +193,65 @@ impl Deduction {
         out
     }
 
-    // /// Create a LaTeX file the given file name that displays the Deduction.
-    // pub fn latex_file(&self, filename: &str) -> Result<(), Error> {
-    //     let filename = format!("{}.tex", filename);
-    //     let mut file = File::create(filename)?;
+    /// Create an annotated LaTeX file the given file name that displays the Deduction.
+    pub fn latex_file(&self, filename: &str) -> Result<(), Error> {
+        let filename = format!("{}.tex", filename);
+        let mut file = File::create(filename)?;
 
-    //     let section_title = format!("\\section*{{{}}}\n", self.title);
+        let section_title = format!("\\section*{{{}}}\n", self.title);
 
-    //     file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
-    //     file.write(b"\\usepackage{amsmath}\n")?;
-    //     file.write(b"\\allowdisplaybreaks\n")?;
-    //     file.write(b"\\begin{document}\n")?;
-    //     file.write(&section_title.into_bytes())?;
-    //     file.write(b"\\begin{flalign*}\n")?;
+        file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
+        file.write(b"\\usepackage{amsmath}\n")?;
+        file.write(b"\\allowdisplaybreaks\n")?;
+        file.write(b"\\begin{document}\n")?;
+        file.write(&section_title.into_bytes())?;
+        file.write(b"\\begin{flalign*}\n")?;
 
-    //     let mut prev_depth = 0;
-    //     for t in self.theorems.iter() {
-    //         if t.depth > prev_depth {
-    //             let line = format!(
-    //                 "&{}\\text{{begin supposition}}&\\\\\n",
-    //                 "   ".repeat(prev_depth)
-    //             )
-    //             .into_bytes();
-    //             file.write(&line)?;
-    //         } else if t.depth < prev_depth {
-    //             let line = format!("&{}\\text{{end supposition}}&\\\\\n", "   ".repeat(t.depth))
-    //                 .into_bytes();
-    //             file.write(&line)?;
-    //         }
+        let mut prev_depth = 0;
+        for (pos, t) in self.theorems.iter().enumerate() {
+            if t.depth > prev_depth {
+                let line = format!(
+                    "&{}\\text{{begin supposition}}&\\\\\n",
+                    "   ".repeat(prev_depth)
+                )
+                .into_bytes();
+                file.write(&line)?;
+            } else if t.depth < prev_depth {
+                let line = format!("&{}\\text{{end supposition}}&\\\\\n", "   ".repeat(t.depth))
+                    .into_bytes();
+                file.write(&line)?;
+            }
 
-    //         prev_depth = t.depth;
-    //     }
+            let line = format!(
+                "&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",
+                t.depth * 2,
+                pos,
+                t.formula.to_latex(),
+                t.annotation
+            )
+            .into_bytes();
+            file.write(&line)?;
 
-    //     file.write(b"\\end{flalign*}\n")?;
-    //     file.write(b"\\end{document}")?;
-    //     Ok(())
-    // }
+            prev_depth = t.depth;
+        }
 
-    // /// Create an annotated LaTeX file the given file name that displays the Deduction.
-    // pub fn latex_file_annotated(&self, filename: &str) -> Result<(), Error> {
-    //     let filename = format!("{}.tex", filename);
-    //     let mut file = File::create(filename)?;
+        file.write(b"\\end{flalign*}\n")?;
+        file.write(b"\\end{document}")?;
+        Ok(())
+    }
 
-    //     let section_title = format!("\\section*{{{}}}\n", self.title);
-
-    //     file.write(b"\\documentclass[fleqn,11pt]{article}\n")?;
-    //     file.write(b"\\usepackage{amsmath}\n")?;
-    //     file.write(b"\\allowdisplaybreaks\n")?;
-    //     file.write(b"\\begin{document}\n")?;
-    //     file.write(&section_title.into_bytes())?;
-    //     file.write(b"\\begin{flalign*}\n")?;
-
-    //     let mut prev_depth = 0;
-    //     for (pos, t) in self.theorems.iter().enumerate() {
-    //         if t.depth > prev_depth {
-    //             let line = format!(
-    //                 "&{}\\text{{begin supposition}}&\\\\\n",
-    //                 "   ".repeat(prev_depth)
-    //             )
-    //             .into_bytes();
-    //             file.write(&line)?;
-    //         } else if t.depth < prev_depth {
-    //             let line = format!("&{}\\text{{end supposition}}&\\\\\n", "   ".repeat(t.depth))
-    //                 .into_bytes();
-    //             file.write(&line)?;
-    //         }
-
-    //         let line = format!(
-    //             "&\\hspace{{{}em}}{})\\hspace{{1em}}{}\\hspace{{2em}}\\textbf{{[{}]}}\\\\\n",
-    //             t.depth * 2,
-    //             pos,
-    //             t.formula.latex(),
-    //             t.annotation
-    //         )
-    //         .into_bytes();
-    //         file.write(&line)?;
-
-    //         prev_depth = t.depth;
-    //     }
-
-    //     file.write(b"\\end{flalign*}\n")?;
-    //     file.write(b"\\end{document}")?;
-    //     Ok(())
-    // }
-
-    // pub fn english(&self) -> String {
-    //     let mut out = String::new();
-    //     for t in self.theorems.iter() {
-    //         out.push_str(&format!(
-    //             "{}) {} [{}]",
-    //             t.position,
-    //             t.formula.english(),
-    //             t.annotation
-    //         ));
-    //     }
-    //     out
-    // }
+    pub fn english(&self) -> String {
+        let mut out = String::new();
+        for t in self.theorems.iter() {
+            out.push_str(&format!(
+                "{}) {} [{}]",
+                t.position,
+                t.formula.to_english(),
+                t.annotation
+            ));
+        }
+        out
+    }
 
     /// Convert the Deduction to a (very large) integer.
     pub fn arithmetize(&self) -> BigUint {
@@ -335,7 +283,7 @@ impl Deduction {
         var_name: &'static str,
         replacement: &Term,
     ) -> Result<(), LogicError> {
-        let t = specification(&self.get_theorem(n)?, &var_name, replacement);
+        let t = specification(self.get_theorem(n)?, &var_name, replacement);
         let r = format!("specification of {var_name} to {replacement} in theorem {n}");
         self.push_new(t?, r, Rule::Specification);
         Ok(())
@@ -355,7 +303,7 @@ impl Deduction {
                 return Err(LogicError::new(msg));
             }
         }
-        let t = generalization(&self.get_theorem(n)?, var_name);
+        let t = generalization(self.get_theorem(n)?, var_name);
         let r = format!("generalization of {var_name} in theorem {n}");
         self.push_new(t?, r, Rule::Generalization);
         Ok(())
@@ -371,7 +319,7 @@ impl Deduction {
 
     /// Push a new theorem that applies the successor to each side of a theorem n.
     pub fn successor(&mut self, n: usize) -> Result<(), LogicError> {
-        let t = successor(&self.get_theorem(n)?);
+        let t = successor(self.get_theorem(n)?);
         let r = format!("successor of theorem {n}");
         self.push_new(t?, r, Rule::Successor);
         Ok(())
@@ -379,7 +327,7 @@ impl Deduction {
 
     /// Push a new theorem that strips the successor to each side of a theorem n.
     pub fn predecessor(&mut self, n: usize) -> Result<(), LogicError> {
-        let t = predecessor(&self.get_theorem(n)?);
+        let t = predecessor(self.get_theorem(n)?);
         let r = format!("predecessor of theorem {n}");
         self.push_new(t?, r, Rule::Predecessor);
         Ok(())
@@ -392,7 +340,7 @@ impl Deduction {
         var_name: &str,
         pos: usize,
     ) -> Result<(), LogicError> {
-        let t = interchange_ea(&self.get_theorem(n)?, var_name, pos);
+        let t = interchange_ea(self.get_theorem(n)?, var_name, pos);
         let r = format!("interchange ~E{var_name}: for A{var_name}:~ in theorem {n}");
         self.push_new(t?, r, Rule::InterchangeEA);
         Ok(())
@@ -405,7 +353,7 @@ impl Deduction {
         var_name: &str,
         pos: usize,
     ) -> Result<(), LogicError> {
-        let t = interchange_ae(&self.get_theorem(n)?, var_name, pos);
+        let t = interchange_ae(self.get_theorem(n)?, var_name, pos);
         let r = format!("interchange A{var_name}:~ for ~E{var_name}: in theorem {n}");
         self.push_new(t?, r, Rule::InterchangeAE);
         Ok(())
@@ -413,7 +361,7 @@ impl Deduction {
 
     /// Push a new theorem that flips the left and right sides of theorem n.
     pub fn symmetry(&mut self, n: usize) -> Result<(), LogicError> {
-        let t = symmetry(&self.get_theorem(n)?);
+        let t = symmetry(self.get_theorem(n)?);
         let r = format!("symmetry of theorem {n}");
         self.push_new(t?, r, Rule::Symmetry);
         Ok(())
@@ -421,7 +369,7 @@ impl Deduction {
 
     /// Push a new theorem that is an equality of the left term and right term of formula n1 and n2.
     pub fn transitivity(&mut self, n1: usize, n2: usize) -> Result<(), LogicError> {
-        let t = transitivity(&self.get_theorem(n1)?, &self.get_theorem(n2)?);
+        let t = transitivity(self.get_theorem(n1)?, self.get_theorem(n2)?);
         let r = format!("transitivity of theorem {n1} and theorem {n2}");
         self.push_new(t?, r, Rule::Transitivity);
         Ok(())
@@ -439,7 +387,7 @@ impl Deduction {
     /// End a supposition and push a new theorem that the premise of the supposition implies the final theorem of the supposition.
     pub fn implication(&mut self) -> Result<(), LogicError> {
         // Create the formula and annotation
-        let t = implies(&self.get_theorem(self.scope_cur)?, self.get_last_theorem());
+        let t = implies(self.get_theorem(self.scope_cur)?, self.get_last_theorem());
         let r = format!(
             "implication of theorem {} and theorem {}",
             self.scope_cur, self.index
@@ -460,8 +408,8 @@ impl Deduction {
     ) -> Result<(), LogicError> {
         let t = induction(
             var_name,
-            &self.get_theorem(base)?,
-            &self.get_theorem(general)?,
+            self.get_theorem(base)?,
+            self.get_theorem(general)?,
         );
         let r = format!("induction of {var_name} on theorems {base} and {general}");
         self.push_new(t?, r, Rule::Induction);

@@ -106,6 +106,16 @@ impl Term {
             _ => false,
         }
     }
+
+    pub fn to_latex(&self) -> String {
+        match self {
+            Self::Zero => "0".into(),
+            Self::Variable(v) => v.clone(),
+            Self::Successor(inner) => format!("S{inner}"),
+            Self::Sum(left, right) => format!("({left} + {right})"),
+            Self::Product(left, right) => format!("({left} \\cdot {right})"),
+        }
+    }
 }
 
 impl Display for Term {
