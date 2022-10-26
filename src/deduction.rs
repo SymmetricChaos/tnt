@@ -283,9 +283,9 @@ impl Deduction {
         var_name: &'static str,
         replacement: &Term,
     ) -> Result<(), LogicError> {
-        let t = specification(self.get_theorem(n)?, &var_name, replacement);
+        let t = specification(self.get_theorem(n)?, &var_name, replacement)?;
         let r = format!("specification of {var_name} to {replacement} in theorem {n}");
-        self.push_new(t?, r, Rule::Specification);
+        self.push_new(t, r, Rule::Specification);
         Ok(())
     }
 
