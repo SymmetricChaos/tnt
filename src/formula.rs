@@ -1,11 +1,11 @@
-use crate::parsing::parser::{string_to_formula, Rule};
-use crate::Term;
+use crate::parsing::parser::string_to_formula;
+use crate::term::VARIABLE_NAME;
+use crate::{LogicError, Term};
 use lazy_static::lazy_static;
-use std::convert::TryFrom;
 use std::{
     collections::HashSet,
+    convert::TryFrom,
     fmt::{self, Display, Formatter},
-    ops::{BitAnd, BitOr},
 };
 
 lazy_static! {
@@ -75,14 +75,14 @@ impl Formula {
     }
 
     // Eliminate all universal quantification of some Variable and then replace all instances of that variable with the provided Term
-    pub fn specify(&mut self, name: &str, term: &Term) {
+    pub fn specify<S: ToString>(&mut self, name: &S, term: &Term) {
         match self {
             Self::Equality(left, right) => {
                 left.replace(name, term);
                 right.replace(name, term);
             }
             Self::Universal(v, formula) => {
-                if *v == name {
+                if *v == name.to_string() {
                     *self = *formula.clone();
                     self.specify(name, term);
                 }
@@ -105,7 +105,7 @@ impl Formula {
     }
 
     /// Replace all free instances of the named Term::Variable with a Term
-    pub fn replace_free(&mut self, name: &str, term: &Term) {
+    pub fn replace_free<S: ToString>(&mut self, name: &S, term: &Term) {
         match self {
             Self::Equality(left, right) => {
                 left.replace(name, term);
@@ -196,11 +196,11 @@ impl Formula {
         }
     }
 
-    pub fn contains_var(&self, name: &str) -> bool {
+    pub fn contains_var<S: ToString>(&self, name: &S) -> bool {
         match self {
             Self::Equality(left, right) => left.contains_var(name) || right.contains_var(name),
-            Self::Universal(v, formula) => *v == name || formula.contains_var(name),
-            Self::Existential(v, formula) => *v == name || formula.contains_var(name),
+            Self::Universal(v, formula) => *v == name.to_string() || formula.contains_var(name),
+            Self::Existential(v, formula) => *v == name.to_string() || formula.contains_var(name),
             Self::Negation(formula) => formula.contains_var(name),
             Self::And(left, right) => left.contains_var(name) || right.contains_var(name),
             Self::Or(left, right) => left.contains_var(name) || right.contains_var(name),
@@ -208,11 +208,15 @@ impl Formula {
         }
     }
 
-    pub fn contains_var_bound(&self, name: &str) -> bool {
+    pub fn contains_var_bound<S: ToString>(&self, name: &S) -> bool {
         match self {
             Self::Equality(_, _) => false,
-            Self::Universal(v, formula) => *v == name || formula.contains_var_bound(name),
-            Self::Existential(v, formula) => *v == name || formula.contains_var_bound(name),
+            Self::Universal(v, formula) => {
+                *v == name.to_string() || formula.contains_var_bound(name)
+            }
+            Self::Existential(v, formula) => {
+                *v == name.to_string() || formula.contains_var_bound(name)
+            }
             Self::Negation(formula) => formula.contains_var_bound(name),
             Self::And(left, right) => {
                 left.contains_var_bound(name) || right.contains_var_bound(name)
@@ -226,10 +230,12 @@ impl Formula {
         }
     }
 
-    pub fn contains_var_bound_universal(&self, name: &str) -> bool {
+    pub fn contains_var_bound_universal<S: ToString>(&self, name: &S) -> bool {
         match self {
             Self::Equality(_, _) => false,
-            Self::Universal(v, formula) => *v == name || formula.contains_var_bound_universal(name),
+            Self::Universal(v, formula) => {
+                *v == name.to_string() || formula.contains_var_bound_universal(name)
+            }
             Self::Existential(_, formula) => formula.contains_var_bound_universal(name),
             Self::Negation(formula) => formula.contains_var_bound_universal(name),
             Self::And(left, right) => {
@@ -244,12 +250,12 @@ impl Formula {
         }
     }
 
-    pub fn contains_var_bound_existential(&self, name: &str) -> bool {
+    pub fn contains_var_bound_existential<S: ToString>(&self, name: &S) -> bool {
         match self {
             Self::Equality(_, _) => false,
             Self::Universal(_, formula) => formula.contains_var_bound_existential(name),
             Self::Existential(v, formula) => {
-                *v == name || formula.contains_var_bound_existential(name)
+                *v == name.to_string() || formula.contains_var_bound_existential(name)
             }
             Self::Negation(formula) => formula.contains_var_bound_existential(name),
             Self::And(left, right) => {
@@ -322,44 +328,42 @@ pub fn implies(left: &Formula, right: &Formula) -> Formula {
     Formula::Implies(Box::new(left.clone()), Box::new(right.clone()))
 }
 
-/// Assert some values for a Variable with the given name makes the Forumla true
+/// Assert some values for a Variable with the given name makes the Formula true
 pub fn exists<S: ToString>(var_name: S, formula: &Formula) -> Formula {
-    Formula::Existential(var_name.to_string(), Box::new(formula.clone()))
+    if VARIABLE_NAME.is_match(&var_name.to_string()) {
+        Formula::Existential(var_name.to_string(), Box::new(formula.clone()))
+    } else {
+        panic!("invalid Variable name")
+    }
 }
 
 /// Assert that all values of a Variable with the given name make the Formula true
 pub fn forall<S: ToString>(var_name: S, formula: &Formula) -> Formula {
-    Formula::Universal(var_name.to_string(), Box::new(formula.clone()))
-}
-
-impl<'a, 'b> BitAnd<&'b Formula> for &'a Formula {
-    type Output = Formula;
-
-    fn bitand(self, other: &'b Formula) -> Formula {
-        and(self, other)
-    }
-}
-
-impl<'a, 'b> BitOr<&'b Formula> for &'a Formula {
-    type Output = Formula;
-
-    fn bitor(self, other: &'b Formula) -> Formula {
-        or(self, other)
+    if VARIABLE_NAME.is_match(&var_name.to_string()) {
+        Formula::Universal(var_name.to_string(), Box::new(formula.clone()))
+    } else {
+        panic!("invalid Variable name")
     }
 }
 
 impl TryFrom<&str> for Formula {
-    type Error = pest::error::Error<Rule>;
+    type Error = LogicError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        string_to_formula(value)
+        match string_to_formula(value) {
+            Ok(f) => Ok(f),
+            Err(s) => Err(LogicError(s.to_string())),
+        }
     }
 }
 
 impl TryFrom<String> for Formula {
-    type Error = pest::error::Error<Rule>;
+    type Error = LogicError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        string_to_formula(&value)
+        match string_to_formula(&value) {
+            Ok(f) => Ok(f),
+            Err(s) => Err(LogicError(s.to_string())),
+        }
     }
 }

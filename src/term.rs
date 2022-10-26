@@ -1,5 +1,5 @@
 use crate::parsing::parser::string_to_term;
-use crate::parsing::parser::Rule;
+use crate::LogicError;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::convert::TryFrom;
@@ -50,10 +50,10 @@ impl Term {
     }
 
     // Determine if a Term contains a Variable with a particular name
-    pub fn contains_var(&self, name: &str) -> bool {
+    pub fn contains_var<S: ToString>(&self, name: &S) -> bool {
         match self {
             Self::Zero => false,
-            Self::Variable(v) => *v == name,
+            Self::Variable(v) => *v == name.to_string(),
             Self::Successor(inner) => inner.contains_var(name),
             Self::Sum(left, right) => left.contains_var(name) || right.contains_var(name),
             Self::Product(left, right) => left.contains_var(name) || right.contains_var(name),
@@ -79,11 +79,11 @@ impl Term {
     }
 
     // Replace a Variable with the provided name with the provided Term
-    pub fn replace(&mut self, name: &str, term: &Term) {
+    pub fn replace<S: ToString>(&mut self, name: &S, term: &Term) {
         match self {
             Self::Zero => {}
             Self::Variable(v) => {
-                if *v == name {
+                if *v == name.to_string() {
                     *self = term.clone();
                 }
             }
@@ -163,17 +163,23 @@ impl<'a, 'b> Mul<&'b Term> for &'a Term {
 }
 
 impl TryFrom<&str> for Term {
-    type Error = pest::error::Error<Rule>;
+    type Error = LogicError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
-        string_to_term(value)
+        match string_to_term(value) {
+            Ok(f) => Ok(f),
+            Err(s) => Err(LogicError(s.to_string())),
+        }
     }
 }
 
 impl TryFrom<String> for Term {
-    type Error = pest::error::Error<Rule>;
+    type Error = LogicError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        string_to_term(&value)
+        match string_to_term(&value) {
+            Ok(f) => Ok(f),
+            Err(s) => Err(LogicError(s.to_string())),
+        }
     }
 }

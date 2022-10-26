@@ -21,7 +21,7 @@ pub fn specification(
     var_name: &'static str,
     term: &Term,
 ) -> Result<Formula, LogicError> {
-    if formula.contains_var_bound_universal(var_name) {
+    if formula.contains_var_bound_universal(&var_name) {
         let vars_in_term = {
             let mut m = HashSet::new();
             term.get_vars(&mut m);
@@ -38,7 +38,7 @@ pub fn specification(
             }
         }
         let mut out = formula.clone();
-        out.specify(var_name, term);
+        out.specify(&var_name, term);
         Ok(out)
     } else {
         Err(LogicError(format!("Specification Error: There is no Term::Variable with the name `{}` univerally quantified in the Formula `{}`",var_name,formula)))
@@ -55,7 +55,7 @@ pub fn specification(
 /// generalization(f,a); // Ea':Aa:[a=a&a'=a']
 /// ```
 pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
-    if !formula.contains_var_bound(var_name) {
+    if !formula.contains_var_bound(&var_name) {
         Ok(forall(var_name, formula))
     } else {
         Err(LogicError::new(format!(
@@ -75,7 +75,7 @@ pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formu
 /// existence(f,a); // Ea':Ea:[a=a&a'=a']
 /// ```
 pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
-    if !formula.contains_var_bound(var_name) {
+    if !formula.contains_var_bound(&var_name) {
         Ok(exists(var_name, formula))
     } else {
         Err(LogicError::new(format!(
@@ -171,14 +171,14 @@ pub fn interchange_ae(
 /// ```
 pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Formula, LogicError> {
     // If the variable name requested doesn't exist in the general case then we can stop immediately.
-    if !general.contains_var(var_name) {
+    if !general.contains_var(&var_name) {
         return Err(LogicError(format!(
             "Induction Error: The Term::Variable `{var_name}` does not appear in the general case `{general}`"
         )));
     }
 
     // Likewise if the variable name requested DOES exist in the base case then we can stop immediately.
-    if base.contains_var(var_name) {
+    if base.contains_var(&var_name) {
         return Err(LogicError(format!(
             "Induction Error: The Term::Variable `{var_name}` appears in the base case `{base}`"
         )));
@@ -201,7 +201,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
     };
 
     // If the variable name is being used in a quantification of the left side of the implication we must stop
-    if left_implication.contains_var_bound(var_name) {
+    if left_implication.contains_var_bound(&var_name) {
         return Err(LogicError(format!(
             "Induction Error: The Term::Variable `{var_name}` is already bound in the Formula `{left_implication}`, which is the left side of the general case `{general}`" 
         )));
@@ -209,7 +209,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 
     // The left side of the implication when the variable is replaced with Zero should match the base case.
     let mut formula_zero = left_implication.clone();
-    formula_zero.replace_free(var_name, &ZERO);
+    formula_zero.replace_free(&var_name, &ZERO);
     if &formula_zero != base {
         return Err(LogicError(format!(
             "Induction Error: The base case `{base}` is not of the same form as `{left_implication}`, which is the left side of the general case `{general}`" 
@@ -219,7 +219,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
     // The implication of the general case must be that the left side implies that the variable can be replaced with its successor everywhere and still be true
     let successor_of_var = succ(&Term::var(var_name));
     let mut formula_succ = left_implication.clone();
-    formula_succ.replace_free(var_name, &successor_of_var);
+    formula_succ.replace_free(&var_name, &successor_of_var);
     let correct_general = forall(var_name, &implies(&left_implication, &formula_succ));
     if &correct_general != general {
         return Err(LogicError(format!(
