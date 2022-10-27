@@ -9,6 +9,7 @@ pub use term::{prod, succ, sum, Term, ONE, ZERO};
 pub mod logic_errors;
 pub use logic_errors::LogicError;
 pub mod production;
+pub use production::*;
 //mod translate;
 
 pub mod parsing;

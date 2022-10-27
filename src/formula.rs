@@ -18,24 +18,19 @@ lazy_static! {
     *
     * Aa:Ab:(a+Sb)=S(a+b)       for all a and b, (a + (b + 1)) = ((a + b) + 1)
     *
-    * Aa:(a\*0)=0             for all a, (a × 0) = 0
+    * Aa:(a\*0)=0               for all a, (a × 0) = 0
     *
     * Aa:Ab:(a\*Sb)=((a\*b)+a)  for all a and b, (a × (b + 1)) = ((a × b) + a)
     */
 
-    pub static ref PEANO: Vec<Formula> = {
-
-
-        let axioms = vec![
+    pub static ref PEANO: Vec<Formula> =
+        vec![
             Formula::try_from("Aa:~Sa=0").unwrap(),
             Formula::try_from("Aa:(a+0)=a").unwrap(),
             Formula::try_from("Aa:Ab:(a+Sb)=S(a+b)").unwrap(),
             Formula::try_from("Aa:(a*0)=0").unwrap(),
             Formula::try_from("Aa:Ab:(a*Sb)=((a*b)+a)").unwrap(),
         ];
-
-        axioms
-    };
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -83,8 +78,11 @@ impl Formula {
             }
             Self::Universal(v, formula) => {
                 if *v == name.to_string() {
-                    *self = *formula.clone();
-                    self.specify(name, term);
+                    let mut new_formula = formula.clone();
+                    new_formula.specify(name, term);
+                    *self = *new_formula;
+                } else {
+                    formula.specify(name, term)
                 }
             }
             Self::Existential(_, formula) => formula.specify(name, term),

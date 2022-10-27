@@ -6,7 +6,6 @@ use std::convert::TryFrom;
 use std::{
     collections::HashSet,
     fmt::{self, Display, Formatter},
-    ops::{Add, Mul},
 };
 
 lazy_static! {
@@ -127,38 +126,6 @@ impl Display for Term {
             Self::Sum(left, right) => write!(f, "({left}+{right})"),
             Self::Product(left, right) => write!(f, "({left}*{right})"),
         }
-    }
-}
-
-impl Add<Term> for Term {
-    type Output = Term;
-
-    fn add(self, other: Term) -> Term {
-        sum(&self, &other)
-    }
-}
-
-impl Mul<Term> for Term {
-    type Output = Term;
-
-    fn mul(self, other: Term) -> Term {
-        prod(&self, &other)
-    }
-}
-
-impl<'a, 'b> Add<&'b Term> for &'a Term {
-    type Output = Term;
-
-    fn add(self, other: &'b Term) -> Term {
-        sum(self, other)
-    }
-}
-
-impl<'a, 'b> Mul<&'b Term> for &'a Term {
-    type Output = Term;
-
-    fn mul(self, other: &'b Term) -> Term {
-        prod(self, other)
     }
 }
 
