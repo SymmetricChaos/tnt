@@ -47,25 +47,25 @@ pub enum Formula {
 impl Formula {
     pub fn to_english(&self) -> String {
         match self {
-            Formula::Equality(l, r) => format!("{l} equals {r}"),
-            Formula::Universal(var, inner) => format!("for all {var} it is the case that {inner}"),
-            Formula::Existential(var, inner) => format!("there exists {var} such that {inner}"),
-            Formula::Negation(inner) => format!("it is false that {inner}"),
-            Formula::And(l, r) => format!("[{l} and {r}]"),
-            Formula::Or(l, r) => format!("[{l} or {r}]"),
-            Formula::Implies(l, r) => format!("[{l} implies {r}]"),
+            Self::Equality(l, r) => format!("{l} equals {r}"),
+            Self::Universal(var, inner) => format!("for all {var}, {inner}"),
+            Self::Existential(var, inner) => format!("there exists {var} such that {inner}"),
+            Self::Negation(inner) => format!("it is false that {inner}"),
+            Self::And(l, r) => format!("[{l} and {r}]"),
+            Self::Or(l, r) => format!("[{l} or {r}]"),
+            Self::Implies(l, r) => format!("[{l} implies {r}]"),
         }
     }
 
     pub fn to_latex(&self) -> String {
         match self {
-            Formula::Equality(l, r) => format!("{} = {}", l.to_latex(), r.to_latex()),
-            Formula::Universal(var, inner) => format!("\\forall {var}: {inner}"),
-            Formula::Existential(var, inner) => format!("\\exists {var}: {inner}"),
-            Formula::Negation(inner) => format!("\\neg {inner}"),
-            Formula::And(l, r) => format!("\\langle {l} \\wedge {r} \\rangle"),
-            Formula::Or(l, r) => format!("\\langle {l} \\vee {r} \\rangle"),
-            Formula::Implies(l, r) => format!(" \\langle{l} \\Rightarrow {r} \\rangle"),
+            Self::Equality(l, r) => format!("{} = {}", l.to_latex(), r.to_latex()),
+            Self::Universal(var, inner) => format!("\\forall {var}: {inner}"),
+            Self::Existential(var, inner) => format!("\\exists {var}: {inner}"),
+            Self::Negation(inner) => format!("\\neg {inner}"),
+            Self::And(l, r) => format!("\\langle {l} \\wedge {r} \\rangle"),
+            Self::Or(l, r) => format!("\\langle {l} \\vee {r} \\rangle"),
+            Self::Implies(l, r) => format!(" \\langle{l} \\Rightarrow {r} \\rangle"),
         }
     }
 
@@ -273,13 +273,13 @@ impl Formula {
 
     pub fn matches_variant(&self, formula: &Formula) -> bool {
         match (self, formula) {
-            (Formula::Equality(_, _), Formula::Equality(_, _)) => true,
-            (Formula::Universal(_, _), Formula::Universal(_, _)) => true,
-            (Formula::Existential(_, _), Formula::Existential(_, _)) => true,
-            (Formula::Negation(_), Formula::Negation(_)) => true,
-            (Formula::And(_, _), Formula::And(_, _)) => true,
-            (Formula::Or(_, _), Formula::Or(_, _)) => true,
-            (Formula::Implies(_, _), Formula::Implies(_, _)) => true,
+            (Self::Equality(_, _), Self::Equality(_, _)) => true,
+            (Self::Universal(_, _), Self::Universal(_, _)) => true,
+            (Self::Existential(_, _), Self::Existential(_, _)) => true,
+            (Self::Negation(_), Self::Negation(_)) => true,
+            (Self::And(_, _), Self::And(_, _)) => true,
+            (Self::Or(_, _), Self::Or(_, _)) => true,
+            (Self::Implies(_, _), Self::Implies(_, _)) => true,
             _ => false,
         }
     }

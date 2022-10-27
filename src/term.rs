@@ -48,6 +48,26 @@ impl Term {
         }
     }
 
+    pub fn to_english(&self) -> String {
+        match self {
+            Self::Zero => "0".into(),
+            Self::Variable(v) => v.into(),
+            Self::Successor(inner) => format!("S{inner}"),
+            Self::Sum(left, right) => format!("({left} + {right})"),
+            Self::Product(left, right) => format!("({left} × {right})"),
+        }
+    }
+
+    pub fn to_latex(&self) -> String {
+        match self {
+            Self::Zero => "0".into(),
+            Self::Variable(v) => v.into(),
+            Self::Successor(inner) => format!("S{inner}"),
+            Self::Sum(left, right) => format!("({left} + {right})"),
+            Self::Product(left, right) => format!("({left} \\cdot {right})"),
+        }
+    }
+
     // Determine if a Term contains a Variable with a particular name
     pub fn contains_var<S: ToString>(&self, name: &S) -> bool {
         match self {
@@ -103,16 +123,6 @@ impl Term {
             Self::Zero => true,
             Self::Successor(inner) => inner.is_num(),
             _ => false,
-        }
-    }
-
-    pub fn to_latex(&self) -> String {
-        match self {
-            Self::Zero => "0".into(),
-            Self::Variable(v) => v.clone(),
-            Self::Successor(inner) => format!("S{inner}"),
-            Self::Sum(left, right) => format!("({left} + {right})"),
-            Self::Product(left, right) => format!("({left} \\cdot {right})"),
         }
     }
 }
