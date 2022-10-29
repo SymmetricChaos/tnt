@@ -47,7 +47,7 @@ pub enum Formula {
 impl Formula {
     pub fn to_english(&self) -> String {
         match self {
-            Self::Equality(l, r) => format!("{l} equals {r}"),
+            Self::Equality(l, r) => format!("{} = {}", l.pretty_string(), r.pretty_string()),
             Self::Universal(var, inner) => format!("for all {var}, {inner}"),
             Self::Existential(var, inner) => format!("there exists {var} such that {inner}"),
             Self::Negation(inner) => format!("it is false that {inner}"),

@@ -23,5 +23,5 @@ term = _{ zero | variable | addition | multiplication | successor }
 zero = { "0" }
 variable = { ASCII_ALPHA_LOWER ~ "'"* }
 addition = { "(" ~ term ~ "+" ~ term ~ ")" }
-multiplication = { "(" ~ term ~ ("*"|"×") ~ term ~ ")" }
+multiplication = { "(" ~ term ~ ("*"|"×"|"·") ~ term ~ ")" }
 successor = { "S" ~ term }

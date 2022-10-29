@@ -48,7 +48,7 @@ impl Term {
         }
     }
 
-    pub fn to_english(&self) -> String {
+    pub fn pretty_string(&self) -> String {
         match self {
             Self::Zero => "0".into(),
             Self::Variable(v) => v.into(),

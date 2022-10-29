@@ -281,10 +281,10 @@ impl Deduction {
         &mut self,
         n: usize,
         var_name: &'static str,
-        replacement: &Term,
+        term: &Term,
     ) -> Result<(), LogicError> {
-        let t = specification(self.get_theorem(n)?, &var_name, replacement)?;
-        let r = format!("specification of {var_name} to {replacement} in theorem {n}");
+        let t = specification(self.get_theorem(n)?, &var_name, term)?;
+        let r = format!("specification of {var_name} to {term} in theorem {n}");
         self.push_new(t, r, Rule::Specification);
         Ok(())
     }
