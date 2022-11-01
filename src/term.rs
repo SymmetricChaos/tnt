@@ -1,6 +1,7 @@
 use crate::parsing::parser::string_to_term;
 use crate::LogicError;
 use lazy_static::lazy_static;
+use num::BigUint;
 use regex::Regex;
 use std::convert::TryFrom;
 use std::{
@@ -146,24 +147,33 @@ impl Term {
         }
     }
 
-    pub fn austere(&mut self) {
+    /// Produces the Term in its austere form. The leftmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
+    pub fn to_austere(&self) -> Term {
+        let mut t = self.clone();
         let vars = {
             let mut v = Vec::new();
-            self.vars_in_order(&mut v);
+            t.vars_in_order(&mut v);
             v
         };
         let mut mask = String::from("#");
         for v in vars.iter() {
-            self.replace(v, &Term::Variable(mask.clone()));
+            t.replace(v, &Term::Variable(mask.clone()));
             mask.push('\'');
         }
         let mut mask = String::from("#");
         let mut a = String::from("a");
         for _ in vars.iter() {
-            self.replace(&mask, &Term::Variable(a.clone()));
+            t.replace(&mask, &Term::Variable(a.clone()));
             mask.push('\'');
             a.push('\'');
         }
+        t
+    }
+
+    /// Create the unique BigUint that characterizes the Term. This is done by converting the Term to its austere form and then reading the bytes as a bigendian number.
+    pub fn arithmetize(&self) -> BigUint {
+        let s = self.clone().to_austere().to_string();
+        BigUint::from_bytes_be(s.as_bytes())
     }
 }
 
@@ -208,9 +218,10 @@ mod test {
 
     #[test]
     fn austere() {
-        let mut t0 = Term::try_from("((j+(a''+SS0))+(a''*SSc))").unwrap();
+        let t0 = Term::try_from("((j+(a''+SS0))+(a''*SSc))")
+            .unwrap()
+            .to_austere();
         let t1 = Term::try_from("((a+(a'+SS0))+(a'*SSa''))").unwrap();
-        t0.austere();
         assert_eq!(t0, t1);
     }
 
