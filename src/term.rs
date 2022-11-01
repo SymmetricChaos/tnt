@@ -118,11 +118,51 @@ impl Term {
         }
     }
 
-    pub fn is_num(&self) -> bool {
+    // pub fn is_num(&self) -> bool {
+    //     match self {
+    //         Self::Zero => true,
+    //         Self::Successor(inner) => inner.is_num(),
+    //         _ => false,
+    //     }
+    // }
+
+    pub fn vars_in_order(&self, vec: &mut Vec<String>) {
         match self {
-            Self::Zero => true,
-            Self::Successor(inner) => inner.is_num(),
-            _ => false,
+            Self::Zero => (),
+            Self::Variable(v) => {
+                if !vec.contains(v) {
+                    vec.push(v.to_string());
+                }
+            }
+            Self::Successor(inner) => inner.vars_in_order(vec),
+            Self::Sum(left, right) => {
+                left.vars_in_order(vec);
+                right.vars_in_order(vec);
+            }
+            Self::Product(left, right) => {
+                left.vars_in_order(vec);
+                right.vars_in_order(vec);
+            }
+        }
+    }
+
+    pub fn austere(&mut self) {
+        let vars = {
+            let mut v = Vec::new();
+            self.vars_in_order(&mut v);
+            v
+        };
+        let mut mask = String::from("#");
+        for v in vars.iter() {
+            self.replace(v, &Term::Variable(mask.clone()));
+            mask.push('\'');
+        }
+        let mut mask = String::from("#");
+        let mut a = String::from("a");
+        for _ in vars.iter() {
+            self.replace(&mask, &Term::Variable(a.clone()));
+            mask.push('\'');
+            a.push('\'');
         }
     }
 }
@@ -158,5 +198,28 @@ impl TryFrom<String> for Term {
             Ok(f) => Ok(f),
             Err(s) => Err(LogicError(s.to_string())),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn austere() {
+        let mut t0 = Term::try_from("((j+(a''+SS0))+(a''*SSc))").unwrap();
+        let t1 = Term::try_from("((a+(a'+SS0))+(a'*SSa''))").unwrap();
+        t0.austere();
+        assert_eq!(t0, t1);
+    }
+
+    #[test]
+    fn replace() {
+        let mut t0 = Term::try_from("((j+(a''+SS0))+(a''*SSc))").unwrap();
+        let term = Term::try_from("(a+a)").unwrap();
+        let t1 = Term::try_from("((j+((a+a)+SS0))+((a+a)*SSc))").unwrap();
+        t0.replace(&r"a''".to_string(), &term);
+        assert_eq!(t0, t1);
     }
 }
