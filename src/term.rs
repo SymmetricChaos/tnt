@@ -7,6 +7,7 @@ use std::convert::TryFrom;
 use std::{
     collections::HashSet,
     fmt::{self, Display, Formatter},
+    str::from_utf8,
 };
 
 lazy_static! {
@@ -211,6 +212,17 @@ impl TryFrom<String> for Term {
     }
 }
 
+impl TryFrom<BigUint> for Term {
+    type Error = LogicError;
+
+    fn try_from(value: BigUint) -> Result<Self, Self::Error> {
+        match from_utf8(&value.to_bytes_be()) {
+            Ok(s) => Term::try_from(s),
+            Err(e) => Err(LogicError(e.to_string())),
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
 
@@ -230,7 +242,7 @@ mod test {
         let mut t0 = Term::try_from("((j+(a''+SS0))+(a''*SSc))").unwrap();
         let term = Term::try_from("(a+a)").unwrap();
         let t1 = Term::try_from("((j+((a+a)+SS0))+((a+a)*SSc))").unwrap();
-        t0.replace(&r"a''".to_string(), &term);
+        t0.replace(&"a''".to_string(), &term);
         assert_eq!(t0, t1);
     }
 }
