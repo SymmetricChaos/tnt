@@ -2,6 +2,7 @@ use crate::parsing::parser::string_to_formula;
 use crate::term::VARIABLE_NAME;
 use crate::{LogicError, Term};
 use lazy_static::lazy_static;
+use num::BigUint;
 use std::{
     collections::HashSet,
     convert::TryFrom,
@@ -309,6 +310,12 @@ impl Formula {
         }
 
         t
+    }
+
+    /// Create the unique BigUint that characterizes the Term. This is done by converting the Term to its austere form and then reading the bytes as a bigendian number.
+    pub fn arithmetize(&self) -> BigUint {
+        let s = self.clone().to_austere().to_string();
+        BigUint::from_bytes_be(s.as_bytes())
     }
 }
 
