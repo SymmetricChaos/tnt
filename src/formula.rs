@@ -87,15 +87,7 @@ impl Formula {
             }
             Self::Existential(_, formula) => formula.specify(name, term),
             Self::Negation(formula) => formula.specify(name, term),
-            Self::And(left, right) => {
-                left.specify(name, term);
-                right.specify(name, term);
-            }
-            Self::Or(left, right) => {
-                left.specify(name, term);
-                right.specify(name, term);
-            }
-            Self::Implies(left, right) => {
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
                 left.specify(name, term);
                 right.specify(name, term);
             }
@@ -112,17 +104,36 @@ impl Formula {
             Self::Universal(_, formula) => formula.replace_free(name, term),
             Self::Existential(_, formula) => formula.replace_free(name, term),
             Self::Negation(formula) => formula.replace_free(name, term),
-            Self::And(left, right) => {
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
                 left.replace_free(name, term);
                 right.replace_free(name, term);
             }
-            Self::Or(left, right) => {
-                left.replace_free(name, term);
-                right.replace_free(name, term);
+        }
+    }
+
+    /// Replace all instances of the named Term::Variable with a Term
+    pub fn replace<S: ToString>(&mut self, name: &S, term: &Term) {
+        match self {
+            Self::Equality(left, right) => {
+                left.replace(name, term);
+                right.replace(name, term);
             }
-            Self::Implies(left, right) => {
-                left.replace_free(name, term);
-                right.replace_free(name, term);
+            Self::Universal(v, formula) => {
+                if v == &name.to_string() {
+                    *v = term.to_string();
+                }
+                formula.replace(name, term);
+            }
+            Self::Existential(v, formula) => {
+                if v == &name.to_string() {
+                    *v = term.to_string();
+                }
+                formula.replace(name, term);
+            }
+            Self::Negation(formula) => formula.replace(name, term),
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
+                left.replace(name, term);
+                right.replace(name, term);
             }
         }
     }
@@ -142,17 +153,9 @@ impl Formula {
                 formula.get_vars(var_names)
             }
             Self::Negation(formula) => formula.get_vars(var_names),
-            Self::And(left, right) => {
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
                 left.get_vars(var_names);
-                right.get_vars(var_names)
-            }
-            Self::Or(left, right) => {
-                left.get_vars(var_names);
-                right.get_vars(var_names)
-            }
-            Self::Implies(left, right) => {
-                left.get_vars(var_names);
-                right.get_vars(var_names)
+                right.get_vars(var_names);
             }
         }
     }
@@ -172,24 +175,16 @@ impl Formula {
             Self::Equality(_, _) => (),
             Self::Universal(v, formula) => {
                 var_names.insert(v.to_string());
-                formula.get_vars(var_names);
+                formula.get_vars_bound(var_names);
             }
             Self::Existential(v, formula) => {
                 var_names.insert(v.to_string());
-                formula.get_vars(var_names);
+                formula.get_vars_bound(var_names);
             }
-            Self::Negation(formula) => formula.get_vars(var_names),
-            Self::And(left, right) => {
-                left.get_vars(var_names);
-                right.get_vars(var_names);
-            }
-            Self::Or(left, right) => {
-                left.get_vars(var_names);
-                right.get_vars(var_names);
-            }
-            Self::Implies(left, right) => {
-                left.get_vars(var_names);
-                right.get_vars(var_names);
+            Self::Negation(formula) => formula.get_vars_bound(var_names),
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
+                left.get_vars_bound(var_names);
+                right.get_vars_bound(var_names);
             }
         }
     }
@@ -216,13 +211,7 @@ impl Formula {
                 *v == name.to_string() || formula.contains_var_bound(name)
             }
             Self::Negation(formula) => formula.contains_var_bound(name),
-            Self::And(left, right) => {
-                left.contains_var_bound(name) || right.contains_var_bound(name)
-            }
-            Self::Or(left, right) => {
-                left.contains_var_bound(name) || right.contains_var_bound(name)
-            }
-            Self::Implies(left, right) => {
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
                 left.contains_var_bound(name) || right.contains_var_bound(name)
             }
         }
@@ -236,13 +225,7 @@ impl Formula {
             }
             Self::Existential(_, formula) => formula.contains_var_bound_universal(name),
             Self::Negation(formula) => formula.contains_var_bound_universal(name),
-            Self::And(left, right) => {
-                left.contains_var_bound_universal(name) || right.contains_var_bound_universal(name)
-            }
-            Self::Or(left, right) => {
-                left.contains_var_bound_universal(name) || right.contains_var_bound_universal(name)
-            }
-            Self::Implies(left, right) => {
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
                 left.contains_var_bound_universal(name) || right.contains_var_bound_universal(name)
             }
         }
@@ -256,15 +239,7 @@ impl Formula {
                 *v == name.to_string() || formula.contains_var_bound_existential(name)
             }
             Self::Negation(formula) => formula.contains_var_bound_existential(name),
-            Self::And(left, right) => {
-                left.contains_var_bound_existential(name)
-                    || right.contains_var_bound_existential(name)
-            }
-            Self::Or(left, right) => {
-                left.contains_var_bound_existential(name)
-                    || right.contains_var_bound_existential(name)
-            }
-            Self::Implies(left, right) => {
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
                 left.contains_var_bound_existential(name)
                     || right.contains_var_bound_existential(name)
             }
@@ -282,6 +257,58 @@ impl Formula {
             (Self::Implies(_, _), Self::Implies(_, _)) => true,
             _ => false,
         }
+    }
+
+    pub fn vars_in_order(&self, vec: &mut Vec<String>) {
+        match self {
+            Self::Equality(left, right) => {
+                left.vars_in_order(vec);
+                right.vars_in_order(vec);
+            }
+            Self::Universal(v, formula) => {
+                if !vec.contains(v) {
+                    vec.push(v.to_string());
+                }
+                formula.vars_in_order(vec);
+            }
+            Self::Existential(v, formula) => {
+                if !vec.contains(v) {
+                    vec.push(v.to_string());
+                }
+                formula.vars_in_order(vec);
+            }
+            Self::Negation(formula) => formula.vars_in_order(vec),
+            Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
+                left.vars_in_order(vec);
+                right.vars_in_order(vec);
+            }
+        }
+    }
+
+    /// Produces the Formula in its austere form. The leftmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
+    pub fn to_austere(&self) -> Formula {
+        let mut t = self.clone();
+        let vars = {
+            let mut v = Vec::new();
+            t.vars_in_order(&mut v);
+            v
+        };
+
+        let mut mask = String::from("#");
+        for v in vars.iter() {
+            t.replace(v, &Term::Variable(mask.clone()));
+            mask.push('\'');
+        }
+
+        let mut mask = String::from("#");
+        let mut a = String::from("a");
+        for _ in vars.iter() {
+            t.replace(&mask, &Term::Variable(a.clone()));
+            mask.push('\'');
+            a.push('\'');
+        }
+
+        t
     }
 }
 
@@ -363,5 +390,20 @@ impl TryFrom<String> for Formula {
             Ok(f) => Ok(f),
             Err(s) => Err(LogicError(s.to_string())),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn austere() {
+        let t0 = Formula::try_from("Ab:[Ea:(Sb+Sa)=S(a*b)|Ec:SSS0=(Sc*Sa)]")
+            .unwrap()
+            .to_austere();
+        let t1 = Formula::try_from("Aa:[Ea':(Sa+Sa')=S(a'*a)|Ea'':SSS0=(Sa''*Sa')]").unwrap();
+        assert_eq!(t0, t1);
     }
 }
