@@ -179,13 +179,13 @@ impl Term {
         };
         let mut mask = String::from("#");
         for v in vars.iter() {
-            t.replace(v, &Term::Variable(mask.clone()));
+            t.rename_var(v, &mask);
             mask.push('\'');
         }
         let mut mask = String::from("#");
         let mut a = String::from("a");
         for _ in vars.iter() {
-            t.replace(&mask, &Term::Variable(a.clone()));
+            t.rename_var(&mask, &a);
             mask.push('\'');
             a.push('\'');
         }
