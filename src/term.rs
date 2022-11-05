@@ -20,12 +20,12 @@ pub fn succ(term: &Term) -> Term {
     Term::Successor(Box::new(term.clone()))
 }
 
-pub fn sum(left: &Term, right: &Term) -> Term {
-    Term::Sum(Box::new(left.clone()), Box::new(right.clone()))
+pub fn sum(lhs: &Term, rhs: &Term) -> Term {
+    Term::Sum(Box::new(lhs.clone()), Box::new(rhs.clone()))
 }
 
-pub fn prod(left: &Term, right: &Term) -> Term {
-    Term::Product(Box::new(left.clone()), Box::new(right.clone()))
+pub fn prod(lhs: &Term, rhs: &Term) -> Term {
+    Term::Product(Box::new(lhs.clone()), Box::new(rhs.clone()))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -55,8 +55,8 @@ impl Term {
             Self::Zero => "0".into(),
             Self::Variable(v) => v.into(),
             Self::Successor(inner) => format!("S{inner}"),
-            Self::Sum(left, right) => format!("({left} + {right})"),
-            Self::Product(left, right) => format!("({left} × {right})"),
+            Self::Sum(lhs, rhs) => format!("({lhs} + {rhs})"),
+            Self::Product(lhs, rhs) => format!("({lhs} × {rhs})"),
         }
     }
 
@@ -65,8 +65,8 @@ impl Term {
             Self::Zero => "0".into(),
             Self::Variable(v) => v.into(),
             Self::Successor(inner) => format!("S{inner}"),
-            Self::Sum(left, right) => format!("({left} + {right})"),
-            Self::Product(left, right) => format!("({left} \\cdot {right})"),
+            Self::Sum(lhs, rhs) => format!("({lhs} + {rhs})"),
+            Self::Product(lhs, rhs) => format!("({lhs} \\cdot {rhs})"),
         }
     }
 
@@ -76,8 +76,8 @@ impl Term {
             Self::Zero => false,
             Self::Variable(v) => *v == name.to_string(),
             Self::Successor(inner) => inner.contains_var(name),
-            Self::Sum(left, right) => left.contains_var(name) || right.contains_var(name),
-            Self::Product(left, right) => left.contains_var(name) || right.contains_var(name),
+            Self::Sum(lhs, rhs) => lhs.contains_var(name) || rhs.contains_var(name),
+            Self::Product(lhs, rhs) => lhs.contains_var(name) || rhs.contains_var(name),
         }
     }
 
@@ -88,13 +88,13 @@ impl Term {
                 var_names.insert(v.to_string());
             }
             Self::Successor(inner) => inner.get_vars(var_names),
-            Self::Sum(left, right) => {
-                left.get_vars(var_names);
-                right.get_vars(var_names);
+            Self::Sum(lhs, rhs) => {
+                lhs.get_vars(var_names);
+                rhs.get_vars(var_names);
             }
-            Self::Product(left, right) => {
-                left.get_vars(var_names);
-                right.get_vars(var_names);
+            Self::Product(lhs, rhs) => {
+                lhs.get_vars(var_names);
+                rhs.get_vars(var_names);
             }
         }
     }
@@ -109,13 +109,13 @@ impl Term {
                 }
             }
             Self::Successor(inner) => inner.replace(name, term),
-            Self::Sum(left, right) => {
-                left.replace(name, term);
-                right.replace(name, term);
+            Self::Sum(lhs, rhs) => {
+                lhs.replace(name, term);
+                rhs.replace(name, term);
             }
-            Self::Product(left, right) => {
-                left.replace(name, term);
-                right.replace(name, term);
+            Self::Product(lhs, rhs) => {
+                lhs.replace(name, term);
+                rhs.replace(name, term);
             }
         }
     }
@@ -130,13 +130,13 @@ impl Term {
                 }
             }
             Self::Successor(inner) => inner.rename_var(name, new_name),
-            Self::Sum(left, right) => {
-                left.rename_var(name, new_name);
-                right.rename_var(name, new_name);
+            Self::Sum(lhs, rhs) => {
+                lhs.rename_var(name, new_name);
+                rhs.rename_var(name, new_name);
             }
-            Self::Product(left, right) => {
-                left.rename_var(name, new_name);
-                right.rename_var(name, new_name);
+            Self::Product(lhs, rhs) => {
+                lhs.rename_var(name, new_name);
+                rhs.rename_var(name, new_name);
             }
         }
     }
@@ -158,18 +158,18 @@ impl Term {
                 }
             }
             Self::Successor(inner) => inner.vars_in_order(vec),
-            Self::Sum(left, right) => {
-                left.vars_in_order(vec);
-                right.vars_in_order(vec);
+            Self::Sum(lhs, rhs) => {
+                lhs.vars_in_order(vec);
+                rhs.vars_in_order(vec);
             }
-            Self::Product(left, right) => {
-                left.vars_in_order(vec);
-                right.vars_in_order(vec);
+            Self::Product(lhs, rhs) => {
+                lhs.vars_in_order(vec);
+                rhs.vars_in_order(vec);
             }
         }
     }
 
-    /// Produces the Term in its austere form. The leftmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
+    /// Produces the Term in its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
     pub fn to_austere(&self) -> Term {
         let mut t = self.clone();
         let vars = {
@@ -205,8 +205,8 @@ impl Display for Term {
             Self::Zero => write!(f, "0"),
             Self::Variable(v) => write!(f, "{}", v),
             Self::Successor(inner) => write!(f, "S{inner}"),
-            Self::Sum(left, right) => write!(f, "({left}+{right})"),
-            Self::Product(left, right) => write!(f, "({left}*{right})"),
+            Self::Sum(lhs, rhs) => write!(f, "({lhs}+{rhs})"),
+            Self::Product(lhs, rhs) => write!(f, "({lhs}*{rhs})"),
         }
     }
 }
