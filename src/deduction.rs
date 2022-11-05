@@ -254,16 +254,6 @@ impl Deduction {
         out
     }
 
-    /// Convert the Deduction to a (very large) integer.
-    pub fn arithmetize(&self) -> BigUint {
-        let mut n: Vec<u8> = Vec::new();
-        for t in self.theorems().rev() {
-            n.extend(t.formula.to_string().into_bytes().iter());
-            n.push(32);
-        }
-        BigUint::from_bytes_be(&n)
-    }
-
     // Logical methods
     /// Push any axiom of the Deduction system into the theorems.
     pub fn add_axiom(&mut self, premise: &Formula) -> Result<(), LogicError> {
@@ -431,5 +421,15 @@ impl Deduction {
         for theorem in self.theorems.iter_mut() {
             theorem.formula.to_austere();
         }
+    }
+
+    /// Convert the Deduction to a (very large) integer.
+    pub fn arithmetize(&self) -> BigUint {
+        let mut n: Vec<u8> = Vec::new();
+        for t in self.theorems().rev() {
+            n.extend(t.formula.austere().to_string().into_bytes().iter());
+            n.push(32);
+        }
+        BigUint::from_bytes_be(&n)
     }
 }
