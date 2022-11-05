@@ -245,4 +245,11 @@ mod test {
         t0.replace(&"a''".to_string(), &term);
         assert_eq!(t0, t1);
     }
+
+    #[test]
+    fn from_big_uint() {
+        let t0 = Term::try_from("SS(a+a')").unwrap();
+        let t1 = Term::try_from(t0.arithmetize()).unwrap();
+        assert_eq!(t0, t1);
+    }
 }
