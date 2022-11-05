@@ -170,7 +170,7 @@ impl Term {
     }
 
     /// Produces the Term in its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
-    pub fn to_austere(&self) -> Term {
+    pub fn austere(&self) -> Term {
         let mut t = self.clone();
         let vars = {
             let mut v = Vec::new();
@@ -192,9 +192,29 @@ impl Term {
         t
     }
 
+    pub fn to_austere(&mut self) {
+        let vars = {
+            let mut v = Vec::new();
+            self.vars_in_order(&mut v);
+            v
+        };
+        let mut mask = String::from("#");
+        for v in vars.iter() {
+            self.rename_var(v, &mask);
+            mask.push('\'');
+        }
+        let mut mask = String::from("#");
+        let mut a = String::from("a");
+        for _ in vars.iter() {
+            self.rename_var(&mask, &a);
+            mask.push('\'');
+            a.push('\'');
+        }
+    }
+
     /// Create the unique BigUint that characterizes the Term. This is done by converting the Term to its austere form and then reading the bytes as a bigendian number.
     pub fn arithmetize(&self) -> BigUint {
-        let s = self.clone().to_austere().to_string();
+        let s = self.clone().austere().to_string();
         BigUint::from_bytes_be(s.as_bytes())
     }
 }
@@ -253,7 +273,7 @@ mod test {
     fn austere() {
         let t0 = Term::try_from("((j+(a''+SS0))+(a''*SSc))")
             .unwrap()
-            .to_austere();
+            .austere();
         let t1 = Term::try_from("((a+(a'+SS0))+(a'*SSa''))").unwrap();
         assert_eq!(t0, t1);
     }

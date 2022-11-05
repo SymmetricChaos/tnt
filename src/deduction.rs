@@ -57,6 +57,7 @@ impl TheoremFrame {
 }
 
 /// Enforces valid use of deductive logic to produce proofs in Typographical Number Theory and outputs formatted results.
+#[derive(Clone)]
 pub struct Deduction {
     index: usize,
     scope_stack: Vec<usize>,
@@ -414,5 +415,21 @@ impl Deduction {
         let r = format!("induction of {var_name} on theorems {base} and {general}");
         self.push_new(t?, r, Rule::Induction);
         Ok(())
+    }
+
+    /// Produce a Deduction of identical form with all Formulas in austere form.
+    pub fn austere(&self) -> Deduction {
+        let mut out = self.clone();
+        for theorem in out.theorems.iter_mut() {
+            theorem.formula.to_austere();
+        }
+        out
+    }
+
+    /// Change all Formulas in the Deduction to their austere form.
+    pub fn to_austere(&mut self) {
+        for theorem in self.theorems.iter_mut() {
+            theorem.formula.to_austere();
+        }
     }
 }

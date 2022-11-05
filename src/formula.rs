@@ -287,7 +287,7 @@ impl Formula {
     }
 
     /// Produces the Formula in its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
-    pub fn to_austere(&self) -> Formula {
+    pub fn austere(&self) -> Formula {
         let mut t = self.clone();
         let vars = {
             let mut v = Vec::new();
@@ -312,9 +312,31 @@ impl Formula {
         t
     }
 
+    pub fn to_austere(&mut self) {
+        let vars = {
+            let mut v = Vec::new();
+            self.vars_in_order(&mut v);
+            v
+        };
+
+        let mut mask = String::from("#");
+        for v in vars.iter() {
+            self.rename_var(v, &mask);
+            mask.push('\'');
+        }
+
+        let mut mask = String::from("#");
+        let mut a = String::from("a");
+        for _ in vars.iter() {
+            self.rename_var(&mask, &a);
+            mask.push('\'');
+            a.push('\'');
+        }
+    }
+
     /// Create the unique BigUint that characterizes the Formula. This is done by converting the Formula to its austere form and then reading the bytes as a bigendian number.
     pub fn arithmetize(&self) -> BigUint {
-        let s = self.clone().to_austere().to_string();
+        let s = self.austere().to_string();
         BigUint::from_bytes_be(s.as_bytes())
     }
 }
@@ -420,7 +442,7 @@ mod test {
     fn austere() {
         let t0 = Formula::try_from("Ab:[Ea:(Sb+Sa)=S(a*b)|Ec:SSS0=(Sc*Sa)]")
             .unwrap()
-            .to_austere();
+            .austere();
         let t1 = Formula::try_from("Aa:[Ea':(Sa+Sa')=S(a'*a)|Ea'':SSS0=(Sa''*Sa')]").unwrap();
         assert_eq!(t0, t1);
     }
