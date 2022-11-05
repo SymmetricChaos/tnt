@@ -114,28 +114,28 @@ impl Formula {
     }
 
     /// Replace all instances of the named Term::Variable with a Term
-    pub fn replace<S: ToString>(&mut self, name: &S, term: &Term) {
+    pub(crate) fn rename_var<S: ToString>(&mut self, name: &S, new_name: &S) {
         match self {
             Self::Equality(left, right) => {
-                left.replace(name, term);
-                right.replace(name, term);
+                left.rename_var(name, new_name);
+                right.rename_var(name, new_name);
             }
             Self::Universal(v, formula) => {
                 if v == &name.to_string() {
-                    *v = term.to_string();
+                    *v = new_name.to_string();
                 }
-                formula.replace(name, term);
+                formula.rename_var(name, new_name);
             }
             Self::Existential(v, formula) => {
                 if v == &name.to_string() {
-                    *v = term.to_string();
+                    *v = new_name.to_string();
                 }
-                formula.replace(name, term);
+                formula.rename_var(name, new_name);
             }
-            Self::Negation(formula) => formula.replace(name, term),
+            Self::Negation(formula) => formula.rename_var(name, new_name),
             Self::And(left, right) | Self::Or(left, right) | Self::Implies(left, right) => {
-                left.replace(name, term);
-                right.replace(name, term);
+                left.rename_var(name, new_name);
+                right.rename_var(name, new_name);
             }
         }
     }
@@ -298,14 +298,14 @@ impl Formula {
 
         let mut mask = String::from("#");
         for v in vars.iter() {
-            t.replace(v, &Term::Variable(mask.clone()));
+            t.rename_var(v, &mask);
             mask.push('\'');
         }
 
         let mut mask = String::from("#");
         let mut a = String::from("a");
         for _ in vars.iter() {
-            t.replace(&mask, &Term::Variable(a.clone()));
+            t.rename_var(&mask, &a);
             mask.push('\'');
             a.push('\'');
         }

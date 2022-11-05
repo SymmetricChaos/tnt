@@ -120,6 +120,27 @@ impl Term {
         }
     }
 
+    // rename a variable without checking for correct form, used in .to_austere().
+    pub(crate) fn rename_var<S: ToString>(&mut self, name: &S, new_name: &S) {
+        match self {
+            Self::Zero => {}
+            Self::Variable(v) => {
+                if *v == name.to_string() {
+                    *self = Term::Variable(new_name.to_string());
+                }
+            }
+            Self::Successor(inner) => inner.rename_var(name, new_name),
+            Self::Sum(left, right) => {
+                left.rename_var(name, new_name);
+                right.rename_var(name, new_name);
+            }
+            Self::Product(left, right) => {
+                left.rename_var(name, new_name);
+                right.rename_var(name, new_name);
+            }
+        }
+    }
+
     // pub fn is_num(&self) -> bool {
     //     match self {
     //         Self::Zero => true,
