@@ -15,7 +15,7 @@ fn main() -> Result<(), LogicError> {
 
     d.pretty_print();
 
-    println!("{}", d.arithmetize());
+    //println!("{}", d.arithmetize());
 
     match d.latex_file("addition") {
         Ok(_) => println!("\nSuccessfully created .tex file!"),

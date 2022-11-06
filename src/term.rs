@@ -1,5 +1,6 @@
 use crate::parsing::parser::string_to_term;
 use crate::LogicError;
+use indexmap::IndexSet;
 use lazy_static::lazy_static;
 use num::BigUint;
 use regex::Regex;
@@ -149,55 +150,43 @@ impl Term {
     //     }
     // }
 
-    pub fn vars_in_order(&self, vec: &mut Vec<String>) {
+    pub fn vars_in_order(&self, set: &mut IndexSet<String>) {
         match self {
             Self::Zero => (),
             Self::Variable(v) => {
-                if !vec.contains(v) {
-                    vec.push(v.to_string());
+                if !set.contains(v) {
+                    set.insert(v.to_string());
                 }
             }
-            Self::Successor(inner) => inner.vars_in_order(vec),
+            Self::Successor(inner) => inner.vars_in_order(set),
             Self::Sum(lhs, rhs) => {
-                lhs.vars_in_order(vec);
-                rhs.vars_in_order(vec);
+                lhs.vars_in_order(set);
+                rhs.vars_in_order(set);
             }
             Self::Product(lhs, rhs) => {
-                lhs.vars_in_order(vec);
-                rhs.vars_in_order(vec);
+                lhs.vars_in_order(set);
+                rhs.vars_in_order(set);
             }
         }
     }
 
     /// Produces the Term in its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
     pub fn austere(&self) -> Term {
-        let mut t = self.clone();
-        let vars = {
-            let mut v = Vec::new();
-            t.vars_in_order(&mut v);
-            v
-        };
-        let mut mask = String::from("#");
-        for v in vars.iter() {
-            t.rename_var(v, &mask);
-            mask.push('\'');
-        }
-        let mut mask = String::from("#");
-        let mut a = String::from("a");
-        for _ in vars.iter() {
-            t.rename_var(&mask, &a);
-            mask.push('\'');
-            a.push('\'');
-        }
-        t
+        let mut out = self.clone();
+        out.to_austere();
+        out
     }
 
     pub fn to_austere(&mut self) {
         let vars = {
-            let mut v = Vec::new();
+            let mut v = IndexSet::new();
             self.vars_in_order(&mut v);
             v
         };
+        self.to_austere_with(&vars);
+    }
+
+    pub(crate) fn to_austere_with(&mut self, vars: &IndexSet<String>) {
         let mut mask = String::from("#");
         for v in vars.iter() {
             self.rename_var(v, &mask);

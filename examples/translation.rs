@@ -14,7 +14,7 @@ fn main() -> Result<(), LogicError> {
 
     d.english();
 
-    println!("{}", d.arithmetize());
+    //println!("{}", d.arithmetize());
 
     Ok(())
 }

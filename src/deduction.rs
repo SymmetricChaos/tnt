@@ -1,3 +1,4 @@
+use indexmap::IndexSet;
 use num::BigUint;
 use std::{
     collections::HashSet,
@@ -407,27 +408,38 @@ impl Deduction {
         Ok(())
     }
 
-    /// Produce a Deduction of identical form with all Formulas in austere form.
+    fn vars_in_order(&self) -> IndexSet<String> {
+        let mut vars = IndexSet::new();
+        for theorem in self.theorems.iter() {
+            theorem.formula.vars_in_order(&mut vars)
+        }
+        vars
+    }
+
+    // /// Produce a Deduction of identical form with all Formulas in austere form.
     pub fn austere(&self) -> Deduction {
+        let vars = self.vars_in_order();
         let mut out = self.clone();
         for theorem in out.theorems.iter_mut() {
-            theorem.formula.to_austere();
+            theorem.formula.to_austere_with(&vars);
         }
         out
     }
 
-    /// Change all Formulas in the Deduction to their austere form.
+    // /// Change all Formulas in the Deduction to their austere form.
     pub fn to_austere(&mut self) {
+        let vars = self.vars_in_order();
         for theorem in self.theorems.iter_mut() {
-            theorem.formula.to_austere();
+            theorem.formula.to_austere_with(&vars);
         }
     }
 
-    /// Convert the Deduction to a (very large) integer.
+    // /// Convert the Deduction to a (very large) integer. (No seriously its going to be a gigantic number.)
     pub fn arithmetize(&self) -> BigUint {
+        let austere = self.austere();
         let mut n: Vec<u8> = Vec::new();
-        for t in self.theorems().rev() {
-            n.extend(t.formula.austere().to_string().into_bytes().iter());
+        for t in austere.theorems().rev() {
+            n.extend(t.formula.to_string().into_bytes().iter());
             n.push(32);
         }
         BigUint::from_bytes_be(&n)
