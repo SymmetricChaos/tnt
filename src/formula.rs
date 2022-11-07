@@ -141,7 +141,7 @@ impl Formula {
         }
     }
 
-    pub fn get_vars(&self, var_names: &mut HashSet<String>) {
+    pub fn get_vars(&self, var_names: &mut IndexSet<String>) {
         match self {
             Self::Equality(lhs, rhs) => {
                 lhs.get_vars(var_names);
@@ -164,8 +164,8 @@ impl Formula {
     }
 
     pub fn get_vars_free(&self, var_names: &mut HashSet<String>) {
-        let mut all_v = HashSet::<String>::new();
-        let mut bound_v = HashSet::<String>::new();
+        let mut all_v = IndexSet::<String>::new();
+        let mut bound_v = IndexSet::<String>::new();
         self.get_vars(&mut all_v);
         self.get_vars(&mut bound_v);
         for free_v in all_v.difference(&bound_v) {
@@ -173,7 +173,7 @@ impl Formula {
         }
     }
 
-    pub fn get_vars_bound(&self, var_names: &mut HashSet<String>) {
+    pub fn get_vars_bound(&self, var_names: &mut IndexSet<String>) {
         match self {
             Self::Equality(_, _) => (),
             Self::Universal(v, formula) => {
@@ -261,32 +261,6 @@ impl Formula {
         }
     }
 
-    pub(crate) fn vars_in_order(&self, set: &mut IndexSet<String>) {
-        match self {
-            Self::Equality(lhs, rhs) => {
-                lhs.vars_in_order(set);
-                rhs.vars_in_order(set);
-            }
-            Self::Universal(v, formula) => {
-                if !set.contains(v) {
-                    set.insert(v.to_string());
-                }
-                formula.vars_in_order(set);
-            }
-            Self::Existential(v, formula) => {
-                if !set.contains(v) {
-                    set.insert(v.to_string());
-                }
-                formula.vars_in_order(set);
-            }
-            Self::Negation(formula) => formula.vars_in_order(set),
-            Self::And(lhs, rhs) | Self::Or(lhs, rhs) | Self::Implies(lhs, rhs) => {
-                lhs.vars_in_order(set);
-                rhs.vars_in_order(set);
-            }
-        }
-    }
-
     /// Produces the Formula in its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
     pub fn austere(&self) -> Formula {
         let mut out = self.clone();
@@ -297,7 +271,7 @@ impl Formula {
     pub fn to_austere(&mut self) {
         let vars = {
             let mut v = IndexSet::new();
-            self.vars_in_order(&mut v);
+            self.get_vars(&mut v);
             v
         };
         self.to_austere_with(&vars);
@@ -317,6 +291,7 @@ impl Formula {
             a.push('\'');
         }
     }
+
     /// Create the unique BigUint that characterizes the Formula. This is done by converting the Formula to its austere form and then reading the bytes as a bigendian number.
     pub fn arithmetize(&self) -> BigUint {
         let s = self.austere().to_string();

@@ -6,7 +6,6 @@ use num::BigUint;
 use regex::Regex;
 use std::convert::TryFrom;
 use std::{
-    collections::HashSet,
     fmt::{self, Display, Formatter},
     str::from_utf8,
 };
@@ -82,24 +81,6 @@ impl Term {
         }
     }
 
-    pub fn get_vars(&self, var_names: &mut HashSet<String>) {
-        match self {
-            Self::Zero => (),
-            Self::Variable(v) => {
-                var_names.insert(v.to_string());
-            }
-            Self::Successor(inner) => inner.get_vars(var_names),
-            Self::Sum(lhs, rhs) => {
-                lhs.get_vars(var_names);
-                rhs.get_vars(var_names);
-            }
-            Self::Product(lhs, rhs) => {
-                lhs.get_vars(var_names);
-                rhs.get_vars(var_names);
-            }
-        }
-    }
-
     // Replace a Variable with the provided name with the provided Term
     pub fn replace<S: ToString>(&mut self, name: &S, term: &Term) {
         match self {
@@ -150,7 +131,7 @@ impl Term {
     //     }
     // }
 
-    pub fn vars_in_order(&self, set: &mut IndexSet<String>) {
+    pub fn get_vars(&self, set: &mut IndexSet<String>) {
         match self {
             Self::Zero => (),
             Self::Variable(v) => {
@@ -158,14 +139,14 @@ impl Term {
                     set.insert(v.to_string());
                 }
             }
-            Self::Successor(inner) => inner.vars_in_order(set),
+            Self::Successor(inner) => inner.get_vars(set),
             Self::Sum(lhs, rhs) => {
-                lhs.vars_in_order(set);
-                rhs.vars_in_order(set);
+                lhs.get_vars(set);
+                rhs.get_vars(set);
             }
             Self::Product(lhs, rhs) => {
-                lhs.vars_in_order(set);
-                rhs.vars_in_order(set);
+                lhs.get_vars(set);
+                rhs.get_vars(set);
             }
         }
     }
@@ -180,7 +161,7 @@ impl Term {
     pub fn to_austere(&mut self) {
         let vars = {
             let mut v = IndexSet::new();
-            self.vars_in_order(&mut v);
+            self.get_vars(&mut v);
             v
         };
         self.to_austere_with(&vars);

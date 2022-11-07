@@ -411,7 +411,7 @@ impl Deduction {
     fn vars_in_order(&self) -> IndexSet<String> {
         let mut vars = IndexSet::new();
         for theorem in self.theorems.iter() {
-            theorem.formula.vars_in_order(&mut vars)
+            theorem.formula.get_vars(&mut vars)
         }
         vars
     }

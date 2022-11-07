@@ -1,7 +1,8 @@
 //! Create inferences from other statements of TNT, will return LogicError if constraints are not met.
 
-use std::collections::HashSet;
 use std::convert::TryFrom;
+
+use indexmap::IndexSet;
 
 use crate::logic_errors::LogicError;
 use crate::{eq, exists, forall, implies, succ, Formula, Term, ZERO};
@@ -23,12 +24,12 @@ pub fn specification(
 ) -> Result<Formula, LogicError> {
     if formula.contains_var_bound_universal(&var_name) {
         let vars_in_term = {
-            let mut m = HashSet::new();
+            let mut m = IndexSet::new();
             term.get_vars(&mut m);
             m
         };
         let bound_in_formula = {
-            let mut m = HashSet::new();
+            let mut m = IndexSet::new();
             formula.get_vars_bound(&mut m);
             m
         };
