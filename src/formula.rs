@@ -73,43 +73,69 @@ impl Formula {
     }
 
     // Eliminate all universal quantification of some Variable and then replace all instances of that variable with the provided Term
-    pub fn specify<S: ToString>(&mut self, name: &S, term: &Term) {
+    pub fn specify<S: ToString>(&mut self, var_name: &S, term: &Term) {
         match self {
             Self::Equality(lhs, rhs) => {
-                lhs.replace(name, term);
-                rhs.replace(name, term);
+                lhs.replace(var_name, term);
+                rhs.replace(var_name, term);
             }
             Self::Universal(v, formula) => {
-                if *v == name.to_string() {
+                if *v == var_name.to_string() {
                     let mut new_formula = formula.clone();
-                    new_formula.specify(name, term);
+                    new_formula.specify(var_name, term);
                     *self = *new_formula;
                 } else {
-                    formula.specify(name, term)
+                    formula.specify(var_name, term)
                 }
             }
-            Self::Existential(_, formula) => formula.specify(name, term),
-            Self::Negation(formula) => formula.specify(name, term),
+            Self::Existential(_, formula) => formula.specify(var_name, term),
+            Self::Negation(formula) => formula.specify(var_name, term),
             Self::And(lhs, rhs) | Self::Or(lhs, rhs) | Self::Implies(lhs, rhs) => {
-                lhs.specify(name, term);
-                rhs.specify(name, term);
+                lhs.specify(var_name, term);
+                rhs.specify(var_name, term);
+            }
+        }
+    }
+
+    pub fn interchange(&mut self, n: usize) -> usize {
+        if let Some((v, f)) = self.is_forall_not() {
+            if n == 0 {
+                *self = Self::Negation(Box::new(Self::Existential(v, Box::new(f))));
+                return n;
+            }
+        }
+        if let Some((v, f)) = self.is_not_exists() {
+            if n == 0 {
+                *self = Self::Universal(v, Box::new(Self::Negation(Box::new(f))));
+                return n;
+            }
+        }
+
+        match self {
+            Formula::Equality(_, _) => n,
+            Formula::Universal(_, f) => f.interchange(n - 1),
+            Formula::Existential(_, f) => f.interchange(n - 1),
+            Formula::Negation(f) => f.interchange(n),
+            Formula::And(lhs, rhs) | Formula::Or(lhs, rhs) | Formula::Implies(lhs, rhs) => {
+                let n = lhs.interchange(n);
+                rhs.interchange(n)
             }
         }
     }
 
     /// Replace all free instances of the named Term::Variable with a Term
-    pub fn replace_free<S: ToString>(&mut self, name: &S, term: &Term) {
+    pub(crate) fn replace_free<S: ToString>(&mut self, var_name: &S, term: &Term) {
         match self {
             Self::Equality(lhs, rhs) => {
-                lhs.replace(name, term);
-                rhs.replace(name, term);
+                lhs.replace(var_name, term);
+                rhs.replace(var_name, term);
             }
-            Self::Universal(_, formula) => formula.replace_free(name, term),
-            Self::Existential(_, formula) => formula.replace_free(name, term),
-            Self::Negation(formula) => formula.replace_free(name, term),
+            Self::Universal(_, formula) => formula.replace_free(var_name, term),
+            Self::Existential(_, formula) => formula.replace_free(var_name, term),
+            Self::Negation(formula) => formula.replace_free(var_name, term),
             Self::And(lhs, rhs) | Self::Or(lhs, rhs) | Self::Implies(lhs, rhs) => {
-                lhs.replace_free(name, term);
-                rhs.replace_free(name, term);
+                lhs.replace_free(var_name, term);
+                rhs.replace_free(var_name, term);
             }
         }
     }
@@ -192,44 +218,43 @@ impl Formula {
         }
     }
 
-    pub fn contains_var<S: ToString>(&self, name: &S) -> bool {
+    pub fn contains_var<S: ToString>(&self, var_name: &S) -> bool {
         match self {
-            Self::Equality(lhs, rhs) => lhs.contains_var(name) || rhs.contains_var(name),
-            Self::Universal(v, formula) => *v == name.to_string() || formula.contains_var(name),
-            Self::Existential(v, formula) => *v == name.to_string() || formula.contains_var(name),
-            Self::Negation(formula) => formula.contains_var(name),
+            Self::Equality(lhs, rhs) => lhs.contains_var(var_name) || rhs.contains_var(var_name),
+            Self::Universal(v, formula) | Self::Existential(v, formula) => {
+                *v == var_name.to_string() || formula.contains_var(var_name)
+            }
+            Self::Negation(formula) => formula.contains_var(var_name),
             Self::And(lhs, rhs) | Self::Or(lhs, rhs) | Self::Implies(lhs, rhs) => {
-                lhs.contains_var(name) || rhs.contains_var(name)
+                lhs.contains_var(var_name) || rhs.contains_var(var_name)
             }
         }
     }
 
-    pub fn contains_var_bound<S: ToString>(&self, name: &S) -> bool {
+    pub fn contains_var_bound<S: ToString>(&self, var_name: &S) -> bool {
         match self {
             Self::Equality(_, _) => false,
-            Self::Universal(v, formula) => {
-                *v == name.to_string() || formula.contains_var_bound(name)
+            Self::Universal(v, formula) | Self::Existential(v, formula) => {
+                *v == var_name.to_string() || formula.contains_var_bound(var_name)
             }
-            Self::Existential(v, formula) => {
-                *v == name.to_string() || formula.contains_var_bound(name)
-            }
-            Self::Negation(formula) => formula.contains_var_bound(name),
+            Self::Negation(formula) => formula.contains_var_bound(var_name),
             Self::And(lhs, rhs) | Self::Or(lhs, rhs) | Self::Implies(lhs, rhs) => {
-                lhs.contains_var_bound(name) || rhs.contains_var_bound(name)
+                lhs.contains_var_bound(var_name) || rhs.contains_var_bound(var_name)
             }
         }
     }
 
-    pub fn contains_var_bound_universal<S: ToString>(&self, name: &S) -> bool {
+    pub fn contains_var_bound_universal<S: ToString>(&self, var_name: &S) -> bool {
         match self {
             Self::Equality(_, _) => false,
             Self::Universal(v, formula) => {
-                *v == name.to_string() || formula.contains_var_bound_universal(name)
+                *v == var_name.to_string() || formula.contains_var_bound_universal(var_name)
             }
-            Self::Existential(_, formula) => formula.contains_var_bound_universal(name),
-            Self::Negation(formula) => formula.contains_var_bound_universal(name),
+            Self::Existential(_, formula) => formula.contains_var_bound_universal(var_name),
+            Self::Negation(formula) => formula.contains_var_bound_universal(var_name),
             Self::And(lhs, rhs) | Self::Or(lhs, rhs) | Self::Implies(lhs, rhs) => {
-                lhs.contains_var_bound_universal(name) || rhs.contains_var_bound_universal(name)
+                lhs.contains_var_bound_universal(var_name)
+                    || rhs.contains_var_bound_universal(var_name)
             }
         }
     }
@@ -248,16 +273,27 @@ impl Formula {
         }
     }
 
-    pub fn matches_variant(&self, formula: &Formula) -> bool {
-        match (self, formula) {
-            (Self::Equality(_, _), Self::Equality(_, _)) => true,
-            (Self::Universal(_, _), Self::Universal(_, _)) => true,
-            (Self::Existential(_, _), Self::Existential(_, _)) => true,
-            (Self::Negation(_), Self::Negation(_)) => true,
-            (Self::And(_, _), Self::And(_, _)) => true,
-            (Self::Or(_, _), Self::Or(_, _)) => true,
-            (Self::Implies(_, _), Self::Implies(_, _)) => true,
-            _ => false,
+    pub fn is_not_exists(&self) -> Option<(String, Formula)> {
+        if let Self::Negation(inner) = self {
+            if let Self::Existential(v, f) = &**inner {
+                Some((v.clone(), *f.clone()))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    pub fn is_forall_not(&self) -> Option<(String, Formula)> {
+        if let Self::Universal(v, inner) = self {
+            if let Self::Negation(f) = &**inner {
+                Some((v.clone(), *f.clone()))
+            } else {
+                None
+            }
+        } else {
+            None
         }
     }
 

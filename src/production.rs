@@ -86,7 +86,7 @@ pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, L
     }
 }
 
-/// In a given Formula change the nth occurrence of the quantification ~E<var>: to A<var>:~
+/// In a given Formula change the nth occurrence of the quantification ~E<var_name>: to A<var_name>:~
 /// ```
 /// use tnt::{Term,Fomula};
 /// use tnt::production::interchange_ea;
@@ -126,7 +126,7 @@ pub fn interchange_ea(
     Ok(Formula::try_from(new_string).unwrap())
 }
 
-/// In a given Formula change the nth occurrence of the quantification A<var>:~ to ~E<var>:
+/// In a given Formula change the nth occurrence of the quantification A<var_name>:~ to ~E<var_name>:
 /// ```
 /// use tnt::{Term,Fomula};
 /// use tnt::production::interchange_ae;
