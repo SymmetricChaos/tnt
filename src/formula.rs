@@ -62,19 +62,28 @@ impl Formula {
         }
     }
 
+    /// Return a String formatting the Formula in LaTeX with Hofstadter's original notation.
     pub fn to_latex(&self) -> String {
         match self {
             Self::Equality(l, r) => format!("{} = {}", l.to_latex(), r.to_latex()),
-            Self::Universal(var, inner) => format!("\\forall {var}: {inner}"),
-            Self::Existential(var, inner) => format!("\\exists {var}: {inner}"),
-            Self::Negation(inner) => format!("\\neg {inner}"),
-            Self::And(l, r) => format!("\\langle {l} \\wedge {r} \\rangle"),
-            Self::Or(l, r) => format!("\\langle {l} \\vee {r} \\rangle"),
-            Self::Implies(l, r) => format!(" \\langle{l} \\rhsarrow {r} \\rangle"),
+            Self::Universal(var, inner) => format!("\\forall {var}: {}", inner.to_latex()),
+            Self::Existential(var, inner) => format!("\\exists {var}: {}", inner.to_latex()),
+            Self::Negation(inner) => format!("\\neg {}", inner.to_latex()),
+            Self::And(l, r) => format!(
+                "\\langle {} \\wedge {} \\rangle",
+                l.to_latex(),
+                r.to_latex()
+            ),
+            Self::Or(l, r) => format!("\\langle {} \\vee {} \\rangle", l.to_latex(), r.to_latex()),
+            Self::Implies(l, r) => format!(
+                " \\langle{} \\rhsarrow {} \\rangle",
+                l.to_latex(),
+                r.to_latex()
+            ),
         }
     }
 
-    // Eliminate all universal quantification of some Variable and then replace all instances of that variable with the provided Term
+    /// Eliminate all universal quantification of some Variable and then replace all instances of that variable with the provided Term
     pub fn specify<S: ToString>(&mut self, var_name: &S, term: &Term) {
         match self {
             Self::Equality(lhs, rhs) => {
@@ -125,7 +134,7 @@ impl Formula {
     //     }
     // }
 
-    /// Replace all free instances of the named Term::Variable with a Term
+    // Replace all free instances of the named Term::Variable with a Term
     pub(crate) fn replace_free<S: ToString>(&mut self, var_name: &S, term: &Term) {
         match self {
             Self::Equality(lhs, rhs) => {
@@ -142,8 +151,8 @@ impl Formula {
         }
     }
 
-    /// Replace all instances of the named Term::Variable with a Term
-    pub(crate) fn rename_var<S: ToString>(&mut self, name: &S, new_name: &S) {
+    // Rename a variable everywhere it appears.
+    pub fn rename_var<S: ToString>(&mut self, name: &S, new_name: &S) {
         match self {
             Self::Equality(lhs, rhs) => {
                 lhs.rename_var(name, new_name);
@@ -169,6 +178,7 @@ impl Formula {
         }
     }
 
+    /// Fills the provided IndexSet with the name of every variable in the Formula.
     pub fn get_vars(&self, var_names: &mut IndexSet<String>) {
         match self {
             Self::Equality(lhs, rhs) => {
@@ -191,6 +201,7 @@ impl Formula {
         }
     }
 
+    /// Fills the provided IndexSet with the name of every free variable in the Formula.
     pub fn get_vars_free(&self, var_names: &mut IndexSet<String>) {
         let mut all_v = IndexSet::<String>::new();
         let mut bound_v = IndexSet::<String>::new();
@@ -201,6 +212,7 @@ impl Formula {
         }
     }
 
+    /// Fills the provided IndexSet with the name of every bound variable in the Formula.
     pub fn get_vars_bound(&self, var_names: &mut IndexSet<String>) {
         match self {
             Self::Equality(_, _) => (),
@@ -275,37 +287,38 @@ impl Formula {
         }
     }
 
-    pub fn is_not_exists(&self) -> Option<(String, Formula)> {
-        if let Self::Negation(inner) = self {
-            if let Self::Existential(v, f) = &**inner {
-                Some((v.clone(), *f.clone()))
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
+    // pub fn is_not_exists(&self) -> Option<(String, Formula)> {
+    //     if let Self::Negation(inner) = self {
+    //         if let Self::Existential(v, f) = &**inner {
+    //             Some((v.clone(), *f.clone()))
+    //         } else {
+    //             None
+    //         }
+    //     } else {
+    //         None
+    //     }
+    // }
 
-    pub fn is_forall_not(&self) -> Option<(String, Formula)> {
-        if let Self::Universal(v, inner) = self {
-            if let Self::Negation(f) = &**inner {
-                Some((v.clone(), *f.clone()))
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
+    // pub fn is_forall_not(&self) -> Option<(String, Formula)> {
+    //     if let Self::Universal(v, inner) = self {
+    //         if let Self::Negation(f) = &**inner {
+    //             Some((v.clone(), *f.clone()))
+    //         } else {
+    //             None
+    //         }
+    //     } else {
+    //         None
+    //     }
+    // }
 
-    /// Produces the Formula in its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
+    /// Produces a clone of the Formula in its austere form. The leftmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
     pub fn austere(&self) -> Formula {
         let mut out = self.clone();
         out.to_austere();
         out
     }
 
+    /// As .austere() but mutates the Formula instead.
     pub fn to_austere(&mut self) {
         let vars = {
             let mut v = IndexSet::new();
