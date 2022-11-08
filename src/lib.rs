@@ -1,7 +1,7 @@
 pub mod deduction;
 pub use deduction::Deduction;
 pub mod formula;
-pub use formula::{and, eq, exists, forall, implies, not, or, Formula, PEANO};
+pub use formula::{Formula, PEANO};
 pub mod term;
 pub use term::{prod, succ, sum, Term, ONE, ZERO};
 pub mod logic_errors;

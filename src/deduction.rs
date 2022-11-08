@@ -1,13 +1,12 @@
 use indexmap::IndexSet;
 use num::BigUint;
 use std::{
-    collections::HashSet,
     fs::File,
     io::{Error, Write},
     slice::Iter,
 };
 
-use crate::{exists, implies, production::*, Formula, LogicError, Term, PEANO};
+use crate::{production::*, Formula, LogicError, Term, PEANO};
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Rule {
@@ -284,7 +283,7 @@ impl Deduction {
     /// Push a new theorem that adds universal quantification of var in theorem n.
     pub fn generalization(&mut self, n: usize, var_name: &'static str) -> Result<(), LogicError> {
         if self.depth() != 0 {
-            let mut free_vars = HashSet::<String>::new();
+            let mut free_vars = IndexSet::<String>::new();
             self.get_theorem(self.scope_cur)?
                 .get_vars_free(&mut free_vars);
             if free_vars.contains(&var_name.to_string()) {
@@ -303,7 +302,7 @@ impl Deduction {
 
     /// Push a new theorem that adds existence quantification of var in theorem n.
     pub fn existence(&mut self, n: usize, var_name: &str) -> Result<(), LogicError> {
-        let t = exists(var_name, &self.theorems[n].formula.clone());
+        let t = Formula::exists(var_name, &self.theorems[n].formula.clone());
         let r = format!("existence of {var_name} in theorem {n}");
         self.push_new(t, r, Rule::Existence);
         Ok(())
@@ -379,7 +378,7 @@ impl Deduction {
     /// End a supposition and push a new theorem that the premise of the supposition implies the final theorem of the supposition.
     pub fn implication(&mut self) -> Result<(), LogicError> {
         // Create the formula and annotation
-        let t = implies(self.get_theorem(self.scope_cur)?, self.get_last_theorem());
+        let t = Formula::implies(self.get_theorem(self.scope_cur)?, self.get_last_theorem());
         let r = format!(
             "implication of theorem {} and theorem {}",
             self.scope_cur, self.index

@@ -6,7 +6,6 @@ use lazy_static::lazy_static;
 use num::BigUint;
 use std::str::from_utf8;
 use std::{
-    collections::HashSet,
     convert::TryFrom,
     fmt::{self, Display, Formatter},
 };
@@ -48,15 +47,18 @@ pub enum Formula {
 }
 
 impl Formula {
+    /// Return a String explaining the Formula in English.
     pub fn to_english(&self) -> String {
         match self {
             Self::Equality(l, r) => format!("{} = {}", l.pretty_string(), r.pretty_string()),
-            Self::Universal(var, inner) => format!("for all {var}, {inner}"),
-            Self::Existential(var, inner) => format!("there exists {var} such that {inner}"),
-            Self::Negation(inner) => format!("it is false that {inner}"),
-            Self::And(l, r) => format!("[{l} and {r}]"),
-            Self::Or(l, r) => format!("[{l} or {r}]"),
-            Self::Implies(l, r) => format!("[{l} implies {r}]"),
+            Self::Universal(var, inner) => format!("for all {var}, {}", inner.to_english()),
+            Self::Existential(var, inner) => {
+                format!("there exists {var} such that {}", inner.to_english())
+            }
+            Self::Negation(inner) => format!("it is false that {}", inner.to_english()),
+            Self::And(l, r) => format!("[{} and {}]", l.to_english(), r.to_english()),
+            Self::Or(l, r) => format!("[{} or {}]", l.to_english(), r.to_english()),
+            Self::Implies(l, r) => format!("[{} implies {}]", l.to_english(), r.to_english()),
         }
     }
 
@@ -97,31 +99,31 @@ impl Formula {
         }
     }
 
-    pub fn interchange(&mut self, n: usize) -> usize {
-        if let Some((v, f)) = self.is_forall_not() {
-            if n == 0 {
-                *self = Self::Negation(Box::new(Self::Existential(v, Box::new(f))));
-                return n;
-            }
-        }
-        if let Some((v, f)) = self.is_not_exists() {
-            if n == 0 {
-                *self = Self::Universal(v, Box::new(Self::Negation(Box::new(f))));
-                return n;
-            }
-        }
+    // pub fn interchange(&mut self, n: usize) -> usize {
+    //     if let Some((v, f)) = self.is_forall_not() {
+    //         if n == 0 {
+    //             *self = Self::Negation(Box::new(Self::Existential(v, Box::new(f))));
+    //             return n;
+    //         }
+    //     }
+    //     if let Some((v, f)) = self.is_not_exists() {
+    //         if n == 0 {
+    //             *self = Self::Universal(v, Box::new(Self::Negation(Box::new(f))));
+    //             return n;
+    //         }
+    //     }
 
-        match self {
-            Formula::Equality(_, _) => n,
-            Formula::Universal(_, f) => f.interchange(n - 1),
-            Formula::Existential(_, f) => f.interchange(n - 1),
-            Formula::Negation(f) => f.interchange(n),
-            Formula::And(lhs, rhs) | Formula::Or(lhs, rhs) | Formula::Implies(lhs, rhs) => {
-                let n = lhs.interchange(n);
-                rhs.interchange(n)
-            }
-        }
-    }
+    //     match self {
+    //         Formula::Equality(_, _) => n,
+    //         Formula::Universal(_, f) => f.interchange(n - 1),
+    //         Formula::Existential(_, f) => f.interchange(n - 1),
+    //         Formula::Negation(f) => f.interchange(n),
+    //         Formula::And(lhs, rhs) | Formula::Or(lhs, rhs) | Formula::Implies(lhs, rhs) => {
+    //             let n = lhs.interchange(n);
+    //             rhs.interchange(n)
+    //         }
+    //     }
+    // }
 
     /// Replace all free instances of the named Term::Variable with a Term
     pub(crate) fn replace_free<S: ToString>(&mut self, var_name: &S, term: &Term) {
@@ -189,7 +191,7 @@ impl Formula {
         }
     }
 
-    pub fn get_vars_free(&self, var_names: &mut HashSet<String>) {
+    pub fn get_vars_free(&self, var_names: &mut IndexSet<String>) {
         let mut all_v = IndexSet::<String>::new();
         let mut bound_v = IndexSet::<String>::new();
         self.get_vars(&mut all_v);
@@ -333,6 +335,51 @@ impl Formula {
         let s = self.austere().to_string();
         BigUint::from_bytes_be(s.as_bytes())
     }
+
+    // These are guaranteed to produce well-formed formulas of TNT. However they may produce false statements.
+
+    /// Equality of two Terms
+    pub fn eq(lhs: &Term, rhs: &Term) -> Formula {
+        Formula::Equality(lhs.clone(), rhs.clone())
+    }
+
+    /// Negation of a Formula
+    pub fn not(formula: &Formula) -> Formula {
+        Formula::Negation(Box::new(formula.clone()))
+    }
+
+    /// Logical OR of two Formulas
+    pub fn or(lhs: &Formula, rhs: &Formula) -> Formula {
+        Formula::Or(Box::new(lhs.clone()), Box::new(rhs.clone()))
+    }
+
+    /// Logical AND of two Formulas
+    pub fn and(lhs: &Formula, rhs: &Formula) -> Formula {
+        Formula::And(Box::new(lhs.clone()), Box::new(rhs.clone()))
+    }
+
+    /// lhs Formula implies rhs Formula
+    pub fn implies(lhs: &Formula, rhs: &Formula) -> Formula {
+        Formula::Implies(Box::new(lhs.clone()), Box::new(rhs.clone()))
+    }
+
+    /// Assert some values for a Variable with the given name makes the Formula true
+    pub fn exists<S: ToString>(var_name: S, formula: &Formula) -> Formula {
+        if VARIABLE_NAME.is_match(&var_name.to_string()) {
+            Formula::Existential(var_name.to_string(), Box::new(formula.clone()))
+        } else {
+            panic!("invalid Variable name")
+        }
+    }
+
+    /// Assert that all values of a Variable with the given name make the Formula true
+    pub fn forall<S: ToString>(var_name: S, formula: &Formula) -> Formula {
+        if VARIABLE_NAME.is_match(&var_name.to_string()) {
+            Formula::Universal(var_name.to_string(), Box::new(formula.clone()))
+        } else {
+            panic!("invalid Variable name")
+        }
+    }
 }
 
 impl Display for Formula {
@@ -346,51 +393,6 @@ impl Display for Formula {
             Self::Or(lhs, rhs) => write!(f, "[{lhs}|{rhs}]"),
             Self::Implies(lhs, rhs) => write!(f, "[{lhs}>{rhs}]"),
         }
-    }
-}
-
-// These are guaranteed to produce well-formed formulas of TNT. However they may produce false statements.
-
-/// Equality of two Terms
-pub fn eq(lhs: &Term, rhs: &Term) -> Formula {
-    Formula::Equality(lhs.clone(), rhs.clone())
-}
-
-/// Negation of a Formula
-pub fn not(formula: &Formula) -> Formula {
-    Formula::Negation(Box::new(formula.clone()))
-}
-
-/// Logical OR of two Formulas
-pub fn or(lhs: &Formula, rhs: &Formula) -> Formula {
-    Formula::Or(Box::new(lhs.clone()), Box::new(rhs.clone()))
-}
-
-/// Logical AND of two Formulas
-pub fn and(lhs: &Formula, rhs: &Formula) -> Formula {
-    Formula::And(Box::new(lhs.clone()), Box::new(rhs.clone()))
-}
-
-/// lhs Formula implies rhs Formula
-pub fn implies(lhs: &Formula, rhs: &Formula) -> Formula {
-    Formula::Implies(Box::new(lhs.clone()), Box::new(rhs.clone()))
-}
-
-/// Assert some values for a Variable with the given name makes the Formula true
-pub fn exists<S: ToString>(var_name: S, formula: &Formula) -> Formula {
-    if VARIABLE_NAME.is_match(&var_name.to_string()) {
-        Formula::Existential(var_name.to_string(), Box::new(formula.clone()))
-    } else {
-        panic!("invalid Variable name")
-    }
-}
-
-/// Assert that all values of a Variable with the given name make the Formula true
-pub fn forall<S: ToString>(var_name: S, formula: &Formula) -> Formula {
-    if VARIABLE_NAME.is_match(&var_name.to_string()) {
-        Formula::Universal(var_name.to_string(), Box::new(formula.clone()))
-    } else {
-        panic!("invalid Variable name")
     }
 }
 
@@ -431,6 +433,15 @@ impl TryFrom<BigUint> for Formula {
 mod test {
 
     use super::*;
+
+    #[test]
+    fn english() {
+        let f = Formula::try_from("Ea':Aa:[a=a&a'=Sb]").unwrap();
+        assert_eq!(
+            f.to_english(),
+            "there exists a' such that for all a, [a = a and a' = Sb]"
+        )
+    }
 
     #[test]
     fn austere() {

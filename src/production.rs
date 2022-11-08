@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 use indexmap::IndexSet;
 
 use crate::logic_errors::LogicError;
-use crate::{eq, exists, forall, implies, succ, Formula, Term, ZERO};
+use crate::{succ, Formula, Term, ZERO};
 
 /// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
 /// ```
@@ -48,16 +48,14 @@ pub fn specification(
 
 /// In a given Formula with some Variable not quantified, universally quantify that variable. This is additionally restricted within the Deduction struct.
 /// ```
-/// use tnt::terms::{Variable,Number,Term};
-/// use tnt::formula::Formula;
-/// use tnt::operations::production::generalization;
-/// let a = &Variable::new("a");
+/// use tnt::{Term,Formula,generalization};
+/// let a = "a";
 /// let f = &Formula::try_from("Ea':[a=a&a'=a']");
-/// generalization(f,a); // Ea':Aa:[a=a&a'=a']
+/// generalization(f,a); // Aa:Ea':[a=a&a'=a']
 /// ```
 pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
     if !formula.contains_var_bound(&var_name) {
-        Ok(forall(var_name, formula))
+        Ok(Formula::forall(var_name, formula))
     } else {
         Err(LogicError::new(format!(
             "Generalization Error: The there is a Term::Variable with the name `{}` is already bound in the Formula `{}`",
@@ -77,7 +75,7 @@ pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formu
 /// ```
 pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
     if !formula.contains_var_bound(&var_name) {
-        Ok(exists(var_name, formula))
+        Ok(Formula::exists(var_name, formula))
     } else {
         Err(LogicError::new(format!(
             "Existence Error: The there is a Term::Variable with the name `{}` is already bound in the Formula `{}`",
@@ -221,14 +219,17 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
     let successor_of_var = succ(&Term::var(var_name));
     let mut formula_succ = left_implication.clone();
     formula_succ.replace_free(&var_name, &successor_of_var);
-    let correct_general = forall(var_name, &implies(&left_implication, &formula_succ));
+    let correct_general = Formula::forall(
+        var_name,
+        &Formula::implies(&left_implication, &formula_succ),
+    );
     if &correct_general != general {
         return Err(LogicError(format!(
             "Induction Error: The general case should be `{correct_general}` but the general case provided is actually `{general}`" 
         )));
     }
 
-    Ok(forall(var_name, &left_implication))
+    Ok(Formula::forall(var_name, &left_implication))
 }
 
 // pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Formula, LogicError> {
@@ -267,7 +268,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 /// ```
 pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
     if let Formula::Equality(l, r) = formula {
-        Ok(eq(&succ(&l), &succ(&r)))
+        Ok(Formula::eq(&succ(&l), &succ(&r)))
     } else {
         Err(LogicError(format!(
             "Successor Error: {} is not a Formula::Equality",
@@ -285,7 +286,7 @@ pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
 pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
     if let Formula::Equality(l, r) = formula {
         match (l, r) {
-            (Term::Successor(pl), Term::Successor(pr)) => Ok(eq(&pl, &pr)),
+            (Term::Successor(pl), Term::Successor(pr)) => Ok(Formula::eq(&pl, &pr)),
             _ => Err(LogicError(format!(
                 "Predecessor Error: {} does not have Term::Succ on both sides",
                 formula
@@ -307,7 +308,7 @@ pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
 /// ```
 pub fn symmetry(formula: &Formula) -> Result<Formula, LogicError> {
     if let Formula::Equality(l, r) = formula {
-        Ok(eq(&r, &l))
+        Ok(Formula::eq(&r, &l))
     } else {
         Err(LogicError(format!(
             "Symmetry Error: {} is not a Formula::Equality",
@@ -330,7 +331,7 @@ pub fn transitivity(
     match (left_formula, right_formula) {
         (Formula::Equality(left_l, left_r), Formula::Equality(right_l, right_r)) => {
             if left_r == right_l {
-                return Ok(eq(left_l, right_r));
+                return Ok(Formula::eq(left_l, right_r));
             } else {
                 return Err(LogicError(format!(
                     "Transitivity Error: the terms `{}` and `{}` do not match",
