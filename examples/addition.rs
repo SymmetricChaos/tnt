@@ -13,7 +13,7 @@ fn main() -> Result<(), LogicError> {
     d.successor(4)?;
     d.transitivity(2, 5)?;
 
-    d.pretty_print();
+    println!("{}", d.pretty_string());
 
     //println!("{}", d.arithmetize());
 

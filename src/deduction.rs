@@ -165,25 +165,21 @@ impl Deduction {
         self.theorems.iter()
     }
 
-    /// Print the Deduction as a nicely formatted as an ASCII representation.
-    pub fn pretty_print(&self) {
-        println!("{}", self.pretty_string());
-    }
-
+    /// Write the Deduction.
     pub fn pretty_string(&self) -> String {
         let mut out = String::new();
         let mut prev_depth = 0;
         for (pos, t) in self.theorems.iter().enumerate() {
             if t.depth > prev_depth {
-                let begin = format!("{}begin supposition", "   ".repeat(prev_depth));
+                let begin = format!("\n{}begin supposition", "   ".repeat(prev_depth));
                 out.push_str(&begin);
             } else if t.depth < prev_depth {
-                let end = format!("{}end supposition", "   ".repeat(t.depth));
+                let end = format!("\n{}end supposition", "   ".repeat(t.depth));
                 out.push_str(&end);
             } else {
             }
             let line = format!(
-                "{}{}) {}",
+                "\n{}{}) {}",
                 "   ".repeat(t.depth),
                 pos,
                 t.formula.to_string()
@@ -245,7 +241,7 @@ impl Deduction {
         let mut out = String::new();
         for t in self.theorems.iter() {
             out.push_str(&format!(
-                "{}) {} [{}]",
+                "\n{}) {} [{}]",
                 t.position,
                 t.formula.to_english(),
                 t.annotation

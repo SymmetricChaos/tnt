@@ -29,13 +29,13 @@ fn main() -> Result<(), LogicError> {
         is_prime.to_english()
     );
 
-    println!("A few more statements equivalent to some property of the variable a:");
-    let is_pow_two = Formula::try_from("Ab:[Ec:(b*c)=a>Ed:(d*SS0)=b]")?;
-    let is_square = Formula::try_from("Eb:(b*b)=a")?;
-    let is_factorial = Formula::try_from("Ab:[~Ec:(b+Sc)>Ed:(b*d)=a]")?;
-    println!("\n{}", is_pow_two);
-    println!("\n{}", is_square);
-    println!("\n{}", is_factorial);
+    // println!("A few more statements equivalent to some property of the variable a:");
+    // let is_pow_two = Formula::try_from("Ab:[Ec:(b*c)=a>Ed:(d*SS0)=b]")?;
+    // let is_square = Formula::try_from("Eb:(b*b)=a")?;
+    // let is_factorial = Formula::try_from("Ab:[~Ec:(b+Sc)>Ed:(b*d)=a]")?;
+    // println!("\n{}", is_pow_two);
+    // println!("\n{}", is_square);
+    // println!("\n{}", is_factorial);
 
     Ok(())
 }
