@@ -9,10 +9,8 @@ use crate::{Formula, Term, ZERO};
 
 /// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
 /// ```
-/// use tnt::terms::Term;
-/// use tnt::formula::Formula;
-/// use tnt::operations::production::specification;
-/// let a = &Term::var("a");
+/// use tnt::{Term, Formula, specification};W
+/// let a = "a";
 /// let n = &Term::try_from("SS0").unwrap();
 /// let f = &Formula::try_from("Ea':Aa:[a=a&a'=a']").unwrap();
 /// specification(f,a,n); // Ea':[SS0=SS0&a'=a']
@@ -66,10 +64,8 @@ pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formu
 
 /// In a given Formula with some Variable not quantified, existentially quantify that variable.
 /// ```
-/// use tnt::terms::{Variable,Number,Term};
-/// use tnt::formula::Formula;
-/// use tnt::operations::production::existence;
-/// let a = "a");
+/// use tnt::{Formula,existence}
+/// let a = "a";
 /// let f = &Formula::try_from("Ea':[a=a&a'=a']");
 /// existence(f,a); // Ea':Ea:[a=a&a'=a']
 /// ```
@@ -86,8 +82,7 @@ pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, L
 
 /// In a given Formula change the nth occurrence of the quantification ~E<var_name>: to A<var_name>:~
 /// ```
-/// use tnt::{Term,Fomula};
-/// use tnt::production::interchange_ea;
+/// use tnt::{Term,Fomula,interchange_ea};
 /// let b = "b";
 /// let f = &Formula::try_from("~Eb:[a=b|Sa=b]").unwrap();
 /// interchange_ea(f,b,0); // Ab:~[a=b&Sa=b]
@@ -126,8 +121,7 @@ pub fn interchange_ea(
 
 /// In a given Formula change the nth occurrence of the quantification A<var_name>:~ to ~E<var_name>:
 /// ```
-/// use tnt::{Term,Fomula};
-/// use tnt::production::interchange_ae;
+/// use tnt::{Term,Fomula,interchange_ae};
 /// let b = "b";
 /// let f = &Formula::try_from("Ab:~[a=b|Sa=b]");
 /// interchange_ae(f,b,0); // ~Eb:[a=b|Sa=b]
