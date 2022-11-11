@@ -9,7 +9,9 @@ use crate::{Formula, Term, ZERO};
 
 /// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
 /// ```
-/// use tnt::{Term, Formula, specification};W
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::specification;
 /// let a = "a";
 /// let n = &Term::try_from("SS0").unwrap();
 /// let f = &Formula::try_from("Ea':Aa:[a=a&a'=a']").unwrap();
@@ -46,12 +48,14 @@ pub fn specification(
 
 /// In a given Formula with some Variable not quantified, universally quantify that variable. This is additionally restricted within the Deduction struct.
 /// ```
-/// use tnt::{Term,Formula,generalization};
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::generalization;
 /// let a = "a";
-/// let f = &Formula::try_from("Ea':[a=a&a'=a']");
+/// let f = &Formula::try_from("Ea':[a=a&a'=a']").unwrap();
 /// generalization(f,a); // Aa:Ea':[a=a&a'=a']
 /// ```
-pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
+pub fn generalization(formula: &Formula, var_name: &str) -> Result<Formula, LogicError> {
     if !formula.contains_var_bound(&var_name) {
         Ok(Formula::forall(var_name, formula))
     } else {
@@ -64,12 +68,14 @@ pub fn generalization(formula: &Formula, var_name: &'static str) -> Result<Formu
 
 /// In a given Formula with some Variable not quantified, existentially quantify that variable.
 /// ```
-/// use tnt::{Formula,existence}
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::existence;
 /// let a = "a";
-/// let f = &Formula::try_from("Ea':[a=a&a'=a']");
+/// let f = &Formula::try_from("Ea':[a=a&a'=a']").unwrap();
 /// existence(f,a); // Ea':Ea:[a=a&a'=a']
 /// ```
-pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, LogicError> {
+pub fn existence(formula: &Formula, var_name: &str) -> Result<Formula, LogicError> {
     if !formula.contains_var_bound(&var_name) {
         Ok(Formula::exists(var_name, formula))
     } else {
@@ -82,7 +88,9 @@ pub fn existence(formula: &Formula, var_name: &'static str) -> Result<Formula, L
 
 /// In a given Formula change the nth occurrence of the quantification ~E<var_name>: to A<var_name>:~
 /// ```
-/// use tnt::{Term,Fomula,interchange_ea};
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::interchange_ea;
 /// let b = "b";
 /// let f = &Formula::try_from("~Eb:[a=b|Sa=b]").unwrap();
 /// interchange_ea(f,b,0); // Ab:~[a=b&Sa=b]
@@ -121,9 +129,11 @@ pub fn interchange_ea(
 
 /// In a given Formula change the nth occurrence of the quantification A<var_name>:~ to ~E<var_name>:
 /// ```
-/// use tnt::{Term,Fomula,interchange_ae};
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::interchange_ae;
 /// let b = "b";
-/// let f = &Formula::try_from("Ab:~[a=b|Sa=b]");
+/// let f = &Formula::try_from("Ab:~[a=b|Sa=b]").unwrap();
 /// interchange_ae(f,b,0); // ~Eb:[a=b|Sa=b]
 /// ```
 pub fn interchange_ae(
@@ -160,7 +170,9 @@ pub fn interchange_ae(
 
 /// Perform induction.
 /// ```
-
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::induction;
 /// ```
 pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Formula, LogicError> {
     // If the variable name requested doesn't exist in the general case then we can stop immediately.
@@ -256,7 +268,9 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 
 /// Given a Formula::Equality return the successor of both sides
 /// ```
-/// use tnt::{Formula,successor};
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::successor;
 /// let f = &Formula::try_from("a=b").unwrap();
 /// successor(f); // Sa=Sb
 /// ```
@@ -274,7 +288,7 @@ pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
 /// Given a Formula::Equality return the predecessor of both sides
 /// ```
 /// use tnt::{Formula,predecessor};
-/// let f = &Formula::try_from("Sa=Sb");
+/// let f = &Formula::try_from("Sa=Sb").unwrap();
 /// predecessor(f); // a=b
 /// ```
 pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
@@ -296,8 +310,10 @@ pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
 
 /// Given a Formula::Equality flip the two sides of the equality
 /// ```
-/// use tnt::{Formula,symmetry};
-/// let f = &Formula::try_from("SSa=Sb'");
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::symmetry;
+/// let f = &Formula::try_from("SSa=Sb'").unwrap();
 /// symmetry(f); // Sb'=SSa
 /// ```
 pub fn symmetry(formula: &Formula) -> Result<Formula, LogicError> {
@@ -313,9 +329,11 @@ pub fn symmetry(formula: &Formula) -> Result<Formula, LogicError> {
 
 /// Given two Formula::Equality where the right side of the first matches the left side of the second return the Formula that is the equality of their left and right
 /// ```
-/// use tnt::{Formula,transitivity};
-/// let f1 = &Formula::try_from("SSa=Sb'");
-/// let f2 = &Formula::try_from("Sb'=(1+1)");
+/// # use tnt::{Term, Formula};
+/// # use std::convert::TryFrom;
+/// # use tnt::transitivity;
+/// let f1 = &Formula::try_from("SSa=Sb'").unwrap();
+/// let f2 = &Formula::try_from("Sb'=(1+1)").unwrap();
 /// transitivity(f1,f2); // SSa=(1+1)
 /// ```
 pub fn transitivity(
