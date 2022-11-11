@@ -1,16 +1,16 @@
 use pest::{iterators::Pair, Parser};
 
-use crate::{formula::Formula, term::Term};
+use crate::{Formula, Term};
 
 #[derive(Parser)]
 #[grammar = "parsing\\tnt.pest"]
 pub struct TntParser;
 
-pub fn print_parse_tree(text: &str, rule: Rule) -> Result<(), pest::error::Error<Rule>> {
-    let tree = TntParser::parse(rule, text)?;
-    println!("{:#?}", tree);
-    Ok(())
-}
+// fn print_parse_tree(text: &str, rule: Rule) -> Result<(), pest::error::Error<Rule>> {
+//     let tree = TntParser::parse(rule, text)?;
+//     println!("{:#?}", tree);
+//     Ok(())
+// }
 
 pub fn string_to_formula(text: &str) -> Result<Formula, pest::error::Error<Rule>> {
     let mut tree = TntParser::parse(Rule::formula, text)?;

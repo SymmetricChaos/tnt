@@ -25,3 +25,5 @@ variable = { ASCII_ALPHA_LOWER ~ "'"* }
 addition = { "(" ~ term ~ "+" ~ term ~ ")" }
 multiplication = { "(" ~ term ~ ("*"|"×"|"·") ~ term ~ ")" }
 successor = { "S" ~ term }
+
+WHITESPACE = _{ " " | NEWLINE }
