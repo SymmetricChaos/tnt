@@ -76,7 +76,7 @@ fn main() -> Result<(), LogicError> {
 
     assert_eq!(e.last_theorem().formula, *t);
 
-    // e.pretty_print();
+    println!("{}", e.pretty_string());
 
     // match e.latex_file("commutativity") {
     //     Ok(_) => println!("\nSuccessfully created .tex file!"),

@@ -464,4 +464,11 @@ mod test {
         let t1 = Formula::try_from("Aa:[Ea':(Sa+Sa')=S(a'*a)|Ea'':SSS0=(Sa''*Sa')]").unwrap();
         assert_eq!(t0, t1);
     }
+
+    #[test]
+    fn from_big_uint() {
+        let t0 = Formula::try_from("Ea:Aa':[a'=a'&a=Sa'']").unwrap();
+        let t1 = Formula::try_from(t0.arithmetize()).unwrap();
+        assert_eq!(t0, t1);
+    }
 }

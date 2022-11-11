@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 use indexmap::IndexSet;
 
 use crate::logic_errors::LogicError;
-use crate::{succ, Formula, Term, ZERO};
+use crate::{Formula, Term, ZERO};
 
 /// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
 /// ```
@@ -216,7 +216,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
     }
 
     // The implication of the general case must be that the left side implies that the variable can be replaced with its successor everywhere and still be true
-    let successor_of_var = succ(&Term::var(var_name));
+    let successor_of_var = Term::succ(&Term::var(var_name));
     let mut formula_succ = left_implication.clone();
     formula_succ.replace_free(&var_name, &successor_of_var);
     let correct_general = Formula::forall(
@@ -268,7 +268,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 /// ```
 pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
     if let Formula::Equality(l, r) = formula {
-        Ok(Formula::eq(&succ(&l), &succ(&r)))
+        Ok(Formula::eq(&Term::succ(&l), &Term::succ(&r)))
     } else {
         Err(LogicError(format!(
             "Successor Error: {} is not a Formula::Equality",

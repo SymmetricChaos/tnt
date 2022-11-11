@@ -16,18 +16,6 @@ lazy_static! {
     pub static ref VARIABLE_NAME: Regex = Regex::new("[a-z]\'*").unwrap();
 }
 
-pub fn succ(term: &Term) -> Term {
-    Term::Successor(Box::new(term.clone()))
-}
-
-pub fn sum(lhs: &Term, rhs: &Term) -> Term {
-    Term::Sum(Box::new(lhs.clone()), Box::new(rhs.clone()))
-}
-
-pub fn prod(lhs: &Term, rhs: &Term) -> Term {
-    Term::Product(Box::new(lhs.clone()), Box::new(rhs.clone()))
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Term {
     Zero,
@@ -186,6 +174,18 @@ impl Term {
     pub fn arithmetize(&self) -> BigUint {
         let s = self.clone().austere().to_string();
         BigUint::from_bytes_be(s.as_bytes())
+    }
+
+    pub fn succ(term: &Term) -> Term {
+        Term::Successor(Box::new(term.clone()))
+    }
+
+    pub fn sum(lhs: &Term, rhs: &Term) -> Term {
+        Term::Sum(Box::new(lhs.clone()), Box::new(rhs.clone()))
+    }
+
+    pub fn prod(lhs: &Term, rhs: &Term) -> Term {
+        Term::Product(Box::new(lhs.clone()), Box::new(rhs.clone()))
     }
 }
 
