@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 use indexmap::IndexSet;
 
 use crate::logic_errors::LogicError;
-use crate::{Formula, Term, ZERO};
+use crate::{Formula, Term};
 
 /// In a given Formula with some Variable universally quantified remove the quantification and change the Variable to some Term
 /// ```
@@ -214,7 +214,7 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 
     // The left side of the implication when the variable is replaced with Zero should match the base case.
     let mut formula_zero = left_implication.clone();
-    formula_zero.replace_free(&var_name, &ZERO);
+    formula_zero.replace_free(&var_name, &Term::Zero);
     if &formula_zero != base {
         return Err(LogicError(format!(
             "Induction Error: The base case `{base}` is not of the same form as `{left_implication}`, which is the left side of the general case `{general}`" 
@@ -294,7 +294,9 @@ pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
 pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
     if let Formula::Equality(l, r) = formula {
         match (l, r) {
-            (Term::Successor(pl), Term::Successor(pr)) => Ok(Formula::eq(&pl, &pr)),
+            (Term::Successor(pl), Term::Successor(pr)) => {
+                Ok(Formula::eq(&pl.borrow(), &pr.borrow()))
+            }
             _ => Err(LogicError(format!(
                 "Predecessor Error: {} does not have Term::Succ on both sides",
                 formula
@@ -363,8 +365,6 @@ pub fn transitivity(
 #[cfg(test)]
 mod test {
 
-    use crate::ONE;
-
     use super::*;
 
     #[test]
@@ -372,9 +372,12 @@ mod test {
         let a = "a";
         let formula1 = &Formula::try_from("Aa:a=a").unwrap();
         let formula2 = &Formula::try_from("Ea':Aa:[a=a&a'=a']").unwrap();
-        assert_eq!(specification(formula1, a, &ONE)?.to_string(), "S0=S0");
         assert_eq!(
-            specification(formula2, a, &ONE)?.to_string(),
+            specification(formula1, a, &Term::one())?.to_string(),
+            "S0=S0"
+        );
+        assert_eq!(
+            specification(formula2, a, &Term::one())?.to_string(),
             "Ea':[S0=S0&a'=a']"
         );
         Ok(())
@@ -395,7 +398,7 @@ mod test {
     fn test_specification_err1() {
         let a = "b";
         let formula1 = &Formula::try_from("Aa:a=a").unwrap();
-        assert!(specification(formula1, a, &ONE).is_err());
+        assert!(specification(formula1, a, &Term::one()).is_err());
     }
 
     // #[test]

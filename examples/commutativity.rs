@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use tnt::{Deduction, Formula, LogicError, Term, PEANO, ZERO};
+use tnt::{Deduction, Formula, LogicError, Term};
 
 fn main() -> Result<(), LogicError> {
     let b = &Term::var("b");
@@ -8,11 +8,11 @@ fn main() -> Result<(), LogicError> {
     let d = &Term::var("d");
     let sc = &Term::try_from("Sc")?;
     let sd = &Term::try_from("Sd")?;
-    let zero = &ZERO;
+    let zero = &Term::Zero;
 
     let t = &Formula::try_from("Ad:Ac:(c+d)=(d+c)")?;
-    let mut e = Deduction::new("Prove That Addition Commutes", PEANO.clone());
-    e.add_axiom(&PEANO[2])?; //0
+    let mut e = Deduction::peano("Prove That Addition Commutes");
+    e.add_axiom(2)?; //0
     e.specification(0, "a", d)?; //1
     e.specification(1, "b", sc)?; //2
     e.specification(0, "a", sd)?; //3
@@ -29,7 +29,7 @@ fn main() -> Result<(), LogicError> {
 
     e.generalization(12, "c")?;
     e.specification(1, "b", zero)?;
-    e.add_axiom(&PEANO[1])?;
+    e.add_axiom(1)?;
     e.specification(15, "a", d)?;
     e.successor(16)?;
     e.transitivity(14, 17)?;

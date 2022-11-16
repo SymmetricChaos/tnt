@@ -30,24 +30,18 @@ pub fn build_term_tree(pair: Pair<Rule>) -> Term {
             let mut t = pair.into_inner();
             let lhs = t.next().unwrap();
             let rhs = t.next().unwrap();
-            Term::Product(
-                Box::new(build_term_tree(lhs)),
-                Box::new(build_term_tree(rhs)),
-            )
+            Term::prod(&build_term_tree(lhs), &build_term_tree(rhs))
         }
         Rule::addition => {
             let mut t = pair.into_inner();
             let lhs = t.next().unwrap();
             let rhs = t.next().unwrap();
-            Term::Sum(
-                Box::new(build_term_tree(lhs)),
-                Box::new(build_term_tree(rhs)),
-            )
+            Term::sum(&build_term_tree(lhs), &build_term_tree(rhs))
         }
         Rule::successor => {
             let mut t = pair.into_inner();
             let term = t.next().unwrap();
-            Term::Successor(Box::new(build_term_tree(term)))
+            Term::succ(&build_term_tree(term))
         }
         _ => unreachable!("input to build_term_tree was not a term"),
     }
@@ -59,51 +53,42 @@ pub fn build_formula_tree(pair: Pair<Rule>) -> Formula {
             let mut t = pair.into_inner();
             let v = t.next().unwrap();
             let form = t.next().unwrap();
-            Formula::Existential(v.as_str().to_owned(), Box::new(build_formula_tree(form)))
+            Formula::exists(v.as_str().to_owned(), &build_formula_tree(form))
         }
         Rule::universal => {
             let mut t = pair.into_inner();
             let v = t.next().unwrap();
             let form = t.next().unwrap();
-            Formula::Universal(v.as_str().to_owned(), Box::new(build_formula_tree(form)))
+            Formula::forall(v.as_str().to_owned(), &build_formula_tree(form))
         }
         Rule::equality => {
             let mut t = pair.into_inner();
             let lhs = t.next().unwrap();
             let rhs = t.next().unwrap();
-            Formula::Equality(build_term_tree(lhs), build_term_tree(rhs))
+            Formula::eq(&build_term_tree(lhs), &build_term_tree(rhs))
         }
         Rule::and => {
             let mut t = pair.into_inner();
             let lhs = t.next().unwrap();
             let rhs = t.next().unwrap();
-            Formula::And(
-                Box::new(build_formula_tree(lhs)),
-                Box::new(build_formula_tree(rhs)),
-            )
+            Formula::and(&build_formula_tree(lhs), &build_formula_tree(rhs))
         }
         Rule::or => {
             let mut t = pair.into_inner();
             let lhs = t.next().unwrap();
             let rhs = t.next().unwrap();
-            Formula::Or(
-                Box::new(build_formula_tree(lhs)),
-                Box::new(build_formula_tree(rhs)),
-            )
+            Formula::or(&build_formula_tree(lhs), &build_formula_tree(rhs))
         }
         Rule::implies => {
             let mut t = pair.into_inner();
             let lhs = t.next().unwrap();
             let rhs = t.next().unwrap();
-            Formula::Implies(
-                Box::new(build_formula_tree(lhs)),
-                Box::new(build_formula_tree(rhs)),
-            )
+            Formula::implies(&build_formula_tree(lhs), &build_formula_tree(rhs))
         }
         Rule::negation => {
             let mut t = pair.into_inner();
             let form = t.next().unwrap();
-            Formula::Negation(Box::new(build_formula_tree(form)))
+            Formula::not(&build_formula_tree(form))
         }
         _ => unreachable!("input to build_formula_tree was not a formula"),
     }

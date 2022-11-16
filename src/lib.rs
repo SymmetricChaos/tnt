@@ -1,9 +1,9 @@
 pub mod deduction;
 pub use deduction::Deduction;
 pub mod formula;
-pub use formula::{Formula, PEANO};
+pub use formula::Formula;
 pub mod term;
-pub use term::{Term, ONE, ZERO};
+pub use term::Term;
 pub mod logic_errors;
 pub use logic_errors::LogicError;
 pub mod production;

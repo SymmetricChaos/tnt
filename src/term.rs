@@ -4,15 +4,15 @@ use indexmap::IndexSet;
 use lazy_static::lazy_static;
 use num::BigUint;
 use regex::Regex;
+use std::cell::RefCell;
 use std::convert::TryFrom;
+use std::rc::Rc;
 use std::{
     fmt::{self, Display, Formatter},
     str::from_utf8,
 };
 
 lazy_static! {
-    pub static ref ZERO: Term = Term::Zero;
-    pub static ref ONE: Term = Term::try_from("S0").unwrap();
     pub static ref VARIABLE_NAME: Regex = Regex::new("[a-z]\'*").unwrap();
 }
 
@@ -20,14 +20,14 @@ lazy_static! {
 pub enum Term {
     Zero,
     Variable(String),
-    Successor(Box<Term>),
-    Sum(Box<Term>, Box<Term>),
-    Product(Box<Term>, Box<Term>),
+    Successor(Rc<RefCell<Term>>),
+    Sum(Rc<RefCell<Term>>, Rc<RefCell<Term>>),
+    Product(Rc<RefCell<Term>>, Rc<RefCell<Term>>),
 }
 
 impl Term {
-    pub fn zero() -> Term {
-        Term::Zero
+    pub fn one() -> Term {
+        Self::succ(&Self::Zero)
     }
 
     pub fn var<S: ToString>(name: S) -> Term {
@@ -42,9 +42,9 @@ impl Term {
         match self {
             Self::Zero => "0".into(),
             Self::Variable(v) => v.into(),
-            Self::Successor(inner) => format!("S{inner}"),
-            Self::Sum(lhs, rhs) => format!("({lhs} + {rhs})"),
-            Self::Product(lhs, rhs) => format!("({lhs} × {rhs})"),
+            Self::Successor(inner) => format!("S{}", inner.borrow()),
+            Self::Sum(lhs, rhs) => format!("({} + {})", lhs.borrow(), rhs.borrow()),
+            Self::Product(lhs, rhs) => format!("({} × {})", lhs.borrow(), rhs.borrow()),
         }
     }
 
@@ -52,9 +52,11 @@ impl Term {
         match self {
             Self::Zero => "0".into(),
             Self::Variable(v) => v.into(),
-            Self::Successor(inner) => format!("S{inner}"),
-            Self::Sum(lhs, rhs) => format!("({lhs} + {rhs})"),
-            Self::Product(lhs, rhs) => format!("({lhs} \\cdot {rhs})"),
+            Self::Successor(inner) => format!("S{}", inner.borrow()),
+            Self::Sum(lhs, rhs) => format!("({} + {})", lhs.borrow(), rhs.borrow()),
+            Self::Product(lhs, rhs) => {
+                format!("({} \\cdot {})", lhs.borrow(), rhs.borrow())
+            }
         }
     }
 
@@ -63,9 +65,13 @@ impl Term {
         match self {
             Self::Zero => false,
             Self::Variable(v) => *v == name.to_string(),
-            Self::Successor(inner) => inner.contains_var(name),
-            Self::Sum(lhs, rhs) => lhs.contains_var(name) || rhs.contains_var(name),
-            Self::Product(lhs, rhs) => lhs.contains_var(name) || rhs.contains_var(name),
+            Self::Successor(inner) => inner.borrow().contains_var(name),
+            Self::Sum(lhs, rhs) => {
+                lhs.borrow().contains_var(name) || rhs.borrow().contains_var(name)
+            }
+            Self::Product(lhs, rhs) => {
+                lhs.borrow().contains_var(name) || rhs.borrow().contains_var(name)
+            }
         }
     }
 
@@ -78,14 +84,14 @@ impl Term {
                     *self = term.clone();
                 }
             }
-            Self::Successor(inner) => inner.replace(name, term),
+            Self::Successor(inner) => inner.borrow_mut().replace(name, term),
             Self::Sum(lhs, rhs) => {
-                lhs.replace(name, term);
-                rhs.replace(name, term);
+                lhs.borrow_mut().replace(name, term);
+                rhs.borrow_mut().replace(name, term);
             }
             Self::Product(lhs, rhs) => {
-                lhs.replace(name, term);
-                rhs.replace(name, term);
+                lhs.borrow_mut().replace(name, term);
+                rhs.borrow_mut().replace(name, term);
             }
         }
     }
@@ -99,14 +105,14 @@ impl Term {
                     *self = Term::Variable(new_name.to_string());
                 }
             }
-            Self::Successor(inner) => inner.rename_var(name, new_name),
+            Self::Successor(inner) => inner.borrow_mut().rename_var(name, new_name),
             Self::Sum(lhs, rhs) => {
-                lhs.rename_var(name, new_name);
-                rhs.rename_var(name, new_name);
+                lhs.borrow_mut().rename_var(name, new_name);
+                rhs.borrow_mut().rename_var(name, new_name);
             }
             Self::Product(lhs, rhs) => {
-                lhs.rename_var(name, new_name);
-                rhs.rename_var(name, new_name);
+                lhs.borrow_mut().rename_var(name, new_name);
+                rhs.borrow_mut().rename_var(name, new_name);
             }
         }
     }
@@ -127,14 +133,14 @@ impl Term {
                     set.insert(v.to_string());
                 }
             }
-            Self::Successor(inner) => inner.get_vars(set),
+            Self::Successor(inner) => inner.borrow().get_vars(set),
             Self::Sum(lhs, rhs) => {
-                lhs.get_vars(set);
-                rhs.get_vars(set);
+                lhs.borrow().get_vars(set);
+                rhs.borrow().get_vars(set);
             }
             Self::Product(lhs, rhs) => {
-                lhs.get_vars(set);
-                rhs.get_vars(set);
+                lhs.borrow().get_vars(set);
+                rhs.borrow().get_vars(set);
             }
         }
     }
@@ -177,15 +183,21 @@ impl Term {
     }
 
     pub fn succ(term: &Term) -> Term {
-        Term::Successor(Box::new(term.clone()))
+        Term::Successor(Rc::new(RefCell::new(term.clone())))
     }
 
     pub fn sum(lhs: &Term, rhs: &Term) -> Term {
-        Term::Sum(Box::new(lhs.clone()), Box::new(rhs.clone()))
+        Term::Sum(
+            Rc::new(RefCell::new(lhs.clone())),
+            Rc::new(RefCell::new(rhs.clone())),
+        )
     }
 
     pub fn prod(lhs: &Term, rhs: &Term) -> Term {
-        Term::Product(Box::new(lhs.clone()), Box::new(rhs.clone()))
+        Term::Product(
+            Rc::new(RefCell::new(lhs.clone())),
+            Rc::new(RefCell::new(rhs.clone())),
+        )
     }
 }
 
@@ -194,9 +206,9 @@ impl Display for Term {
         match self {
             Self::Zero => write!(f, "0"),
             Self::Variable(v) => write!(f, "{}", v),
-            Self::Successor(inner) => write!(f, "S{inner}"),
-            Self::Sum(lhs, rhs) => write!(f, "({lhs}+{rhs})"),
-            Self::Product(lhs, rhs) => write!(f, "({lhs}*{rhs})"),
+            Self::Successor(inner) => write!(f, "S{}", inner.borrow()),
+            Self::Sum(lhs, rhs) => write!(f, "({}+{})", lhs.borrow(), rhs.borrow()),
+            Self::Product(lhs, rhs) => write!(f, "({}*{})", lhs.borrow(), rhs.borrow()),
         }
     }
 }

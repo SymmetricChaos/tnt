@@ -2,38 +2,12 @@ use crate::parsing::parser::string_to_formula;
 use crate::term::VARIABLE_NAME;
 use crate::{LogicError, Term};
 use indexmap::IndexSet;
-use lazy_static::lazy_static;
 use num::BigUint;
 use std::str::from_utf8;
 use std::{
     convert::TryFrom,
     fmt::{self, Display, Formatter},
 };
-
-lazy_static! {
-    /**
-    * These are the axiomatic statements of the TNT formal system, they don't align strictly with the Peano Axioms but they define the same arithmetic properties for addition and multiplication. The axioms are as follows:
-    *
-    * Aa:~Sa=0                  for all a, it is false that (a + 1) is 0
-    *
-    * Aa:(a+0)=a                for all a, (a + 0) = a
-    *
-    * Aa:Ab:(a+Sb)=S(a+b)       for all a and b, (a + (b + 1)) = ((a + b) + 1)
-    *
-    * Aa:(a\*0)=0               for all a, (a × 0) = 0
-    *
-    * Aa:Ab:(a\*Sb)=((a\*b)+a)  for all a and b, (a × (b + 1)) = ((a × b) + a)
-    */
-
-    pub static ref PEANO: Vec<Formula> =
-        vec![
-            Formula::try_from("Aa:~Sa=0").unwrap(),
-            Formula::try_from("Aa:(a+0)=a").unwrap(),
-            Formula::try_from("Aa:Ab:(a+Sb)=S(a+b)").unwrap(),
-            Formula::try_from("Aa:(a*0)=0").unwrap(),
-            Formula::try_from("Aa:Ab:(a*Sb)=((a*b)+a)").unwrap(),
-        ];
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Formula {

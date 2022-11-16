@@ -1,15 +1,17 @@
-use tnt::{Deduction, LogicError, ONE, PEANO, ZERO};
+use tnt::{Deduction, LogicError, Term};
 
 fn main() -> Result<(), LogicError> {
     let a = "a";
     let b = "b";
+    let zero = Term::Zero;
+    let one = Term::one();
 
     let mut d = Deduction::peano("One Plus One Equals Two");
-    d.add_axiom(&PEANO[2])?;
-    d.specification(0, a, &ONE)?;
-    d.specification(1, b, &ZERO)?;
-    d.add_axiom(&PEANO[1])?;
-    d.specification(3, a, &ONE)?;
+    d.add_axiom(2)?;
+    d.specification(0, a, &one)?;
+    d.specification(1, b, &zero)?;
+    d.add_axiom(1)?;
+    d.specification(3, a, &one)?;
     d.successor(4)?;
     d.transitivity(2, 5)?;
 

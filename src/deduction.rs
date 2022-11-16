@@ -1,12 +1,13 @@
 use indexmap::IndexSet;
 use num::BigUint;
 use std::{
+    convert::TryFrom,
     fs::File,
     io::{Error, Write},
     slice::Iter,
 };
 
-use crate::{production::*, Formula, LogicError, Term, PEANO};
+use crate::{production::*, Formula, LogicError, Term};
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Rule {
@@ -82,13 +83,35 @@ impl Deduction {
         }
     }
 
+    /**
+     * These are the axiomatic statements of the TNT formal system, they don't align strictly with the Peano Axioms but they define the same arithmetic properties for addition and multiplication. The axioms are as follows:
+     *
+     * Aa:~Sa=0                  for all a, it is false that (a + 1) is 0
+     *
+     * Aa:(a+0)=a                for all a, (a + 0) = a
+     *
+     * Aa:Ab:(a+Sb)=S(a+b)       for all a and b, (a + (b + 1)) = ((a + b) + 1)
+     *
+     * Aa:(a\*0)=0               for all a, (a × 0) = 0
+     *
+     * Aa:Ab:(a\*Sb)=((a\*b)+a)  for all a and b, (a × (b + 1)) = ((a × b) + a)
+     */
+
     pub fn peano(title: &str) -> Deduction {
+        let peano_axioms = vec![
+            Formula::try_from("Aa:~Sa=0").unwrap(),
+            Formula::try_from("Aa:(a+0)=a").unwrap(),
+            Formula::try_from("Aa:Ab:(a+Sb)=S(a+b)").unwrap(),
+            Formula::try_from("Aa:(a*0)=0").unwrap(),
+            Formula::try_from("Aa:Ab:(a*Sb)=((a*b)+a)").unwrap(),
+        ];
+
         Deduction {
             index: 0,
             scope_stack: vec![0],
             scope_cur: 0,
             title: title.to_string(),
-            axioms: PEANO.clone(),
+            axioms: peano_axioms,
             theorems: Vec::<TheoremFrame>::new(),
         }
     }
@@ -252,15 +275,15 @@ impl Deduction {
 
     // Logical methods
     /// Push any axiom of the Deduction system into the theorems.
-    pub fn add_axiom(&mut self, premise: &Formula) -> Result<(), LogicError> {
-        if self.axioms.contains(&premise) {
-            self.push_new(premise.clone(), "axiom".to_string(), Rule::Axiom);
+    pub fn add_axiom(&mut self, premise: usize) -> Result<(), LogicError> {
+        if let Some(axiom) = self.axioms.get(premise) {
+            self.push_new(axiom.clone(), "axiom".to_string(), Rule::Axiom);
+            Ok(())
         } else {
-            return Err(LogicError(format!(
-                "Axiom Error: {premise} is not a known axiom"
-            )));
+            Err(LogicError(format!(
+                "Axiom Error: there is no axiom #{premise}"
+            )))
         }
-        Ok(())
     }
 
     /// Push a new theorem which replaces var with the provided Term in theorem n.
