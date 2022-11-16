@@ -152,6 +152,7 @@ impl Term {
         out
     }
 
+    /// Mutate the Term into its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
     pub fn to_austere(&mut self) {
         let vars = {
             let mut v = IndexSet::new();
@@ -161,6 +162,7 @@ impl Term {
         self.to_austere_with(&vars);
     }
 
+    // Produce an austere form with the variables renamed in a specific order. This is used only for creating an austere Deduction.
     pub(crate) fn to_austere_with(&mut self, vars: &IndexSet<String>) {
         let mut mask = String::from("#");
         for v in vars.iter() {
