@@ -294,9 +294,7 @@ pub fn successor(formula: &Formula) -> Result<Formula, LogicError> {
 pub fn predecessor(formula: &Formula) -> Result<Formula, LogicError> {
     if let Formula::Equality(l, r) = formula {
         match (l, r) {
-            (Term::Successor(pl), Term::Successor(pr)) => {
-                Ok(Formula::eq(&pl.borrow(), &pr.borrow()))
-            }
+            (Term::Successor(pl), Term::Successor(pr)) => Ok(Formula::eq(&pl, &pr)),
             _ => Err(LogicError(format!(
                 "Predecessor Error: {} does not have Term::Succ on both sides",
                 formula
