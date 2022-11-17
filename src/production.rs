@@ -1,8 +1,8 @@
 //! Create inferences from other statements of TNT, will return LogicError if constraints are not met.
 
-use std::convert::TryFrom;
-
 use indexmap::IndexSet;
+
+use std::convert::TryFrom;
 
 use crate::logic_errors::LogicError;
 use crate::{Formula, Term};
@@ -237,34 +237,6 @@ pub fn induction(var_name: &str, base: &Formula, general: &Formula) -> Result<Fo
 
     Ok(Formula::forall(var_name, &left_implication))
 }
-
-// pub fn induction(v: &Variable, base: &Formula, general: &Formula) -> Result<Formula, LogicError> {
-//     // The theorem we need to generalize is the outermost, leftmost implication of the general case
-//     let theorem = Formula::try_from(left_implies(&general.to_string()).unwrap());
-//     if get_bound_vars(&theorem.to_string()).contains(&v.to_string()) {
-//         let msg = format!("Induction Error: The Variable `{}` is already bound in the Formula `{}`, which is the left side of the general case `{}`",v,theorem,general);
-//         return Err(LogicError::new(msg));
-//     } else {
-//         let vs = &v.succ();
-//         let xs = theorem.replace_var(v, vs);
-//         let x0 = theorem.replace_var(v, &Number::zero());
-//         if x0.to_string() != base.to_string() {
-//             let msg = format!(
-//                 "Induction Error: The base case must be the Formula `{}`",
-//                 x0
-//             );
-//             return Err(LogicError::new(msg));
-//         }
-//         if general.to_string() != format!("A{}:[{}>{}]", v, theorem, xs) {
-//             let msg = format!(
-//                 "Induction Error: The general case must be the Formula `A{}:[{}>{}]`",
-//                 v, theorem, xs
-//             );
-//             return Err(LogicError::new(msg));
-//         }
-//         return Ok(forall(v, &theorem));
-//     }
-// }
 
 /// Given a Formula::Equality return the successor of both sides
 /// ```

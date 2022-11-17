@@ -6,7 +6,7 @@ fn main() -> Result<(), LogicError> {
     let zero = Term::Zero;
     let one = Term::one();
 
-    let mut d = Deduction::peano("One Plus One Equals Two");
+    let mut d = Deduction::new("One Plus One Equals Two");
     d.add_axiom(2)?;
     d.specification(0, a, &one)?;
     d.specification(1, b, &zero)?;

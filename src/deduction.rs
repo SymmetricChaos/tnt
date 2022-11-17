@@ -9,6 +9,7 @@ use std::{
 
 use crate::{production::*, Formula, LogicError, Term};
 
+/// All the rules of production.
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Rule {
     Axiom,
@@ -72,7 +73,7 @@ pub struct Deduction {
 const NOISY: bool = false;
 
 impl Deduction {
-    pub fn new(title: &str, axioms: Vec<Formula>) -> Deduction {
+    pub fn custom(title: &str, axioms: Vec<Formula>) -> Deduction {
         Deduction {
             index: 0,
             scope_stack: vec![0],
@@ -97,7 +98,7 @@ impl Deduction {
      * Aa:Ab:(a\*Sb)=((a\*b)+a)  for all a and b, (a × (b + 1)) = ((a × b) + a)
      */
 
-    pub fn peano(title: &str) -> Deduction {
+    pub fn new(title: &str) -> Deduction {
         let peano_axioms = vec![
             Formula::try_from("Aa:~Sa=0").unwrap(),
             Formula::try_from("Aa:(a+0)=a").unwrap(),
@@ -133,7 +134,7 @@ impl Deduction {
         &self.theorems.last().unwrap().formula
     }
 
-    // Pushes a new Theorem Frame and updates the index
+    // Pushes a new TheoremFrame and updates the index
     fn push_new(&mut self, theorem: Formula, annotation: String, rule: Rule) {
         if NOISY {
             if rule == Rule::Supposition {
@@ -167,6 +168,7 @@ impl Deduction {
         self.index += 1;
     }
 
+    /// Current depth of the deduction.
     pub fn depth(&self) -> usize {
         if self.theorems.is_empty() {
             0
@@ -175,15 +177,17 @@ impl Deduction {
         }
     }
 
-    /// Access and iterate over theorem frames
+    /// Reference a TheoremFrame.
     pub fn theorem(&self, n: usize) -> &TheoremFrame {
         &self.theorems[n]
     }
 
+    /// Return the last TheoremFrame.
     pub fn last_theorem(&self) -> &TheoremFrame {
         &self.theorems.last().unwrap()
     }
 
+    /// Iterate over TheoremFrames of the Deduction.
     pub fn theorems(&self) -> Iter<TheoremFrame> {
         self.theorems.iter()
     }

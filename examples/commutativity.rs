@@ -11,7 +11,7 @@ fn main() -> Result<(), LogicError> {
     let zero = &Term::Zero;
 
     let t = &Formula::try_from("Ad:Ac:(c+d)=(d+c)")?;
-    let mut e = Deduction::peano("Prove That Addition Commutes");
+    let mut e = Deduction::new("Prove That Addition Commutes");
     e.add_axiom(2)?; //0
     e.specification(0, "a", d)?; //1
     e.specification(1, "b", sc)?; //2
