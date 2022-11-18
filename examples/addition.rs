@@ -3,7 +3,7 @@ use tnt::{Deduction, LogicError, Term};
 fn main() -> Result<(), LogicError> {
     let a = "a";
     let b = "b";
-    let zero = Term::Zero;
+    let zero = Term::zero();
     let one = Term::one();
 
     let mut d = Deduction::new("One Plus One Equals Two");
@@ -15,12 +15,13 @@ fn main() -> Result<(), LogicError> {
     d.successor(4)?;
     d.transitivity(2, 5)?;
 
+    println!("{}", d);
     println!("{}", d.pretty_string());
-
-    //println!("{}", d.arithmetize());
+    println!("{}", d.english_annotated());
+    println!("{}", d.arithmetize());
 
     match d.latex_file("addition") {
-        Ok(_) => println!("\nSuccessfully created .tex file!"),
+        Ok(_) => println!("\nSuccessfully created addition.tex file!"),
         Err(w) => println!("\nError: {}", w),
     };
 
