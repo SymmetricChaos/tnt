@@ -24,6 +24,10 @@ pub enum Term {
 }
 
 impl Term {
+    pub fn zero() -> Term {
+        Self::Zero
+    }
+
     pub fn one() -> Term {
         Self::succ(&Self::Zero)
     }

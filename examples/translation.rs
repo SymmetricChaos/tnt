@@ -14,9 +14,9 @@ fn main() -> Result<(), LogicError> {
     d.successor(4)?;
     d.transitivity(2, 5)?;
 
+    println!("{}", d);
     println!("{}", d.pretty_string());
-    println!("{}", d.english());
-
+    println!("{}", d.english_annotated());
     println!("{}", d.arithmetize());
 
     Ok(())

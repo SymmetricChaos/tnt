@@ -39,13 +39,17 @@ impl Formula {
     /// Display the Formula with Unicode symbols and spaces.
     pub fn pretty_string(&self) -> String {
         match self {
-            Self::Equality(lhs, rhs) => format!("{lhs} = {rhs}"),
-            Self::Universal(name, formula) => format!("∀{name}:{formula}"),
-            Self::Existential(name, formula) => format!("∃{name}:{formula}"),
-            Self::Negation(formula) => format!("¬{formula}"),
-            Self::And(lhs, rhs) => format!("[{lhs} ∧ {rhs}]"),
-            Self::Or(lhs, rhs) => format!("[{lhs} ∨ {rhs}]"),
-            Self::Implies(lhs, rhs) => format!("[{lhs} ⇒ {rhs}]"),
+            Self::Equality(lhs, rhs) => {
+                format!("{} = {}", lhs.pretty_string(), rhs.pretty_string())
+            }
+            Self::Universal(name, formula) => format!("∀{name}:{}", formula.pretty_string()),
+            Self::Existential(name, formula) => format!("∃{name}:{}", formula.pretty_string()),
+            Self::Negation(formula) => format!("¬{}", formula.pretty_string()),
+            Self::And(lhs, rhs) => format!("[{} ∧ {}]", lhs.pretty_string(), rhs.pretty_string()),
+            Self::Or(lhs, rhs) => format!("[{} ∨ {}]", lhs.pretty_string(), rhs.pretty_string()),
+            Self::Implies(lhs, rhs) => {
+                format!("[{} ⇒ {}]", lhs.pretty_string(), rhs.pretty_string())
+            }
         }
     }
 

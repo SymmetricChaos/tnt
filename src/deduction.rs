@@ -2,6 +2,7 @@ use indexmap::IndexSet;
 use num::BigUint;
 use std::{
     convert::TryFrom,
+    fmt,
     fs::File,
     io::{Error, Write},
     slice::Iter,
@@ -209,7 +210,7 @@ impl Deduction {
                 "\n{}{}) {}",
                 "   ".repeat(t.depth),
                 pos,
-                t.formula.to_string()
+                t.formula.pretty_string()
             );
             out.push_str(&line);
             prev_depth = t.depth;
@@ -265,6 +266,14 @@ impl Deduction {
     }
 
     pub fn english(&self) -> String {
+        let mut out = String::new();
+        for t in self.theorems.iter() {
+            out.push_str(&format!("\n{}) {}", t.position, t.formula.to_english()));
+        }
+        out
+    }
+
+    pub fn english_annotated(&self) -> String {
         let mut out = String::new();
         for t in self.theorems.iter() {
             out.push_str(&format!(
@@ -465,5 +474,31 @@ impl Deduction {
             n.push(32);
         }
         BigUint::from_bytes_be(&n)
+    }
+}
+
+impl fmt::Display for Deduction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut out = String::new();
+        let mut prev_depth = 0;
+        for (pos, t) in self.theorems.iter().enumerate() {
+            if t.depth > prev_depth {
+                let begin = format!("\n{}begin supposition", "   ".repeat(prev_depth));
+                out.push_str(&begin);
+            } else if t.depth < prev_depth {
+                let end = format!("\n{}end supposition", "   ".repeat(t.depth));
+                out.push_str(&end);
+            } else {
+            }
+            let line = format!(
+                "\n{}{}) {}",
+                "   ".repeat(t.depth),
+                pos,
+                t.formula.to_string()
+            );
+            out.push_str(&line);
+            prev_depth = t.depth;
+        }
+        write!(f, "{}", out)
     }
 }
