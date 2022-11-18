@@ -36,6 +36,19 @@ impl Formula {
         }
     }
 
+    /// Display the Formula with Unicode symbols and spaces.
+    pub fn pretty_string(&self) -> String {
+        match self {
+            Self::Equality(lhs, rhs) => format!("{lhs} = {rhs}"),
+            Self::Universal(name, formula) => format!("∀{name}:{formula}"),
+            Self::Existential(name, formula) => format!("∃{name}:{formula}"),
+            Self::Negation(formula) => format!("¬{formula}"),
+            Self::And(lhs, rhs) => format!("[{lhs} ∧ {rhs}]"),
+            Self::Or(lhs, rhs) => format!("[{lhs} ∨ {rhs}]"),
+            Self::Implies(lhs, rhs) => format!("[{lhs} ⇒ {rhs}]"),
+        }
+    }
+
     /// Return a String formatting the Formula in LaTeX with Hofstadter's original notation.
     pub fn to_latex(&self) -> String {
         match self {

@@ -310,7 +310,7 @@ dependencies = [
 
 [[package]]
 name = "tnt"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "indexmap",
  "lazy_static",

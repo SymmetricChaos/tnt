@@ -36,6 +36,7 @@ impl Term {
         }
     }
 
+    /// Display the Term with Unicode symbols and spaces.
     pub fn pretty_string(&self) -> String {
         match self {
             Self::Zero => "0".into(),
@@ -139,14 +140,14 @@ impl Term {
         }
     }
 
-    /// Produces the Term in its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
+    /// Produces the Term in its austere form. The leftmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
     pub fn austere(&self) -> Term {
         let mut out = self.clone();
         out.to_austere();
         out
     }
 
-    /// Mutate the Term into its austere form. The lhsmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
+    /// Mutate the Term into its austere form. The leftmost variable is renamed `a` in all appearances, the next is renamed `a'` and so on.
     pub fn to_austere(&mut self) {
         let vars = {
             let mut v = IndexSet::new();
