@@ -45,9 +45,11 @@ impl Term {
         match self {
             Self::Zero => "0".into(),
             Self::Variable(v) => v.into(),
-            Self::Successor(inner) => format!("S{}", inner),
-            Self::Sum(lhs, rhs) => format!("({} + {})", lhs, rhs),
-            Self::Product(lhs, rhs) => format!("({} × {})", lhs, rhs),
+            Self::Successor(inner) => format!("S{}", inner.pretty_string()),
+            Self::Sum(lhs, rhs) => format!("({} + {})", lhs.pretty_string(), rhs.pretty_string()),
+            Self::Product(lhs, rhs) => {
+                format!("({} × {})", lhs.pretty_string(), rhs.pretty_string())
+            }
         }
     }
 
