@@ -384,6 +384,23 @@ impl Formula {
             panic!("invalid Variable name")
         }
     }
+
+    /// Construct a vector of Formulas from a string that separates them with the ASCII null symbol. Logic errors are caught.
+    pub fn formulas_from_string(string: &str) -> Result<Vec<Formula>, LogicError> {
+        let mut vec = Vec::new();
+        for substring in string.split("\0") {
+            vec.push(Formula::try_from(substring)?)
+        }
+        Ok(vec)
+    }
+
+    /// Construct a vector of Formulas from a BigUint using the formulas_from_string method.
+    pub fn formulas_from_biguint(value: BigUint) -> Result<Vec<Formula>, LogicError> {
+        match from_utf8(&value.to_bytes_be()) {
+            Ok(s) => Self::formulas_from_string(s),
+            Err(e) => Err(LogicError(e.to_string())),
+        }
+    }
 }
 
 impl Display for Formula {

@@ -65,7 +65,7 @@ pub struct Deduction {
     index: usize,
     scope_stack: Vec<usize>,
     scope_cur: usize,
-    title: String,
+    pub title: String,
     axioms: Vec<Formula>,
     theorems: Vec<TheoremFrame>,
 }
@@ -447,7 +447,7 @@ impl Deduction {
         vars
     }
 
-    // /// Produce a Deduction of identical form with all Formulas in austere form.
+    /// Produce a Deduction of identical form with all Formulas in austere form.
     pub fn austere(&self) -> Deduction {
         let vars = self.vars_in_order();
         let mut out = self.clone();
@@ -457,7 +457,7 @@ impl Deduction {
         out
     }
 
-    // /// Change all Formulas in the Deduction to their austere form.
+    /// Change all Formulas in the Deduction to their austere form.
     pub fn to_austere(&mut self) {
         let vars = self.vars_in_order();
         for theorem in self.theorems.iter_mut() {
@@ -465,13 +465,13 @@ impl Deduction {
         }
     }
 
-    // /// Convert the Deduction to a (very large) integer. (No seriously its going to be a gigantic number.)
+    /// Convert the Deduction to a (very large) integer. Formulas are separated by the the ASCII null symbol.
     pub fn arithmetize(&self) -> BigUint {
         let austere = self.austere();
         let mut n: Vec<u8> = Vec::new();
         for t in austere.theorems().rev() {
             n.extend(t.formula.to_string().into_bytes().iter());
-            n.push(32);
+            n.push(0);
         }
         BigUint::from_bytes_be(&n)
     }
@@ -502,3 +502,14 @@ impl fmt::Display for Deduction {
         write!(f, "{}", out)
     }
 }
+
+// impl TryFrom<BigUint> for Deduction {
+//     type Error = LogicError;
+
+//     fn try_from(value: BigUint) -> Result<Self, Self::Error> {
+//         match from_utf8(&value.to_bytes_be()) {
+//             Ok(s) => Formula::try_from(s),
+//             Err(e) => Err(LogicError(e.to_string())),
+//         }
+//     }
+// }
